@@ -6,26 +6,41 @@
 <script src="https://unpkg.com/abcjs@6.4.0/dist/abcjs-basic-min.js"></script>
 </head>
 <body style="background:#111;color:#fff;padding:20px;font-family:sans-serif;">
-<h2>TAP TEST v1</h2>
-<div id="out" style="color:lime;font-size:1.2rem;margin:10px 0;">Loading...</div>
-<div id="notation" style="background:white;padding:10px;"></div>
+<h2>TAP TEST v2</h2>
+<div id="out" style="color:lime;font-size:1rem;margin:10px 0;line-height:1.6;">Loading...</div>
+<div id="notation" style="background:white;padding:10px;border-radius:8px;"></div>
 <script>
 window.addEventListener('load', function(){
-  var abc = 'X:1\nK:C\nM:4/4\nL:1/4\nCDEF|]';
-  ABCJS.renderAbc('notation', abc, {staffwidth:300, scale:2});
+  var abc = 'X:1\nT:Test\nM:4/4\nL:1/4\nQ:1/4=120\nK:C\nC D E F | G A B c |]';
+  var vo = ABCJS.renderAbc('notation', abc, {staffwidth:600, scale:2});
   var svg = document.querySelector('#notation svg');
-  if(!svg){document.getElementById('out').textContent='NO SVG';return;}
-  var ells = svg.querySelectorAll('ellipse');
-  document.getElementById('out').textContent = 'SVG OK. Ellipses: ' + ells.length + 
-    (ells[0] ? ' cx='+ells[0].getAttribute('cx') : '');
-  svg.addEventListener('touchstart', function(e){
-    e.preventDefault();
-    document.getElementById('out').textContent = 'TOUCH FIRED! x='+e.touches[0].clientX;
-  }, {passive:false});
-  svg.addEventListener('click', function(e){
-    document.getElementById('out').textContent = 'CLICK FIRED! x='+e.clientX;
-  });
+
+var lines = [];
+lines.push(’abcjs loaded: ’ + (typeof ABCJS !== ‘undefined’));
+lines.push(’renderAbc returned: ’ + (vo ? JSON.stringify(vo).slice(0,80) : ‘null’));
+lines.push(’SVG found: ’ + (svg ? ‘yes, w=’+svg.getAttribute(‘width’) : ‘NO’));
+
+if(svg){
+var ells = svg.querySelectorAll(‘ellipse’);
+var paths = svg.querySelectorAll(‘path’);
+var gs = svg.querySelectorAll(‘g’);
+lines.push(‘ellipses:’+ells.length+’ paths:’+paths.length+’ g:’+gs.length);
+if(ells[0]) lines.push(‘ell0 cx=’+ells[0].getAttribute(‘cx’)+’ cy=’+ells[0].getAttribute(‘cy’));
+
+```
+svg.addEventListener('touchstart', function(e){
+  e.preventDefault();
+  document.getElementById('out').innerHTML += '<br>TOUCH! x='+Math.round(e.touches[0].clientX);
+}, {passive:false});
+svg.addEventListener('click', function(e){
+  document.getElementById('out').innerHTML += '<br>CLICK! x='+Math.round(e.clientX);
+});
+```
+
+}
+document.getElementById(‘out’).innerHTML = lines.join(’<br>’);
 });
 </script>
+
 </body>
 </html>
