@@ -278,21 +278,21 @@ function doRender(){
   cont.innerHTML='';
   document.querySelectorAll('.nhs').forEach(h=>h.remove());
 
+  // Measure width — must be done after layout
+  const cardW=document.getElementById('sheetCard').getBoundingClientRect().width;
+  const w=Math.floor(Math.max(300, cardW - 24));
+
   const pitches=parsePitches(abc);
-  const noteQueue=[...pitches]; // copy to consume in order
 
   ABCJS.renderAbc('notation',abc,{
-    responsive:'resize',
+    staffwidth:w,
     scale:1.4,paddingtop:4,paddingbottom:8,paddingleft:4,paddingright:4,
     wrap:{minSpacing:1.8,maxSpacing:2.8,preferredMeasuresPerLine:4},
     clickListener:function(abcElem,tuneNum,classes,analysis,drag,ev){
       if(!abcElem||abcElem.type!=='note')return;
-      // Use midi pitch directly from abcjs if available
-      let midi;
+      let midi=60;
       if(abcElem.midiPitches&&abcElem.midiPitches.length){
         midi=abcElem.midiPitches[0].pitch;
-      } else {
-        midi=noteQueue.shift()||60;
       }
       const cx=ev?ev.clientX:window.innerWidth/2;
       const cy=ev?ev.clientY:window.innerHeight/2;
@@ -300,26 +300,30 @@ function doRender(){
     }
   });
 
-  // Check what abcjs actually rendered
   const svg=cont.querySelector('svg');
-  const allGs=svg?svg.querySelectorAll('g'):[];
-  const classedGs=svg?Array.from(svg.querySelectorAll('g[class]')):[];
-  allNoteEls=classedGs.filter(el=>(el.getAttribute('class')||'').includes('note'));
-  const classExamples=classedGs.slice(0,6).map(el=>el.getAttribute('class')).join(' | ');
 
-  // iOS bridge: touchend fires synthetic click so clickListener works
+  // iOS: touchend on SVG fires synthetic click so abcjs clickListener triggers
   if(svg){
     svg.addEventListener('touchend',function(e){
       e.preventDefault();
       const t=e.changedTouches[0];
       const el=document.elementFromPoint(t.clientX,t.clientY);
-      if(el) el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:t.clientX,clientY:t.clientY,view:window}));
+      if(el) el.dispatchEvent(new MouseEvent('click',{
+        bubbles:true,cancelable:true,
+        clientX:t.clientX,clientY:t.clientY,
+        view:window
+      }));
     },{passive:false});
   }
 
+  // Debug info
+  const allGs=svg?svg.querySelectorAll('g'):[];
+  const classedGs=svg?Array.from(svg.querySelectorAll('g[class]')):[];
+  const classExamples=classedGs.slice(0,4).map(el=>'"'+el.getAttribute('class')+'"').join(', ');
   document.getElementById('dbg').textContent=
-    'g:'+allGs.length+' classed:'+classedGs.length+' notes:'+allNoteEls.length+' classes: '+classExamples;
+    'w='+w+' g='+allGs.length+' classed='+classedGs.length+' eg: '+classExamples;
 
+  allNoteEls=classedGs.filter(el=>(el.getAttribute('class')||'').includes('note'));
   startEl=null;endEl=null;step=0;
   document.getElementById('clearBtn').classList.remove('show');
   if(mode==='range')setStatus('s-or','① Tap your first note');
@@ -555,7 +559,7 @@ function closePopup(){document.getElementById('popup').classList.remove('on');do
 
 /* ══ INIT ══ */
 buildFamTabs();buildKeyRow();
-window.addEventListener('load',doRender);
+window.addEventListener('load',()=>setTimeout(doRender,100));
 window.addEventListener('resize',()=>{clearTimeout(window._rt);window._rt=setTimeout(doRender,300);});
 document.addEventListener('click',e=>{
   const p=document.getElementById('instPanel');
