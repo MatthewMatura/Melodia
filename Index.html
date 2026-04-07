@@ -305,10 +305,20 @@ function doRender(){
   const allGs=svg?svg.querySelectorAll('g'):[];
   const classedGs=svg?Array.from(svg.querySelectorAll('g[class]')):[];
   allNoteEls=classedGs.filter(el=>(el.getAttribute('class')||'').includes('note'));
+  const classExamples=classedGs.slice(0,6).map(el=>el.getAttribute('class')).join(' | ');
+
+  // iOS bridge: touchend fires synthetic click so clickListener works
+  if(svg){
+    svg.addEventListener('touchend',function(e){
+      e.preventDefault();
+      const t=e.changedTouches[0];
+      const el=document.elementFromPoint(t.clientX,t.clientY);
+      if(el) el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,clientX:t.clientX,clientY:t.clientY,view:window}));
+    },{passive:false});
+  }
 
   document.getElementById('dbg').textContent=
-    'SVG g elements: '+allGs.length+' · classed: '+classedGs.length+
-    ' · note els: '+allNoteEls.length+' · pitches: '+pitches.length;
+    'g:'+allGs.length+' classed:'+classedGs.length+' notes:'+allNoteEls.length+' classes: '+classExamples;
 
   startEl=null;endEl=null;step=0;
   document.getElementById('clearBtn').classList.remove('show');
