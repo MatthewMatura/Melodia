@@ -246,17 +246,24 @@ function parsePitches(abc){
 function extractPositions(visualObj){
   const pos=[];
   if(!visualObj||!visualObj[0]||!visualObj[0].lines)return pos;
+  let firstLogged=false;
   visualObj[0].lines.forEach(line=>{
     (line.staff||[]).forEach(staff=>{
       (staff.voices||[]).forEach(voice=>{
         (voice||[]).forEach(elem=>{
           if(elem.el_type==='note'&&!elem.rest){
-            // abcjs stores x in elem.x, staffY in elem.staffPos or we use a fixed y per line
-            pos.push({
-              x: elem.x || 0,
-              y: elem.y || 0,
-              w: elem.w || 12,
-            });
+            if(!firstLogged){
+              // Log all keys of first note element for debugging
+              window._firstNoteKeys=Object.keys(elem).join(',');
+              window._firstNoteX=elem.x;
+              window._firstNoteAbsElem=JSON.stringify({x:elem.x,y:elem.y,absEl:elem.absEl?'exists':'none',startChar:elem.startChar,endChar:elem.endChar,xValue:elem.xValue,noteHead:elem.noteHead?JSON.stringify(elem.noteHead).slice(0,50):undefined}).slice(0,200);
+              firstLogged=true;
+            }
+            // Try every possible coordinate field
+            const x=elem.x||elem.xValue||(elem.absEl&&elem.absEl.x)||0;
+            const y=elem.y||elem.yValue||(elem.absEl&&elem.absEl.y)||0;
+            const w=elem.w||elem.width||12;
+            pos.push({x,y,w});
           }
         });
       });
