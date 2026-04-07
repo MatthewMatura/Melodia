@@ -286,10 +286,21 @@ function doRender(){
 
   const pitches=parsePitches(abc);
   const svg=cont.querySelector('svg');
-  allNoteEls=svg?Array.from(svg.querySelectorAll('.abcjs-note')):[];
+
+  // Try multiple selectors — abcjs class names can vary
+  let foundEls=[];
+  if(svg){
+    foundEls=Array.from(svg.querySelectorAll('.abcjs-note'));
+    if(!foundEls.length) foundEls=Array.from(svg.querySelectorAll('[class*="abcjs-note"]'));
+    if(!foundEls.length) foundEls=Array.from(svg.querySelectorAll('[class*="note"]'));
+  }
+  allNoteEls=foundEls;
+
+  // Sample first 3 g[class] elements to see what abcjs actually renders
+  const sampleClasses=svg?Array.from(svg.querySelectorAll('g[class]')).slice(0,3).map(el=>el.getAttribute('class')).join(' || '):'no svg';
 
   // Build hotspots after 2 animation frames so layout is stable
-  requestAnimationFrame(()=>requestAnimationFrame(()=>buildHotspots(svg,pitches)));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>buildHotspots(svg,pitches,sampleClasses)));
 
   startEl=null;endEl=null;step=0;
   document.getElementById('clearBtn').classList.remove('show');
@@ -297,7 +308,7 @@ function doRender(){
 }
 
 /* ══ HOTSPOT BUILDER ══ */
-function buildHotspots(svg, pitches) {
+function buildHotspots(svg, pitches, sampleClasses) {
   const dbg = document.getElementById('dbg');
   if (!svg) { dbg.textContent = 'No SVG'; return; }
 
@@ -391,7 +402,7 @@ function buildHotspots(svg, pitches) {
     built++;
   });
 
-  dbg.textContent = built + ' hotspots · ' + pitches.length + ' pitches · transform eg: "' + sampleTr + '"';
+  dbg.textContent = built + ' hotspots · ' + pitches.length + ' pitches · classes: "' + (sampleClasses||'') + '"';
 }
 
 /* ══ RANGE ══ */
