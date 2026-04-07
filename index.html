@@ -278,52 +278,77 @@ function doRender(){
   cont.innerHTML='';
   document.querySelectorAll('.nhs').forEach(h=>h.remove());
 
-  // Measure width — must be done after layout
   const cardW=document.getElementById('sheetCard').getBoundingClientRect().width;
-  const w=Math.floor(Math.max(300, cardW - 24));
-
+  const w=Math.floor(Math.max(300,cardW-24));
   const pitches=parsePitches(abc);
 
-  ABCJS.renderAbc('notation',abc,{
+  // renderAbc returns visual object with note positions
+  const visualObj=ABCJS.renderAbc('notation',abc,{
     staffwidth:w,
     scale:1.4,paddingtop:4,paddingbottom:8,paddingleft:4,paddingright:4,
     wrap:{minSpacing:1.8,maxSpacing:2.8,preferredMeasuresPerLine:4},
-    clickListener:function(abcElem,tuneNum,classes,analysis,drag,ev){
-      if(!abcElem||abcElem.type!=='note')return;
-      let midi=60;
-      if(abcElem.midiPitches&&abcElem.midiPitches.length){
-        midi=abcElem.midiPitches[0].pitch;
-      }
-      const cx=ev?ev.clientX:window.innerWidth/2;
-      const cy=ev?ev.clientY:window.innerHeight/2;
-      if(mode==='finger') showPopup(midi,cx,cy);
-    }
   });
 
-  const svg=cont.querySelector('svg');
-
-  // iOS: touchend on SVG fires synthetic click so abcjs clickListener triggers
-  if(svg){
-    svg.addEventListener('touchend',function(e){
-      e.preventDefault();
-      const t=e.changedTouches[0];
-      const el=document.elementFromPoint(t.clientX,t.clientY);
-      if(el) el.dispatchEvent(new MouseEvent('click',{
-        bubbles:true,cancelable:true,
-        clientX:t.clientX,clientY:t.clientY,
-        view:window
-      }));
-    },{passive:false});
+  // Extract note x,y positions from tune object
+  const notePositions=[]; // {x, y} in SVG units
+  if(visualObj&&visualObj[0]&&visualObj[0].lines){
+    visualObj[0].lines.forEach(line=>{
+      (line.staff||[]).forEach(staff=>{
+        (staff.voices||[]).forEach(voice=>{
+          (voice||[]).forEach(elem=>{
+            if(elem.el_type==='note'&&!elem.rest&&elem.x!==undefined){
+              notePositions.push({x:elem.x, y:elem.y||0});
+            }
+          });
+        });
+      });
+    });
   }
 
-  // Debug info
-  const allGs=svg?svg.querySelectorAll('g'):[];
-  const classedGs=svg?Array.from(svg.querySelectorAll('g[class]')):[];
-  const classExamples=classedGs.slice(0,4).map(el=>'"'+el.getAttribute('class')+'"').join(', ');
-  document.getElementById('dbg').textContent=
-    'w='+w+' g='+allGs.length+' classed='+classedGs.length+' eg: '+classExamples;
+  const svg=cont.querySelector('svg');
+  const svgRect=svg?svg.getBoundingClientRect():null;
+  const card=document.getElementById('sheetCard');
+  const cardRect=card.getBoundingClientRect();
+  const svgAttrW=svg?parseFloat(svg.getAttribute('width'))||w:w;
+  const svgAttrH=svg?parseFloat(svg.getAttribute('height'))||400:400;
+  const scaleX=svgRect?(svgRect.width/svgAttrW):1;
+  const scaleY=svgRect?(svgRect.height/svgAttrH):1;
+  const offX=svgRect?(svgRect.left-cardRect.left):0;
+  const offY=svgRect?(svgRect.top-cardRect.top):0;
 
-  allNoteEls=classedGs.filter(el=>(el.getAttribute('class')||'').includes('note'));
+  // Build HTML hotspots from note positions
+  let built=0;
+  notePositions.forEach((pos,i)=>{
+    const midi=pitches[i];
+    if(midi===undefined)return;
+    const px=offX+pos.x*scaleX;
+    const py=offY+pos.y*scaleY;
+    const hw=20,hh=24;
+    const hs=document.createElement('div');
+    hs.className='nhs';
+    hs.style.left=(px-hw)+'px';
+    hs.style.top=(py-hh)+'px';
+    hs.style.width=(hw*2)+'px';
+    hs.style.height=(hh*2)+'px';
+    const fire=(sx,sy)=>{
+      if(mode==='finger') showPopup(midi,sx,sy);
+      else handleRange(hs,i);
+    };
+    hs.addEventListener('touchstart',e=>{
+      e.preventDefault();e.stopPropagation();
+      const t=e.changedTouches[0]||e.touches[0];
+      fire(t.clientX,t.clientY);
+    },{passive:false});
+    hs.addEventListener('click',e=>{e.stopPropagation();fire(e.clientX,e.clientY);});
+    card.appendChild(hs);
+    built++;
+  });
+
+  allNoteEls=Array.from(card.querySelectorAll('.nhs'));
+  document.getElementById('dbg').textContent=
+    'positions:'+notePositions.length+' hotspots:'+built+' pitches:'+pitches.length+
+    ' svgW:'+Math.round(svgAttrW)+' scale:'+scaleX.toFixed(2);
+
   startEl=null;endEl=null;step=0;
   document.getElementById('clearBtn').classList.remove('show');
   if(mode==='range')setStatus('s-or','① Tap your first note');
