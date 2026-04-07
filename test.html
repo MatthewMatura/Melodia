@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<html>
+<head><title>TAP TEST</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<script src="https://unpkg.com/abcjs@6.4.0/dist/abcjs-basic-min.js"></script>
+</head>
+<body style="background:#111;color:#fff;padding:20px;font-family:sans-serif;">
+<h2>TAP TEST v1</h2>
+<div id="out" style="color:lime;font-size:1.2rem;margin:10px 0;">Loading...</div>
+<div id="notation" style="background:white;padding:10px;"></div>
+<script>
+window.addEventListener('load', function(){
+  var abc = 'X:1\nK:C\nM:4/4\nL:1/4\nCDEF|]';
+  ABCJS.renderAbc('notation', abc, {staffwidth:300, scale:2});
+  var svg = document.querySelector('#notation svg');
+  if(!svg){document.getElementById('out').textContent='NO SVG';return;}
+  var ells = svg.querySelectorAll('ellipse');
+  document.getElementById('out').textContent = 'SVG OK. Ellipses: ' + ells.length + 
+    (ells[0] ? ' cx='+ells[0].getAttribute('cx') : '');
+  svg.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    document.getElementById('out').textContent = 'TOUCH FIRED! x='+e.touches[0].clientX;
+  }, {passive:false});
+  svg.addEventListener('click', function(e){
+    document.getElementById('out').textContent = 'CLICK FIRED! x='+e.clientX;
+  });
+});
+</script>
+</body>
+</html>
