@@ -299,7 +299,6 @@ function doRender(){
   const svgRect=svg?svg.getBoundingClientRect():null;
   const cardRect=card.getBoundingClientRect();
 
-  // SVG coordinate space dimensions from attributes
   const svgW=svg?parseFloat(svg.getAttribute('width'))||w:w;
   const svgH=svg?parseFloat(svg.getAttribute('height'))||400:400;
   const scaleX=svgRect?svgRect.width/svgW:1;
@@ -307,16 +306,33 @@ function doRender(){
   const offX=svgRect?svgRect.left-cardRect.left:0;
   const offY=svgRect?svgRect.top-cardRect.top:0;
 
+  // Get note head positions from SVG ellipses (note heads are always ellipses in abcjs)
+  // Sort by y first (staff line), then x (left to right) to get reading order
+  const ellipses=svg?Array.from(svg.querySelectorAll('ellipse')):[];
+  const noteHeads=ellipses
+    .map(el=>({
+      cx:parseFloat(el.getAttribute('cx')||0),
+      cy:parseFloat(el.getAttribute('cy')||0),
+      rx:parseFloat(el.getAttribute('rx')||6),
+    }))
+    .filter(e=>e.rx>2&&e.rx<20) // filter out tiny/huge non-note ellipses
+    .sort((a,b)=>{ // reading order: top-to-bottom staff, left-to-right within staff
+      const rowA=Math.round(a.cy/40); // group by staff row
+      const rowB=Math.round(b.cy/40);
+      return rowA!==rowB?rowA-rowB:a.cx-b.cx;
+    });
+
   let built=0;
-  const usedPositions=positions.slice(0,pitches.length);
+  const count=Math.min(noteHeads.length,pitches.length);
 
-  usedPositions.forEach((pos,i)=>{
+  for(let i=0;i<count;i++){
+    const nh=noteHeads[i];
     const midi=pitches[i];
-    if(!midi||pos.x===0)return;
+    if(!midi)continue;
 
-    const px=offX+pos.x*scaleX;
-    const py=offY+pos.y*scaleY;
-    const hw=Math.max((pos.w||12)*scaleX/2,18);
+    const px=offX+nh.cx*scaleX;
+    const py=offY+nh.cy*scaleY;
+    const hw=Math.max(nh.rx*scaleX*1.5,18);
     const hh=22;
 
     const hs=document.createElement('div');
@@ -333,20 +349,16 @@ function doRender(){
       const t=e.changedTouches[0]||e.touches[0];
       onHotspotTap(hs,t.clientX,t.clientY);
     },{passive:false});
-    hs.addEventListener('click',e=>{
-      e.stopPropagation();
-      onHotspotTap(hs,e.clientX,e.clientY);
-    });
+    hs.addEventListener('click',e=>{e.stopPropagation();onHotspotTap(hs,e.clientX,e.clientY);});
 
     card.appendChild(hs);
     hsEls.push(hs);
     built++;
-  });
+  }
 
   document.getElementById('dbg').textContent=
-    'notes:'+positions.length+' pitches:'+pitches.length+' built:'+built+
-    ' svgW:'+Math.round(svgW)+' scale:'+scaleX.toFixed(2)+
-    (positions[0]?' pos0:('+Math.round(positions[0].x)+','+Math.round(positions[0].y)+')':'');
+    'ellipses:'+ellipses.length+' noteHeads:'+noteHeads.length+' built:'+built+' pitches:'+pitches.length+
+    (noteHeads[0]?' nh0:('+Math.round(noteHeads[0].cx)+','+Math.round(noteHeads[0].cy)+')':'');
 
   startHS=null;endHS=null;step=0;
   document.getElementById('clearBtn').classList.remove('show');
