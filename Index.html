@@ -275,34 +275,40 @@ function doRender(){
   const total=sI.xpose+sK.offset+sI.oct;
   const abc=xposeAbc(MEL[document.getElementById('sMelody').value],total);
   const cont=document.getElementById('notation');
-  // Wait for real width
-  const w=Math.max(300,Math.floor((cont.getBoundingClientRect().width||window.innerWidth-30)-16));
   cont.innerHTML='';
   document.querySelectorAll('.nhs').forEach(h=>h.remove());
 
   const pitches=parsePitches(abc);
-  let noteIndex=0;
-  const noteMap=[]; // {midi, x, y} in abc coords
+  const noteQueue=[...pitches]; // copy to consume in order
 
   ABCJS.renderAbc('notation',abc,{
-    staffwidth:w,scale:1.4,paddingtop:4,paddingbottom:8,paddingleft:4,paddingright:4,
+    responsive:'resize',
+    scale:1.4,paddingtop:4,paddingbottom:8,paddingleft:4,paddingright:4,
     wrap:{minSpacing:1.8,maxSpacing:2.8,preferredMeasuresPerLine:4},
     clickListener:function(abcElem,tuneNum,classes,analysis,drag,ev){
       if(!abcElem||abcElem.type!=='note')return;
-      const midi=pitches[noteIndex]||pitches[pitches.length-1];
+      // Use midi pitch directly from abcjs if available
+      let midi;
+      if(abcElem.midiPitches&&abcElem.midiPitches.length){
+        midi=abcElem.midiPitches[0].pitch;
+      } else {
+        midi=noteQueue.shift()||60;
+      }
       const cx=ev?ev.clientX:window.innerWidth/2;
       const cy=ev?ev.clientY:window.innerHeight/2;
       if(mode==='finger') showPopup(midi,cx,cy);
-      noteIndex++;
     }
   });
 
-  // For range mode, still need note elements — try after render
+  // Check what abcjs actually rendered
   const svg=cont.querySelector('svg');
-  allNoteEls=svg?Array.from(svg.querySelectorAll('[class*="note"]')):[];
+  const allGs=svg?svg.querySelectorAll('g'):[];
+  const classedGs=svg?Array.from(svg.querySelectorAll('g[class]')):[];
+  allNoteEls=classedGs.filter(el=>(el.getAttribute('class')||'').includes('note'));
 
-  const sampleClasses=svg?Array.from(svg.querySelectorAll('g')).slice(0,5).map(el=>el.getAttribute('class')||'').filter(Boolean).join(' | '):'no svg';
-  document.getElementById('dbg').textContent='clickListener ready · '+pitches.length+' pitches · sample g classes: "'+sampleClasses+'"';
+  document.getElementById('dbg').textContent=
+    'SVG g elements: '+allGs.length+' · classed: '+classedGs.length+
+    ' · note els: '+allNoteEls.length+' · pitches: '+pitches.length;
 
   startEl=null;endEl=null;step=0;
   document.getElementById('clearBtn').classList.remove('show');
