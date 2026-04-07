@@ -275,32 +275,34 @@ function doRender(){
   const total=sI.xpose+sK.offset+sI.oct;
   const abc=xposeAbc(MEL[document.getElementById('sMelody').value],total);
   const cont=document.getElementById('notation');
-  const w=Math.floor((cont.getBoundingClientRect().width||window.innerWidth-30)-16);
+  // Wait for real width
+  const w=Math.max(300,Math.floor((cont.getBoundingClientRect().width||window.innerWidth-30)-16));
   cont.innerHTML='';
   document.querySelectorAll('.nhs').forEach(h=>h.remove());
+
+  const pitches=parsePitches(abc);
+  let noteIndex=0;
+  const noteMap=[]; // {midi, x, y} in abc coords
 
   ABCJS.renderAbc('notation',abc,{
     staffwidth:w,scale:1.4,paddingtop:4,paddingbottom:8,paddingleft:4,paddingright:4,
     wrap:{minSpacing:1.8,maxSpacing:2.8,preferredMeasuresPerLine:4},
+    clickListener:function(abcElem,tuneNum,classes,analysis,drag,ev){
+      if(!abcElem||abcElem.type!=='note')return;
+      const midi=pitches[noteIndex]||pitches[pitches.length-1];
+      const cx=ev?ev.clientX:window.innerWidth/2;
+      const cy=ev?ev.clientY:window.innerHeight/2;
+      if(mode==='finger') showPopup(midi,cx,cy);
+      noteIndex++;
+    }
   });
 
-  const pitches=parsePitches(abc);
+  // For range mode, still need note elements — try after render
   const svg=cont.querySelector('svg');
+  allNoteEls=svg?Array.from(svg.querySelectorAll('[class*="note"]')):[];
 
-  // Try multiple selectors — abcjs class names can vary
-  let foundEls=[];
-  if(svg){
-    foundEls=Array.from(svg.querySelectorAll('.abcjs-note'));
-    if(!foundEls.length) foundEls=Array.from(svg.querySelectorAll('[class*="abcjs-note"]'));
-    if(!foundEls.length) foundEls=Array.from(svg.querySelectorAll('[class*="note"]'));
-  }
-  allNoteEls=foundEls;
-
-  // Sample first 3 g[class] elements to see what abcjs actually renders
-  const sampleClasses=svg?Array.from(svg.querySelectorAll('g[class]')).slice(0,3).map(el=>el.getAttribute('class')).join(' || '):'no svg';
-
-  // Build hotspots after 2 animation frames so layout is stable
-  requestAnimationFrame(()=>requestAnimationFrame(()=>buildHotspots(svg,pitches,sampleClasses)));
+  const sampleClasses=svg?Array.from(svg.querySelectorAll('g')).slice(0,5).map(el=>el.getAttribute('class')||'').filter(Boolean).join(' | '):'no svg';
+  document.getElementById('dbg').textContent='clickListener ready · '+pitches.length+' pitches · sample g classes: "'+sampleClasses+'"';
 
   startEl=null;endEl=null;step=0;
   document.getElementById('clearBtn').classList.remove('show');
