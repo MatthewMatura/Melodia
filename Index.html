@@ -304,36 +304,60 @@ function buildHotspots(svg, pitches) {
   const card = document.getElementById('sheetCard');
   const cardRect = card.getBoundingClientRect();
   const svgRect  = svg.getBoundingClientRect();
-
-  // abcjs sets width/height as px attributes on the root SVG
   const svgAttrW = parseFloat(svg.getAttribute('width'))  || svgRect.width;
   const svgAttrH = parseFloat(svg.getAttribute('height')) || svgRect.height;
   const scaleX = svgRect.width  / svgAttrW;
   const scaleY = svgRect.height / svgAttrH;
-
-  // SVG top-left relative to card
   const offX = svgRect.left - cardRect.left;
   const offY = svgRect.top  - cardRect.top;
 
+  // Log first note element's transform for debugging
+  const firstNote = allNoteEls[0];
+  const sampleTr = firstNote ? firstNote.getAttribute('transform') : 'no notes';
+  
   let built = 0;
   allNoteEls.forEach((el, i) => {
     const midi = pitches[i];
     if (midi === undefined) return;
 
-    // abcjs ALWAYS puts translate(x,y) on each .abcjs-note <g>
-    const tr  = el.getAttribute('transform') || '';
-    const tm  = tr.match(/translate\(\s*([-\d.]+)[\s,]+([-\d.]+)\s*\)/);
-    if (!tm) return;
+    // Try to get position from transform attribute
+    const tr = el.getAttribute('transform') || '';
+    
+    // Try multiple regex patterns for different transform formats
+    let svgX = null, svgY = null;
+    
+    // "translate(x,y)" or "translate(x, y)"
+    let m = tr.match(/translate\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)/);
+    if (m) { svgX = parseFloat(m[1]); svgY = parseFloat(m[2]); }
+    
+    // "translate(x y)" with space separator
+    if (svgX === null) {
+      m = tr.match(/translate\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/);
+      if (m) { svgX = parseFloat(m[1]); svgY = parseFloat(m[2]); }
+    }
 
-    const svgX = parseFloat(tm[1]);
-    const svgY = parseFloat(tm[2]);
+    // Single value "translate(x)"
+    if (svgX === null) {
+      m = tr.match(/translate\(\s*([-\d.]+)\s*\)/);
+      if (m) { svgX = parseFloat(m[1]); svgY = 0; }
+    }
 
-    // Convert to card-relative screen pixels
+    // If no transform, try getBBox directly
+    if (svgX === null) {
+      try {
+        const bb = el.getBBox();
+        if (bb && bb.width > 0) {
+          svgX = bb.x + bb.width / 2;
+          svgY = bb.y + bb.height / 2;
+        }
+      } catch(e) {}
+    }
+
+    if (svgX === null) return;
+
     const px = offX + svgX * scaleX;
     const py = offY + svgY * scaleY;
-
-    // Fixed hotspot size — note heads are ~16px wide at scale 1.4
-    const hw = 22, hh = 28;
+    const hw = 24, hh = 30;
 
     const hs = document.createElement('div');
     hs.className = 'nhs';
@@ -367,9 +391,7 @@ function buildHotspots(svg, pitches) {
     built++;
   });
 
-  dbg.textContent = built + ' hotspots built · ' + pitches.length + ' pitches · ' +
-    'SVG ' + Math.round(svgAttrW) + '×' + Math.round(svgAttrH) +
-    ' → screen ' + Math.round(svgRect.width) + '×' + Math.round(svgRect.height);
+  dbg.textContent = built + ' hotspots · ' + pitches.length + ' pitches · transform eg: "' + sampleTr + '"';
 }
 
 /* ══ RANGE ══ */
