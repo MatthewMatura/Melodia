@@ -180,16 +180,16 @@ select{width:100%;font-family:‘Outfit’,sans-serif;font-size:.8rem;font-weigh
 function n(m,d){return{midi:m,dur:d};}
 var Q=1,H=2,E=.5,DQ=1.5,DH=3;
 var MEL={
-  ode:{notes:[n(64,Q),n(64,Q),n(65,Q),n(67,Q),n(67,Q),n(65,Q),n(64,Q),n(62,Q),n(60,Q),n(60,Q),n(62,Q),n(64,Q),n(64,DQ),n(62,E),n(62,H),n(64,Q),n(64,Q),n(65,Q),n(67,Q),n(67,Q),n(65,Q),n(64,Q),n(62,Q),n(60,Q),n(60,Q),n(62,Q),n(64,Q),n(62,DQ),n(60,E),n(60,H),n(62,Q),n(62,Q),n(64,Q),n(60,Q),n(62,Q),n(64,E),n(65,E),n(64,Q),n(60,Q),n(62,Q),n(64,E),n(65,E),n(64,Q),n(62,Q),n(60,Q),n(62,Q),n(55,H),n(64,Q),n(64,Q),n(65,Q),n(67,Q),n(67,Q),n(65,Q),n(64,Q),n(62,Q),n(60,Q),n(60,Q),n(62,Q),n(64,Q),n(62,DQ),n(60,E),n(60,H)]},
-  twinkle:{notes:[n(60,Q),n(60,Q),n(67,Q),n(67,Q),n(69,Q),n(69,Q),n(67,H),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(60,H),n(67,Q),n(67,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,H),n(67,Q),n(67,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,H),n(60,Q),n(60,Q),n(67,Q),n(67,Q),n(69,Q),n(69,Q),n(67,H),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(60,H)]},
-  jingle:{notes:[n(64,Q),n(64,Q),n(64,H),n(64,Q),n(64,Q),n(64,H),n(64,Q),n(67,Q),n(60,Q),n(62,Q),n(64,4),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(64,Q),n(62,H),n(67,H),n(64,Q),n(64,Q),n(64,H),n(64,Q),n(64,Q),n(64,H),n(64,Q),n(67,Q),n(60,Q),n(62,Q),n(64,4),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(64,Q),n(67,Q),n(67,Q),n(65,Q),n(62,Q),n(60,4)]},
-  mary:{notes:[n(64,Q),n(62,Q),n(60,Q),n(62,Q),n(64,Q),n(64,Q),n(64,H),n(62,Q),n(62,Q),n(62,H),n(64,Q),n(67,Q),n(67,H),n(64,Q),n(62,Q),n(60,Q),n(62,Q),n(64,Q),n(64,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(64,Q),n(62,Q),n(60,4)]}
+  ode:{name:'Ode to Joy — Beethoven',notes:[n(64,Q),n(64,Q),n(65,Q),n(67,Q),n(67,Q),n(65,Q),n(64,Q),n(62,Q),n(60,Q),n(60,Q),n(62,Q),n(64,Q),n(64,DQ),n(62,E),n(62,H),n(64,Q),n(64,Q),n(65,Q),n(67,Q),n(67,Q),n(65,Q),n(64,Q),n(62,Q),n(60,Q),n(60,Q),n(62,Q),n(64,Q),n(62,DQ),n(60,E),n(60,H),n(62,Q),n(62,Q),n(64,Q),n(60,Q),n(62,Q),n(64,E),n(65,E),n(64,Q),n(60,Q),n(62,Q),n(64,E),n(65,E),n(64,Q),n(62,Q),n(60,Q),n(62,Q),n(55,H),n(64,Q),n(64,Q),n(65,Q),n(67,Q),n(67,Q),n(65,Q),n(64,Q),n(62,Q),n(60,Q),n(60,Q),n(62,Q),n(64,Q),n(62,DQ),n(60,E),n(60,H)]},
+  twinkle:{name:'Twinkle Twinkle Little Star',notes:[n(60,Q),n(60,Q),n(67,Q),n(67,Q),n(69,Q),n(69,Q),n(67,H),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(60,H),n(67,Q),n(67,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,H),n(67,Q),n(67,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,H),n(60,Q),n(60,Q),n(67,Q),n(67,Q),n(69,Q),n(69,Q),n(67,H),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(60,H)]},
+  jingle:{name:'Jingle Bells — J. Pierpont',notes:[n(64,Q),n(64,Q),n(64,H),n(64,Q),n(64,Q),n(64,H),n(64,Q),n(67,Q),n(60,Q),n(62,Q),n(64,4),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(64,Q),n(62,H),n(67,H),n(64,Q),n(64,Q),n(64,H),n(64,Q),n(64,Q),n(64,H),n(64,Q),n(67,Q),n(60,Q),n(62,Q),n(64,4),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(64,Q),n(67,Q),n(67,Q),n(65,Q),n(62,Q),n(60,4)]},
+  mary:{name:'Mary Had a Little Lamb',notes:[n(64,Q),n(62,Q),n(60,Q),n(62,Q),n(64,Q),n(64,Q),n(64,H),n(62,Q),n(62,Q),n(62,H),n(64,Q),n(67,Q),n(67,H),n(64,Q),n(62,Q),n(60,Q),n(62,Q),n(64,Q),n(64,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(64,Q),n(62,Q),n(60,4)]}
 };
 var FAM=[
-  {id:'piano',label:'Piano',ico:'&#x1F3B9;',insts:[{id:'piano',label:'Piano',xpose:0,diag:'piano'}]},
-  {id:'strings',label:'Strings',ico:'&#x1F3BB;',insts:[{id:'violin',label:'Violin',xpose:0,diag:'strings'},{id:'viola',label:'Viola',xpose:0,diag:'strings'},{id:'cello',label:'Cello',xpose:-12,diag:'strings'},{id:'dbass',label:'Dbl Bass',xpose:-12,diag:'strings'}]},
-  {id:'winds',label:'Winds',ico:'&#x1F3B5;',insts:[{id:'flute',label:'Flute',xpose:0,diag:'generic'},{id:'clarBb',label:'Clarinet Bb',xpose:2,diag:'clarinet'},{id:'altosax',label:'Alto Sax',xpose:9,diag:'sax'},{id:'tenorsax',label:'Tenor Sax',xpose:2,diag:'sax'},{id:'bassoon',label:'Bassoon',xpose:-12,diag:'generic'}]},
-  {id:'brass',label:'Brass',ico:'&#x1F3BA;',insts:[{id:'trumpet',label:'Trumpet Bb',xpose:2,diag:'valve'},{id:'horn',label:'French Horn',xpose:7,diag:'valve'},{id:'trombone',label:'Trombone',xpose:-12,diag:'trombone'},{id:'tuba',label:'Tuba',xpose:-12,diag:'valve'}]}
+  {id:'piano',label:'Piano',ico:'&#x1F3B9;',insts:[{id:'piano',label:'Piano',xpose:0,diag:'piano',clef:'treble'}]},
+  {id:'strings',label:'Strings',ico:'&#x1F3BB;',insts:[{id:'violin',label:'Violin',xpose:0,diag:'strings',clef:'treble'},{id:'viola',label:'Viola',xpose:0,diag:'strings',clef:'alto'},{id:'cello',label:'Cello',xpose:-12,diag:'strings',clef:'bass'},{id:'dbass',label:'Dbl Bass',xpose:-12,diag:'strings',clef:'bass'}]},
+  {id:'winds',label:'Winds',ico:'&#x1F3B5;',insts:[{id:'flute',label:'Flute',xpose:0,diag:'generic',clef:'treble'},{id:'clarBb',label:'Clarinet Bb',xpose:2,diag:'clarinet',clef:'treble'},{id:'altosax',label:'Alto Sax',xpose:9,diag:'sax',clef:'treble'},{id:'tenorsax',label:'Tenor Sax',xpose:2,diag:'sax',clef:'treble'},{id:'bassoon',label:'Bassoon',xpose:-12,diag:'generic',clef:'bass'}]},
+  {id:'brass',label:'Brass',ico:'&#x1F3BA;',insts:[{id:'trumpet',label:'Trumpet Bb',xpose:2,diag:'valve',clef:'treble'},{id:'horn',label:'French Horn',xpose:7,diag:'valve',clef:'treble'},{id:'trombone',label:'Trombone',xpose:-12,diag:'trombone',clef:'bass'},{id:'tuba',label:'Tuba',xpose:-12,diag:'valve',clef:'bass'}]}
 ];
 var KEYS=[{label:'C',sem:0},{label:'C#',sem:1},{label:'Db',sem:1},{label:'D',sem:2},{label:'Eb',sem:3},{label:'E',sem:4},{label:'F',sem:5},{label:'F#',sem:6},{label:'Gb',sem:6},{label:'G',sem:7},{label:'Ab',sem:8},{label:'A',sem:9},{label:'Bb',sem:10},{label:'B',sem:11}];
 var TV={C:[0,0,0],'C#':[1,1,1],Db:[1,1,1],D:[1,0,1],'D#':[0,1,1],Eb:[0,1,1],E:[1,1,0],F:[1,0,0],'F#':[0,1,0],Gb:[0,1,0],G:[0,0,0],'G#':[0,1,1],Ab:[0,1,1],A:[1,1,0],'A#':[1,0,0],Bb:[1,0,0],B:[0,1,0]};
@@ -208,29 +208,56 @@ var KEY_NAMES=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
 var KEY_USESHARP=[false,false,true,false,true,false,true,true,false,true,false,true];
 var SHARP_Y=[1,.5,1.5,1,2,1.5,2.5],FLAT_Y=[2.5,1.5,3,2,3.5,2.5,4];
 var DIAT=[0,0,1,1,2,3,3,4,4,5,5,6];
-function midiY(midi,sty){var oct=Math.floor(midi/12)-1,chrom=((midi%12)+12)%12;return sty+LG*2-((oct-4)*7+(DIAT[chrom]-6))*(LG/2);}
+function midiY(midi,sty,clef){
+  // Reference pitch on middle staff line per clef
+  var REF={treble:71,bass:50,alto:60}; // B4, D3, C4
+  var ref=REF[clef||'treble'];
+  var refOct=Math.floor(ref/12)-1,refChrom=((ref%12)+12)%12,refDiat=DIAT[refChrom];
+  var oct=Math.floor(midi/12)-1,chrom=((midi%12)+12)%12,diat=DIAT[chrom];
+  var steps=(oct-refOct)*7+(diat-refDiat);
+  return sty+LG*2-steps*(LG/2);
+}
 
-/* Treble clef canvas cache */
-var _clef=null;
-function initClef(){
-  if(_clef)return;
+/* Clef canvas cache - supports treble, bass, alto */
+var _clefs={};
+// Config per clef type:
+// codepoint: Unicode music symbol
+// staffLine: which staff line the clef anchors to (sty + N*LG from top)
+//   treble: G line = 3rd from top (sty+3*LG)
+//   bass:   F line = 1st from top (sty+1*LG)
+//   alto:   C line = middle (sty+2*LG)
+// gr: where the anchor sits as a ratio of glyph height from top
+// scale: how many staff-spaces tall to display
+var CLEF_CFG={
+  treble:{cp:0x1D11E,staffLine:3,gr:0.65,scale:7.2,bl:500,x:-4},
+  bass:  {cp:0x1D122,staffLine:1,gr:0.22,scale:4.5,bl:420,x:0},
+  alto:  {cp:0x1D121,staffLine:2,gr:0.50,scale:4.5,bl:400,x:0}
+};
+function initClef(type){
+  if(_clefs[type])return;
+  var cfg=CLEF_CFG[type]||CLEF_CFG.treble;
   var FS=400,CW=280,CH=620;
   var cv=document.createElement('canvas');cv.width=CW;cv.height=CH;
   var ctx=cv.getContext('2d');ctx.fillStyle='#111';
   ctx.font=FS+'px "Apple Symbols","Segoe UI Symbol","Noto Music",serif';
-  ctx.fillText(String.fromCodePoint(0x1D11E),6,500);
+  ctx.fillText(String.fromCodePoint(cfg.cp),6,cfg.bl);
   var yT=CH,yB=0,found=false;
   try{var px=ctx.getImageData(0,0,CW,CH).data;for(var y=0;y<CH;y++)for(var x=0;x<CW;x++){if(px[(y*CW+x)*4+3]>10){found=true;if(y<yT)yT=y;if(y>yB)yB=y;}}}catch(e){}
   var gh=found&&yB>yT?yB-yT:480;
-  _clef={url:cv.toDataURL('image/png'),cw:CW,ch:CH,gh:gh,yT:found?yT:20,gr:0.65};
+  _clefs[type]={url:cv.toDataURL('image/png'),cw:CW,ch:CH,gh:gh,yT:found?yT:20,cfg:cfg};
 }
-function addClef(svg,NS,sty){
-  initClef();
-  var gY=sty+3*LG,scale=(7.2*LG)/_clef.gh;
+function addClef(svg,NS,sty,clefType){
+  var type=clefType||'treble';
+  initClef(type);
+  var d=_clefs[type],cfg=d.cfg;
+  var anchorY=sty+cfg.staffLine*LG;
+  var scale=(cfg.scale*LG)/d.gh;
   var img=document.createElementNS(NS,'image');
-  img.setAttribute('href',_clef.url);img.setAttribute('x','-4');
-  img.setAttribute('y',String(gY-(_clef.yT+_clef.gh*_clef.gr)*scale));
-  img.setAttribute('width',String(_clef.cw*scale));img.setAttribute('height',String(_clef.ch*scale));
+  img.setAttribute('href',d.url);
+  img.setAttribute('x',String(cfg.x));
+  img.setAttribute('y',String(anchorY-(d.yT+d.gh*cfg.gr)*scale));
+  img.setAttribute('width',String(d.cw*scale));
+  img.setAttribute('height',String(d.ch*scale));
   svg.appendChild(img);
 }
 
@@ -241,40 +268,86 @@ function groupMeasures(notes,xp){
 }
 
 function doRender(){
-  var mel=MEL[document.getElementById('sMelody').value];
+  var key=document.getElementById('sMelody').value;
+  var mel=MEL[key];
   var xp=sI.xpose+sK.sem,tx=((xp%12)+12)%12;
-  renderScore(groupMeasures(mel.notes,xp),KEY_NAMES[tx],KEY_USESHARP[tx]);
+  renderScore(groupMeasures(mel.notes,xp),KEY_NAMES[tx],KEY_USESHARP[tx],sI.clef||'treble',mel.name,sI.label);
 }
 
-function renderScore(measures,keySig,useSharps){
+function renderScore(measures,keySig,useSharps,clefType,songTitle,instName){
+  clefType=clefType||'treble';
+  songTitle=songTitle||'';
+  instName=instName||'';
   var wrap=document.getElementById('scoreWrap'),W=wrap.offsetWidth||340;
   var NS='http://www.w3.org/2000/svg';
-  var rows=Math.ceil(measures.length/MPR),ROW_H=LG*4+PAD_T+ROW_EXTRA,svgH=rows*ROW_H+16;
+  var rows=Math.ceil(measures.length/MPR),ROW_H=LG*4+PAD_T+ROW_EXTRA;
+  var TITLE_H=38; // extra space above row 0 for title
+  var svgH=rows*ROW_H+TITLE_H+16;
   var svg=document.createElementNS(NS,'svg');
   svg.setAttribute('viewBox','0 0 '+W+' '+svgH);svg.setAttribute('width',W);svg.setAttribute('height',svgH);
   svg.style.touchAction='none';renderedNotes=[];
+  // ── Song title (centered, top of score) ──
+  var titleParts=songTitle.split('—'); // split on em-dash for title/composer
+  var titleText=titleParts[0].trim();
+  var composerText=titleParts.length>1?titleParts[1].trim():'';
+  var tEl=document.createElementNS(NS,'text');
+  tEl.setAttribute('x',String(W/2));tEl.setAttribute('y','18');
+  tEl.setAttribute('font-size','14');tEl.setAttribute('font-weight','bold');
+  tEl.setAttribute('font-family','Georgia,serif');tEl.setAttribute('fill','#111');
+  tEl.setAttribute('text-anchor','middle');tEl.textContent=titleText;
+  svg.appendChild(tEl);
+  if(composerText){
+    var cEl=document.createElementNS(NS,'text');
+    cEl.setAttribute('x',String(W-8));cEl.setAttribute('y','30');
+    cEl.setAttribute('font-size','9.5');cEl.setAttribute('font-style','italic');
+    cEl.setAttribute('font-family','Georgia,serif');cEl.setAttribute('fill','#333');
+    cEl.setAttribute('text-anchor','end');cEl.textContent=composerText;
+    svg.appendChild(cEl);
+  }
+  // ── Instrument name (top left, at first staff) ──
+  if(instName){
+    var iEl=document.createElementNS(NS,'text');
+    iEl.setAttribute('x','2');iEl.setAttribute('y','30');
+    iEl.setAttribute('font-size','9');iEl.setAttribute('font-style','italic');
+    iEl.setAttribute('font-family','Georgia,serif');iEl.setAttribute('fill','#333');
+    iEl.textContent=instName;
+    svg.appendChild(iEl);
+  }
+
   var sh=KEY_SHARPS[keySig]||0,fl=KEY_FLATS[keySig]||0,accCt=sh+fl;
-  var CLEF_W=36,KSIG_W=accCt>0?accCt*9+4:0,TSIG_W=22,PR=10;
+  // Clef width depends on type — treble is wider
+  var CLEF_W=(clefType==='treble'?34:clefType==='bass'?28:26);
+  // Key sig: 11px per accidental + 6px margin after
+  var KSIG_W=accCt>0?accCt*11+6:0;
+  // Time sig: 20px for the numerals + 8px gap before first note
+  var TSIG_W=accCt>0?28:26;
+  var PR=10;
   function mk(tag,a){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);return e;}
   function ln(x1,y1,x2,y2,sw,col){return mk('line',{x1:x1,y1:y1,x2:x2,y2:y2,stroke:col||'#111','stroke-width':sw||1.3,'stroke-linecap':'round'});}
   for(var row=0;row<rows;row++){
     var rowMs=measures.slice(row*MPR,(row+1)*MPR);
-    var sty=row*ROW_H+PAD_T,sbot=sty+LG*4,midY=sty+LG*2;
+    var sty=row*ROW_H+PAD_T+TITLE_H,sbot=sty+LG*4,midY=sty+LG*2;
     var leftM=CLEF_W+KSIG_W+(row===0?TSIG_W:0),availW=W-PR-leftM;
     for(var l=0;l<5;l++) svg.appendChild(ln(0,sty+l*LG,W,sty+l*LG,1.3));
     svg.appendChild(ln(0,sty,0,sbot,1.8));
-    addClef(svg,NS,sty);
-    var kx=CLEF_W+1,ac=sh>0?'\u266F':'\u266D',ay=sh>0?SHARP_Y:FLAT_Y;
-    for(var ai=0;ai<accCt;ai++){var ae=document.createElementNS(NS,'text');ae.setAttribute('x',String(kx));ae.setAttribute('y',String(sty+ay[ai]*LG+4));ae.setAttribute('font-size','11');ae.setAttribute('font-family','Georgia,serif');ae.setAttribute('fill','#111');ae.textContent=ac;svg.appendChild(ae);kx+=9;}
-    if(row===0){var tsx=CLEF_W+KSIG_W+TSIG_W/2;function mkts(y,t){var e=document.createElementNS(NS,'text');e.setAttribute('x',String(tsx));e.setAttribute('y',String(y));e.setAttribute('font-size',String(LG*1.9));e.setAttribute('font-weight','bold');e.setAttribute('font-family','Georgia,serif');e.setAttribute('fill','#111');e.setAttribute('text-anchor','middle');e.textContent=t;return e;}svg.appendChild(mkts(sty+LG*1.85,'4'));svg.appendChild(mkts(sty+LG*3.85,'4'));}
+    addClef(svg,NS,sty,clefType);
+    var kx=CLEF_W+4,ac=sh>0?'\u266F':'\u266D',ay=sh>0?SHARP_Y:FLAT_Y;
+    for(var ai=0;ai<accCt;ai++){var ae=document.createElementNS(NS,'text');ae.setAttribute('x',String(kx));ae.setAttribute('y',String(sty+ay[ai]*LG+4));ae.setAttribute('font-size','12');ae.setAttribute('font-weight','bold');ae.setAttribute('font-family','Georgia,serif');ae.setAttribute('fill','#111');ae.textContent=ac;svg.appendChild(ae);kx+=11;}
+    if(row===0){var tsx=CLEF_W+KSIG_W+TSIG_W/2;function mkts(y,t){var e=document.createElementNS(NS,'text');e.setAttribute('x',String(tsx));e.setAttribute('y',String(y));e.setAttribute('font-size',String(LG*2.0));e.setAttribute('font-weight','bold');e.setAttribute('font-family','Georgia,serif');e.setAttribute('fill','#111');e.setAttribute('text-anchor','middle');e.textContent=t;return e;}svg.appendChild(mkts(sty+LG*1.85,'4'));svg.appendChild(mkts(sty+LG*3.85,'4'));}
     var rowBeats=0;for(var m=0;m<rowMs.length;m++)for(var ni=0;ni<rowMs[m].length;ni++)rowBeats+=rowMs[m][ni].dur;
-    var pxpb=availW/rowBeats,rowData=[],beatAcc=0;
+    // Note offset: must exceed rotated notehead leftward extent (NRX*cos22+NRY*sin22 ≈ 7.5px)
+    // Use at least 14px so notehead is 6px clear of every bar line
+    var noteOffset=Math.max(14,Math.min(pxpb*0.32,18));
+    var pxpb2=pxpb,rowData=[],beatAcc=0,barLineXs=[];
     for(var m=0;m<rowMs.length;m++){
-      for(var ni=0;ni<rowMs[m].length;ni++){var nd=rowMs[m][ni],ny=midiY(nd.midi,sty),nx=leftM+beatAcc*pxpb+Math.min(pxpb*0.25,10),up=ny>=midY,sx=up?nx+NRX-0.5:nx-NRX+0.5,sy1=up?ny-NRY+0.5:ny+NRY-0.5,sy2=up?ny-STEM_LEN:ny+STEM_LEN;rowData.push({nd:nd,nx:nx,ny:ny,up:up,sx:sx,sy1:sy1,sy2:sy2,mIdx:m});beatAcc+=nd.dur;}
-      var bx=leftM+beatAcc*pxpb;if(m<rowMs.length-1)svg.appendChild(ln(bx,sty,bx,sbot,1.4));
+      for(var ni=0;ni<rowMs[m].length;ni++){
+        var nd=rowMs[m][ni],ny=midiY(nd.midi,sty,clefType),nx=leftM+beatAcc*pxpb+noteOffset,up=ny>=midY,sx=up?nx+NRX-0.5:nx-NRX+0.5,sy1=up?ny-NRY+0.5:ny+NRY-0.5,sy2=up?ny-STEM_LEN:ny+STEM_LEN;
+        rowData.push({nd:nd,nx:nx,ny:ny,up:up,sx:sx,sy1:sy1,sy2:sy2,mIdx:m});
+        beatAcc+=nd.dur;
+      }
+      var bx=leftM+beatAcc*pxpb;
+      if(m<rowMs.length-1) barLineXs.push(bx); // interior bar lines collected, drawn after notes
     }
-    if(row===rows-1){svg.appendChild(ln(W-PR-3,sty,W-PR-3,sbot,1.4));svg.appendChild(ln(W-PR,sty,W-PR,sbot,3.5));}
-    else svg.appendChild(ln(W-PR,sty,W-PR,sbot,1.4));
     var beamed={},bgs=[],run=[],lastM=-1;
     for(var ri=0;ri<rowData.length;ri++){var rd=rowData[ri];if(rd.nd.dur===E){if(run.length&&rd.mIdx!==lastM){if(run.length>=2)bgs.push(run.slice());run=[];}run.push(ri);lastM=rd.mIdx;}else{if(run.length>=2)bgs.push(run.slice());run=[];lastM=-1;}}
     if(run.length>=2)bgs.push(run.slice());
@@ -298,6 +371,10 @@ function renderScore(measures,keySig,useSharps){
       renderedNotes.push({midi:nd.midi,idx:nd.idx,cx:nx,cy:ny});
     }
     for(var bi=0;bi<bgs.length;bi++){var grp=bgs[bi],f=rowData[grp[0]],l=rowData[grp[grp.length-1]];svg.appendChild(mk('line',{x1:String(f.sx),y1:String(f.sy2),x2:String(l.sx),y2:String(l.sy2),stroke:'#111','stroke-width':'4','stroke-linecap':'butt'}));for(var bj=1;bj<grp.length-1;bj++){var rd2=rowData[grp[bj]],t=(rd2.sx-f.sx)/(l.sx-f.sx||1);svg.appendChild(ln(rd2.sx,rd2.sy1,rd2.sx,f.sy2+(l.sy2-f.sy2)*t,1.3));}}
+    // Draw ALL bar lines after notes so they sit above stems, clear of noteheads
+    for(var bi2=0;bi2<barLineXs.length;bi2++) svg.appendChild(ln(barLineXs[bi2],sty,barLineXs[bi2],sbot,1.5));
+    if(row===rows-1){svg.appendChild(ln(W-PR-3,sty,W-PR-3,sbot,1.5));svg.appendChild(ln(W-PR,sty,W-PR,sbot,3.5));}
+    else svg.appendChild(ln(W-PR,sty,W-PR,sbot,1.5));
   }
   svg.addEventListener('touchstart',function(e){e.preventDefault();var t=e.changedTouches[0]||e.touches[0];handleTap(t.clientX,t.clientY,svg);},{passive:false});
   svg.addEventListener('click',function(e){handleTap(e.clientX,e.clientY,svg);});
@@ -369,7 +446,7 @@ function showPopup(midi,cx,cy){
 function closePopup(){document.getElementById('popup').classList.remove('on');document.getElementById('pov').classList.remove('on');}
 
 buildFamTabs();buildKeyRow();
-window.addEventListener('load',function(){initClef();setTimeout(doRender,100);});
+window.addEventListener('load',function(){initClef('treble');initClef('bass');initClef('alto');setTimeout(doRender,100);});
 window.addEventListener('resize',function(){clearTimeout(window._rt);window._rt=setTimeout(doRender,300);});
 </script>
 
