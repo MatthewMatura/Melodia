@@ -4,104 +4,171 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>Noteworthy</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.6/build/cjs/vexflow.js"></script>
+<title>Melodia</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0b0c1a;--card:#1a1c35;--surf:rgba(255,255,255,.04);--border:rgba(255,255,255,.09);--gold:#e8a820;--gold2:#f5c842;--text:#f0f0f8;--muted:rgba(240,240,248,.45);--orange:#ff7a30;--yellow:#e8c020;--green:#3ecf8e;}
+:root{--bg:#0b0c1a;--card:#1a1c35;--surf:rgba(255,255,255,.05);--border:rgba(255,255,255,.1);--gold:#e8a820;--gold2:#f5c842;--text:#f0f0f8;--muted:rgba(240,240,248,.5);--orange:#ff7a30;--yellow:#e8c020;--green:#3ecf8e;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);padding:20px 13px 80px;min-height:100vh;}
-.header{text-align:center;margin-bottom:20px;}
-.hico{font-size:1.8rem;display:block;animation:bob 3s ease-in-out infinite;}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-h1{font-family:'DM Serif Display',serif;font-size:1.9rem;background:linear-gradient(120deg,#e8a820,#f5e060,#e8a820);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:10px;}
-.card-label{font-size:.61rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:9px;}
-.fam-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
-.fam-btn{border:1.5px solid var(--border);background:var(--surf);border-radius:10px;padding:8px 4px 7px;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;flex-direction:column;align-items:center;gap:3px;}
-.fam-btn .fico{font-size:1.3rem;height:26px;display:flex;align-items:center;justify-content:center;}
-.fam-btn .flbl{font-size:.58rem;font-weight:600;color:var(--muted);text-align:center;line-height:1.2;}
-.fam-btn.sel{border-color:var(--gold);background:rgba(232,168,32,.1);}
-.fam-btn.sel .flbl{color:var(--gold);}
-#instPanel{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card);border:1px solid rgba(232,168,32,.35);border-radius:14px;padding:11px;z-index:50;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;}
-#instPanel.open{display:block;}
-.inst-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-.inst-btn{border:1.5px solid var(--border);background:var(--surf);border-radius:11px;padding:9px 11px;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;gap:9px;}
-.inst-btn .iico{font-size:1.2rem;flex-shrink:0;}
-.inst-btn .ilbl{font-size:.76rem;font-weight:600;color:var(--muted);}
-.inst-btn.sel{border-color:var(--gold);background:rgba(232,168,32,.1);}
-.inst-btn.sel .ilbl{color:var(--gold);}
-.sel-wrap{position:relative;}
-.sel-wrap::after{content:'▾';position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--gold);pointer-events:none;font-size:.75rem;}
-select{width:100%;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:500;padding:9px 28px 9px 10px;border:1px solid var(--border);border-radius:9px;background:var(--surf);color:var(--text);appearance:none;-webkit-appearance:none;}
-.key-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;margin-top:10px;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;flex-shrink:0;}
+.brand{display:flex;flex-direction:column;}
+.brand h1{font-family:‘DM Serif Display’,serif;font-size:1.4rem;background:linear-gradient(120deg,#e8a820,#f5e060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
+.brand p{font-size:.65rem;color:var(–muted);margin-top:1px;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+
+/* Mode toggle pill */
+.mode-pill{display:flex;background:var(–surf);border:1px solid var(–border);border-radius:20px;padding:3px;}
+.mode-pill button{border:none;background:none;font-family:‘Outfit’,sans-serif;font-size:.7rem;font-weight:600;padding:5px 12px;border-radius:17px;color:var(–muted);cursor:pointer;transition:all .15s;}
+.mode-pill button.on{background:var(–gold);color:#0a0b18;}
+
+/* Settings button */
+.settings-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(–border);background:var(–surf);color:var(–muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.settings-btn.active{border-color:var(–gold);color:var(–gold);}
+
+/* ── SHEET MUSIC (main area) ── */
+.sheet-wrap{flex:1;padding:0 8px 8px;min-height:0;}
+.sheet-card{background:#fff;border-radius:12px;padding:8px 4px 12px;box-shadow:0 0 0 2px rgba(232,168,32,.2),0 8px 40px rgba(0,0,0,.5);position:relative;height:100%;}
+.sheet-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;background:linear-gradient(90deg,var(–gold),var(–gold2),var(–gold));}
+#scoreWrap{width:100%;}
+#scoreWrap svg{display:block;width:100%;height:auto;touch-action:none;-webkit-user-select:none;user-select:none;}
+
+/* ── STATUS BAR ── */
+.statusbar{padding:4px 14px 6px;font-size:.68rem;text-align:center;color:var(–muted);min-height:22px;flex-shrink:0;}
+.statusbar.s-or{color:var(–orange);}
+.statusbar.s-gr{color:var(–green);}
+
+/* ── SETTINGS DRAWER ── */
+.drawer-overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.5);}
+.drawer-overlay.open{display:block;}
+.drawer{position:fixed;bottom:0;left:0;right:0;z-index:101;background:var(–card);border-radius:20px 20px 0 0;border-top:1px solid var(–border);padding:16px 16px 36px;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,1,.64,1);}
+.drawer-overlay.open .drawer{transform:translateY(0);}
+.drawer-handle{width:36px;height:4px;background:var(–border);border-radius:2px;margin:0 auto 16px;}
+.drawer-section{margin-bottom:14px;}
+.drawer-label{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(–muted);margin-bottom:7px;}
+
+/* Instrument tabs */
+.fam-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.fam-btn{border:1.5px solid var(–border);background:var(–surf);border-radius:9px;padding:7px 4px 6px;cursor:pointer;font-family:‘Outfit’,sans-serif;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.fam-btn .fico{font-size:1.2rem;height:22px;display:flex;align-items:center;}
+.fam-btn .flbl{font-size:.56rem;font-weight:600;color:var(–muted);}
+.fam-btn.sel{border-color:var(–gold);background:rgba(232,168,32,.1);}
+.fam-btn.sel .flbl{color:var(–gold);}
+
+/* Sub-instrument grid */
+.inst-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px;}
+.inst-btn{border:1.5px solid var(–border);background:var(–surf);border-radius:9px;padding:8px 10px;cursor:pointer;font-family:‘Outfit’,sans-serif;display:flex;align-items:center;gap:8px;}
+.inst-btn .iico{font-size:1rem;flex-shrink:0;}
+.inst-btn .ilbl{font-size:.72rem;font-weight:600;color:var(–muted);}
+.inst-btn.sel{border-color:var(–gold);background:rgba(232,168,32,.1);}
+.inst-btn.sel .ilbl{color:var(–gold);}
+
+/* Song + key row */
+.song-row{display:flex;gap:8px;align-items:center;}
+.sel-wrap{position:relative;flex:1;}
+.sel-wrap::after{content:‘▾’;position:absolute;right:9px;top:50%;transform:translateY(-50%);color:var(–gold);pointer-events:none;font-size:.7rem;}
+select{width:100%;font-family:‘Outfit’,sans-serif;font-size:.8rem;font-weight:500;padding:8px 26px 8px 10px;border:1.5px solid var(–border);border-radius:9px;background:var(–surf);color:var(–text);appearance:none;-webkit-appearance:none;}
+.key-row{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
 .key-row::-webkit-scrollbar{display:none;}
-.key-btn{flex-shrink:0;border:1.5px solid var(--border);background:var(--surf);border-radius:8px;padding:6px 11px;font-family:'Outfit',sans-serif;font-size:.81rem;font-weight:700;color:var(--muted);cursor:pointer;}
-.key-btn.sel{border-color:var(--gold);background:rgba(232,168,32,.12);color:var(--gold);}
-.key-info{font-size:.71rem;color:var(--muted);text-align:center;margin-top:7px;min-height:15px;}
-.toggle{display:grid;grid-template-columns:1fr 1fr;background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:8px;}
-.tbtn{border:none;background:none;font-family:'Outfit',sans-serif;font-size:.79rem;font-weight:600;padding:8px 4px;border-radius:8px;color:var(--muted);cursor:pointer;}
-.tbtn.on{background:var(--gold);color:#0a0b18;}
-.status{font-size:.73rem;text-align:center;padding:3px 0;min-height:20px;color:var(--muted);}
-.s-or{color:var(--orange)!important;}.s-gr{color:var(--green)!important;}
-.clear-btn{display:none;width:100%;margin-top:7px;padding:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Outfit',sans-serif;font-size:.75rem;border-radius:7px;cursor:pointer;}
+.key-btn{flex-shrink:0;border:1.5px solid var(–border);background:var(–surf);border-radius:7px;padding:5px 9px;font-family:‘Outfit’,sans-serif;font-size:.75rem;font-weight:700;color:var(–muted);cursor:pointer;}
+.key-btn.sel{border-color:var(–gold);background:rgba(232,168,32,.12);color:var(–gold);}
+
+/* Clear button */
+.clear-btn{display:none;width:100%;margin-top:6px;padding:7px;border:1px solid var(–border);background:transparent;color:var(–muted);font-family:‘Outfit’,sans-serif;font-size:.72rem;border-radius:8px;cursor:pointer;}
 .clear-btn.show{display:block;}
-.sheet-card{background:#fff;border-radius:14px;padding:8px 4px;box-shadow:0 0 0 2px rgba(232,168,32,.2),0 12px 50px rgba(0,0,0,.6);position:relative;overflow:hidden;}
-.sheet-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));}
-#scoreContainer{width:100%;min-height:60px;}
-#scoreContainer svg{display:block!important;width:100%!important;height:auto!important;touch-action:none;}
-#scoreContainer div{overflow:visible!important;}
+
+/* ── FINGERING POPUP ── */
 #pov{display:none;position:fixed;inset:0;z-index:200;}
 #pov.on{display:block;}
-#popup{display:none;position:fixed;z-index:201;background:#1a1c35;border:1px solid rgba(232,168,32,.4);border-radius:18px;padding:17px 17px 14px;min-width:224px;max-width:272px;box-shadow:0 16px 50px rgba(0,0,0,.8);}
-#popup.on{display:block;animation:pop .16s cubic-bezier(.34,1.56,.64,1);}
-@keyframes pop{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:scale(1)}}
-.px{position:absolute;top:10px;right:12px;background:rgba(255,255,255,.07);border:none;width:24px;height:24px;border-radius:50%;color:var(--muted);font-size:.68rem;cursor:pointer;font-family:'Outfit',sans-serif;}
-.pnote{font-family:'DM Serif Display',serif;font-size:2.4rem;text-align:center;background:linear-gradient(135deg,#e8a820,#f5e060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.pinst{font-size:.64rem;font-weight:600;text-align:center;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;}
-.plbl{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(232,168,32,.65);margin-bottom:7px;}
-#pDiag{display:flex;justify-content:center;margin-bottom:5px;}
-.ptip{font-size:.69rem;color:var(--muted);text-align:center;line-height:1.4;margin-top:6px;}
+#popup{display:none;position:fixed;z-index:201;background:#1a1c35;border:1px solid rgba(232,168,32,.4);border-radius:18px;padding:16px 16px 13px;min-width:220px;max-width:270px;box-shadow:0 16px 50px rgba(0,0,0,.8);}
+#popup.on{display:block;animation:pop .15s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+.px{position:absolute;top:9px;right:11px;background:rgba(255,255,255,.07);border:none;width:24px;height:24px;border-radius:50%;color:var(–muted);font-size:.65rem;cursor:pointer;}
+.pnote{font-family:‘DM Serif Display’,serif;font-size:2.2rem;text-align:center;background:linear-gradient(135deg,#e8a820,#f5e060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pinst{font-size:.62rem;font-weight:600;text-align:center;color:var(–muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:11px;}
+.plbl{font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(232,168,32,.65);margin-bottom:6px;}
+#pDiag{display:flex;justify-content:center;margin-bottom:4px;}
+.ptip{font-size:.67rem;color:var(–muted);text-align:center;line-height:1.4;margin-top:5px;}
 .open-tag{text-align:center;margin-bottom:8px;}
-.open-tag span{background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3);color:var(--green);border-radius:20px;padding:3px 13px;font-size:.73rem;font-weight:700;}
+.open-tag span{background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3);color:var(–green);border-radius:20px;padding:3px 12px;font-size:.7rem;font-weight:700;}
 </style>
+
 </head>
 <body>
-<div class="header"><span class="hico">🎵</span><h1>Noteworthy</h1></div>
 
-<div class="card" style="position:relative;">
-  <div class="card-label">Your Instrument</div>
-  <div class="fam-tabs" id="famTabs"></div>
-  <div id="instPanel"><div class="inst-grid" id="instGrid"></div></div>
-</div>
+<!-- TOP BAR -->
 
-<div class="card">
-  <div class="card-label">Song</div>
-  <div class="sel-wrap"><select id="sMelody" onchange="doRender()">
-    <option value="ode">Ode to Joy — Beethoven</option>
-    <option value="twinkle">Twinkle Twinkle Little Star</option>
-    <option value="jingle">Jingle Bells — J. Pierpont</option>
-    <option value="mary">Mary Had a Little Lamb</option>
-  </select></div>
-  <div class="key-row" id="keyRow"></div>
-  <div class="key-info" id="keyInfo"></div>
-</div>
-
-<div class="card">
-  <div class="card-label">Tap Mode</div>
-  <div class="toggle">
-    <button class="tbtn on" id="btnF" onclick="setMode('finger')">👆 Fingering</button>
-    <button class="tbtn"    id="btnR" onclick="setMode('range')">🎯 Practice Range</button>
+<div class="topbar">
+  <div class="brand">
+    <h1>Melodia</h1>
+    <p>Play cool songs.</p>
   </div>
-  <div class="status" id="statusEl">Tap any note to see how to play it.</div>
-  <button class="clear-btn" id="clearBtn" onclick="clearRange()">✕ Clear</button>
+  <div class="topbar-right">
+    <div class="mode-pill">
+      <button id="btnF" class="on" onclick="setMode('finger')">&#x1F446; Fingering</button>
+      <button id="btnR" onclick="setMode('range')">&#x1F3AF; Range</button>
+    </div>
+    <button class="settings-btn" id="settingsBtn" onclick="toggleDrawer()">&#x2699;&#xFE0F;</button>
+  </div>
 </div>
 
-<div class="sheet-card"><div class="sheet-bar"></div><div id="scoreContainer"></div></div>
+<!-- STATUS -->
+
+<div class="statusbar" id="statusEl">Tap any note to see how to play it.</div>
+
+<!-- SHEET MUSIC -->
+
+<div class="sheet-wrap">
+  <div class="sheet-card">
+    <div class="sheet-bar"></div>
+    <div id="scoreWrap"></div>
+  </div>
+</div>
+
+<!-- CLEAR BUTTON -->
+
+<button class="clear-btn" id="clearBtn" onclick="clearRange()" style="margin:4px 14px 0;">✕ Clear range</button>
+
+<!-- SETTINGS DRAWER -->
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()">
+  <div class="drawer" onclick="event.stopPropagation()">
+    <div class="drawer-handle"></div>
+
+```
+<div class="drawer-section">
+  <div class="drawer-label">Instrument</div>
+  <div class="fam-tabs" id="famTabs"></div>
+  <div class="inst-grid" id="instGrid" style="display:none;"></div>
+</div>
+
+<div class="drawer-section">
+  <div class="drawer-label">Song</div>
+  <div class="sel-wrap">
+    <select id="sMelody" onchange="doRender();closeDrawer();">
+      <option value="ode">Ode to Joy &mdash; Beethoven</option>
+      <option value="twinkle">Twinkle Twinkle Little Star</option>
+      <option value="jingle">Jingle Bells &mdash; J. Pierpont</option>
+      <option value="mary">Mary Had a Little Lamb</option>
+    </select>
+  </div>
+</div>
+
+<div class="drawer-section">
+  <div class="drawer-label">Key</div>
+  <div class="key-row" id="keyRow"></div>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- FINGERING POPUP -->
 
 <div id="pov" onclick="closePopup()"></div>
 <div id="popup">
-  <button class="px" onclick="closePopup()">✕</button>
+  <button class="px" onclick="closePopup()">&#x2715;</button>
   <div class="pnote" id="pNote"></div>
   <div class="pinst" id="pInst"></div>
   <div class="plbl" id="pLbl">Fingering</div>
@@ -110,401 +177,200 @@ select{width:100%;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:5
 </div>
 
 <script>
-/* ═══════════════════ MELODIES ═══════════════════ */
 function n(m,d){return{midi:m,dur:d};}
 var Q=1,H=2,E=.5,DQ=1.5,DH=3;
-
-var MELODIES={
-  ode:{name:'Ode to Joy — Beethoven',notes:[
-    n(64,Q),n(64,Q),n(65,Q),n(67,Q), n(67,Q),n(65,Q),n(64,Q),n(62,Q),
-    n(60,Q),n(60,Q),n(62,Q),n(64,Q), n(64,DQ),n(62,E),n(62,H),
-    n(64,Q),n(64,Q),n(65,Q),n(67,Q), n(67,Q),n(65,Q),n(64,Q),n(62,Q),
-    n(60,Q),n(60,Q),n(62,Q),n(64,Q), n(62,DQ),n(60,E),n(60,H),
-    n(62,Q),n(62,Q),n(64,Q),n(60,Q), n(62,Q),n(64,E),n(65,E),n(64,Q),n(60,Q),
-    n(62,Q),n(64,E),n(65,E),n(64,Q),n(62,Q), n(60,Q),n(62,Q),n(55,H),
-    n(64,Q),n(64,Q),n(65,Q),n(67,Q), n(67,Q),n(65,Q),n(64,Q),n(62,Q),
-    n(60,Q),n(60,Q),n(62,Q),n(64,Q), n(62,DQ),n(60,E),n(60,H)
-  ]},
-  twinkle:{name:'Twinkle Twinkle Little Star',notes:[
-    n(60,Q),n(60,Q),n(67,Q),n(67,Q), n(69,Q),n(69,Q),n(67,H),
-    n(65,Q),n(65,Q),n(64,Q),n(64,Q), n(62,Q),n(62,Q),n(60,H),
-    n(67,Q),n(67,Q),n(65,Q),n(65,Q), n(64,Q),n(64,Q),n(62,H),
-    n(67,Q),n(67,Q),n(65,Q),n(65,Q), n(64,Q),n(64,Q),n(62,H),
-    n(60,Q),n(60,Q),n(67,Q),n(67,Q), n(69,Q),n(69,Q),n(67,H),
-    n(65,Q),n(65,Q),n(64,Q),n(64,Q), n(62,Q),n(62,Q),n(60,H)
-  ]},
-  jingle:{name:'Jingle Bells — J. Pierpont',notes:[
-    n(64,Q),n(64,Q),n(64,H), n(64,Q),n(64,Q),n(64,H),
-    n(64,Q),n(67,Q),n(60,Q),n(62,Q), n(64,4),
-    n(65,Q),n(65,Q),n(65,Q),n(65,Q), n(65,Q),n(64,Q),n(64,Q),n(64,Q),
-    n(64,Q),n(62,Q),n(62,Q),n(64,Q), n(62,H),n(67,H),
-    n(64,Q),n(64,Q),n(64,H), n(64,Q),n(64,Q),n(64,H),
-    n(64,Q),n(67,Q),n(60,Q),n(62,Q), n(64,4),
-    n(65,Q),n(65,Q),n(65,Q),n(65,Q), n(65,Q),n(64,Q),n(64,Q),n(64,Q),
-    n(67,Q),n(67,Q),n(65,Q),n(62,Q), n(60,4)
-  ]},
-  mary:{name:'Mary Had a Little Lamb',notes:[
-    n(64,Q),n(62,Q),n(60,Q),n(62,Q), n(64,Q),n(64,Q),n(64,H),
-    n(62,Q),n(62,Q),n(62,H),         n(64,Q),n(67,Q),n(67,H),
-    n(64,Q),n(62,Q),n(60,Q),n(62,Q), n(64,Q),n(64,Q),n(64,Q),n(64,Q),
-    n(62,Q),n(62,Q),n(64,Q),n(62,Q), n(60,4)
-  ]}
+var MEL={
+  ode:{notes:[n(64,Q),n(64,Q),n(65,Q),n(67,Q),n(67,Q),n(65,Q),n(64,Q),n(62,Q),n(60,Q),n(60,Q),n(62,Q),n(64,Q),n(64,DQ),n(62,E),n(62,H),n(64,Q),n(64,Q),n(65,Q),n(67,Q),n(67,Q),n(65,Q),n(64,Q),n(62,Q),n(60,Q),n(60,Q),n(62,Q),n(64,Q),n(62,DQ),n(60,E),n(60,H),n(62,Q),n(62,Q),n(64,Q),n(60,Q),n(62,Q),n(64,E),n(65,E),n(64,Q),n(60,Q),n(62,Q),n(64,E),n(65,E),n(64,Q),n(62,Q),n(60,Q),n(62,Q),n(55,H),n(64,Q),n(64,Q),n(65,Q),n(67,Q),n(67,Q),n(65,Q),n(64,Q),n(62,Q),n(60,Q),n(60,Q),n(62,Q),n(64,Q),n(62,DQ),n(60,E),n(60,H)]},
+  twinkle:{notes:[n(60,Q),n(60,Q),n(67,Q),n(67,Q),n(69,Q),n(69,Q),n(67,H),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(60,H),n(67,Q),n(67,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,H),n(67,Q),n(67,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,H),n(60,Q),n(60,Q),n(67,Q),n(67,Q),n(69,Q),n(69,Q),n(67,H),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(60,H)]},
+  jingle:{notes:[n(64,Q),n(64,Q),n(64,H),n(64,Q),n(64,Q),n(64,H),n(64,Q),n(67,Q),n(60,Q),n(62,Q),n(64,4),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(64,Q),n(62,H),n(67,H),n(64,Q),n(64,Q),n(64,H),n(64,Q),n(64,Q),n(64,H),n(64,Q),n(67,Q),n(60,Q),n(62,Q),n(64,4),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(65,Q),n(64,Q),n(64,Q),n(64,Q),n(67,Q),n(67,Q),n(65,Q),n(62,Q),n(60,4)]},
+  mary:{notes:[n(64,Q),n(62,Q),n(60,Q),n(62,Q),n(64,Q),n(64,Q),n(64,H),n(62,Q),n(62,Q),n(62,H),n(64,Q),n(67,Q),n(67,H),n(64,Q),n(62,Q),n(60,Q),n(62,Q),n(64,Q),n(64,Q),n(64,Q),n(64,Q),n(62,Q),n(62,Q),n(64,Q),n(62,Q),n(60,4)]}
 };
-
-/* ═══════════════════ INSTRUMENTS ═══════════════════ */
 var FAM=[
-  {id:'piano',label:'Piano',ico:'🎹',insts:[{id:'piano',label:'Piano',xpose:0,diag:'piano'}]},
-  {id:'strings',label:'Strings',ico:'🎻',insts:[
-    {id:'violin',label:'Violin',xpose:0,diag:'strings'},
-    {id:'viola',label:'Viola',xpose:0,diag:'strings'},
-    {id:'cello',label:'Cello',xpose:-12,diag:'strings'},
-    {id:'dbass',label:'Double Bass',xpose:-12,diag:'strings'}
-  ]},
-  {id:'winds',label:'Winds',ico:'🎵',insts:[
-    {id:'flute',label:'Flute',xpose:0,diag:'generic'},
-    {id:'clarBb',label:'Clarinet Bb',xpose:2,diag:'clarinet'},
-    {id:'altosax',label:'Alto Sax',xpose:9,diag:'sax'},
-    {id:'tenorsax',label:'Tenor Sax',xpose:2,diag:'sax'},
-    {id:'bassoon',label:'Bassoon',xpose:-12,diag:'generic'}
-  ]},
-  {id:'brass',label:'Brass',ico:'🎺',insts:[
-    {id:'trumpet',label:'Trumpet Bb',xpose:2,diag:'valve'},
-    {id:'horn',label:'French Horn',xpose:7,diag:'valve'},
-    {id:'trombone',label:'Trombone',xpose:-12,diag:'trombone'},
-    {id:'tuba',label:'Tuba',xpose:-12,diag:'valve'}
-  ]}
+  {id:'piano',label:'Piano',ico:'&#x1F3B9;',insts:[{id:'piano',label:'Piano',xpose:0,diag:'piano'}]},
+  {id:'strings',label:'Strings',ico:'&#x1F3BB;',insts:[{id:'violin',label:'Violin',xpose:0,diag:'strings'},{id:'viola',label:'Viola',xpose:0,diag:'strings'},{id:'cello',label:'Cello',xpose:-12,diag:'strings'},{id:'dbass',label:'Dbl Bass',xpose:-12,diag:'strings'}]},
+  {id:'winds',label:'Winds',ico:'&#x1F3B5;',insts:[{id:'flute',label:'Flute',xpose:0,diag:'generic'},{id:'clarBb',label:'Clarinet Bb',xpose:2,diag:'clarinet'},{id:'altosax',label:'Alto Sax',xpose:9,diag:'sax'},{id:'tenorsax',label:'Tenor Sax',xpose:2,diag:'sax'},{id:'bassoon',label:'Bassoon',xpose:-12,diag:'generic'}]},
+  {id:'brass',label:'Brass',ico:'&#x1F3BA;',insts:[{id:'trumpet',label:'Trumpet Bb',xpose:2,diag:'valve'},{id:'horn',label:'French Horn',xpose:7,diag:'valve'},{id:'trombone',label:'Trombone',xpose:-12,diag:'trombone'},{id:'tuba',label:'Tuba',xpose:-12,diag:'valve'}]}
 ];
-
-var KEYS=[
-  {label:'C',sem:0},{label:'C#',sem:1},{label:'Db',sem:1},
-  {label:'D',sem:2},{label:'Eb',sem:3},{label:'E',sem:4},
-  {label:'F',sem:5},{label:'F#',sem:6},{label:'Gb',sem:6},
-  {label:'G',sem:7},{label:'Ab',sem:8},{label:'A',sem:9},
-  {label:'Bb',sem:10},{label:'B',sem:11}
-];
-
-/* ═══════════════════ FINGERING DATA ═══════════════════ */
+var KEYS=[{label:'C',sem:0},{label:'C#',sem:1},{label:'Db',sem:1},{label:'D',sem:2},{label:'Eb',sem:3},{label:'E',sem:4},{label:'F',sem:5},{label:'F#',sem:6},{label:'Gb',sem:6},{label:'G',sem:7},{label:'Ab',sem:8},{label:'A',sem:9},{label:'Bb',sem:10},{label:'B',sem:11}];
 var TV={C:[0,0,0],'C#':[1,1,1],Db:[1,1,1],D:[1,0,1],'D#':[0,1,1],Eb:[0,1,1],E:[1,1,0],F:[1,0,0],'F#':[0,1,0],Gb:[0,1,0],G:[0,0,0],'G#':[0,1,1],Ab:[0,1,1],A:[1,1,0],'A#':[1,0,0],Bb:[1,0,0],B:[0,1,0]};
 var HV={C:[0,0,0],'C#':[0,1,1],Db:[0,1,1],D:[1,0,0],'D#':[0,1,0],Eb:[0,1,0],E:[1,1,0],F:[0,0,0],'F#':[1,1,1],Gb:[1,1,1],G:[1,0,0],'G#':[1,1,0],Ab:[1,1,0],A:[1,0,0],'A#':[0,1,0],Bb:[0,1,0],B:[1,1,0]};
 var TBONE={Bb2:6,B2:5,C3:4,'C#3':3,Db3:3,D3:2,'D#3':1,Eb3:1,E3:1,F3:1,'F#3':2,Gb3:2,G3:3,'G#3':4,Ab3:4,A3:4,'A#3':5,Bb3:5,B3:6,C4:6,'C#4':7,Db4:7,D4:1,'D#4':1,Eb4:1,E4:1,F4:1,'F#4':2,Gb4:2,G4:2,'G#4':3,Ab4:3,A4:3,'A#4':4,Bb4:4,B4:4,C5:5,'C#5':5,Db5:5,D5:5,'D#5':6,Eb5:6,E5:6,F5:6};
 var CLAR={E:[0,1,1,1,0,1,1,1,0],F:[0,1,1,1,0,1,1,0,0],'F#':[0,1,1,1,0,1,0,1,0],G:[0,1,1,1,0,0,0,0,0],'G#':[0,1,1,1,1,0,0,0,0],A:[0,1,1,0,0,0,0,0,0],'A#':[0,1,0,0,0,0,0,0,0],Bb:[0,1,0,0,0,0,0,0,0],B:[0,0,1,0,0,0,0,0,0],C:[0,0,0,0,0,0,0,0,0],'C#':[1,1,1,1,0,1,0,1,0],D:[1,1,1,1,0,1,1,1,0]};
 var SAX={D:[0,1,1,1,0,1,1,1,0],'D#':[0,1,1,1,0,1,1,1,1],Eb:[0,1,1,1,0,1,1,1,1],E:[0,1,1,1,0,1,1,0,0],F:[0,1,1,1,0,1,1,1,0],'F#':[0,1,1,1,0,1,0,0,0],G:[0,1,1,0,0,0,0,0,0],'G#':[0,1,1,0,1,0,0,0,0],A:[0,1,0,0,0,0,0,0,0],'A#':[0,0,1,1,0,1,1,1,0],Bb:[0,0,1,1,0,1,1,1,0],B:[0,0,0,0,0,0,0,0,0],C:[0,0,0,0,1,0,0,0,0],'C#':[1,1,1,1,0,1,0,0,0]};
-
-var SH=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-var FL=['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+var SH=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'],FL=['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
 function m2n(m){var i=((m%12)+12)%12;return{s:SH[i],f:FL[i],o:Math.floor(m/12)-1};}
-
-/* ═══════════════════ STATE ═══════════════════ */
 var sF=FAM[0],sI=FAM[0].insts[0],sK=KEYS[0],mode='finger';
-var rangeStep=0,rangeStart=-1,rangeEnd=-1;
-var renderedNotes=[]; // {midi, idx, cx, cy}
+var rangeStep=0,rangeStart=-1,rangeEnd=-1,renderedNotes=[];
+var LG=12,NRX=6.5,NRY=4.0,STEM_LEN=42,MPR=4,PAD_T=38,ROW_EXTRA=44;
+var KEY_SHARPS={G:1,D:2,A:3,E:4,B:5,'F#':6,'C#':7};
+var KEY_FLATS={F:1,Bb:2,Eb:3,Ab:4,Db:5,Gb:6,Cb:7};
+var KEY_NAMES=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+var KEY_USESHARP=[false,false,true,false,true,false,true,true,false,true,false,true];
+var SHARP_Y=[1,.5,1.5,1,2,1.5,2.5],FLAT_Y=[2.5,1.5,3,2,3.5,2.5,4];
+var DIAT=[0,0,1,1,2,3,3,4,4,5,5,6];
+function midiY(midi,sty){var oct=Math.floor(midi/12)-1,chrom=((midi%12)+12)%12;return sty+LG*2-((oct-4)*7+(DIAT[chrom]-6))*(LG/2);}
 
-/* ═══════════════════ KEY & NOTE HELPERS ═══════════════════ */
-// Map combined transposition semitones to VexFlow key sig name
-var VEX_KEYS=['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
-// True = key uses sharps
-var KEY_SHARP=[false,false,true,false,true,false,true,true,false,true,false,true];
-
-// Note name arrays (index by chroma 0-11)
-var NOTE_SHARP=['c','c#','d','d#','e','f','f#','g','g#','a','a#','b'];
-var NOTE_FLAT =['c','db','d','eb','e','f','gb','g','ab','a','bb','b'];
-
-function midiToVexKey(midi, useSharps){
-  var oct=Math.floor(midi/12)-1;
-  var chrom=((midi%12)+12)%12;
-  var name=(useSharps?NOTE_SHARP:NOTE_FLAT)[chrom];
-  return name+'/'+oct;
+/* Treble clef canvas cache */
+var _clef=null;
+function initClef(){
+  if(_clef)return;
+  var FS=400,CW=280,CH=620;
+  var cv=document.createElement('canvas');cv.width=CW;cv.height=CH;
+  var ctx=cv.getContext('2d');ctx.fillStyle='#111';
+  ctx.font=FS+'px "Apple Symbols","Segoe UI Symbol","Noto Music",serif';
+  ctx.fillText(String.fromCodePoint(0x1D11E),6,500);
+  var yT=CH,yB=0,found=false;
+  try{var px=ctx.getImageData(0,0,CW,CH).data;for(var y=0;y<CH;y++)for(var x=0;x<CW;x++){if(px[(y*CW+x)*4+3]>10){found=true;if(y<yT)yT=y;if(y>yB)yB=y;}}}catch(e){}
+  var gh=found&&yB>yT?yB-yT:480;
+  _clef={url:cv.toDataURL('image/png'),cw:CW,ch:CH,gh:gh,yT:found?yT:20,gr:0.65};
+}
+function addClef(svg,NS,sty){
+  initClef();
+  var gY=sty+3*LG,scale=(7.2*LG)/_clef.gh;
+  var img=document.createElementNS(NS,'image');
+  img.setAttribute('href',_clef.url);img.setAttribute('x','-4');
+  img.setAttribute('y',String(gY-(_clef.yT+_clef.gh*_clef.gr)*scale));
+  img.setAttribute('width',String(_clef.cw*scale));img.setAttribute('height',String(_clef.ch*scale));
+  svg.appendChild(img);
 }
 
-function durToVex(dur){
-  if(dur>=4)return{dur:'w',dot:false};
-  if(dur===DH)return{dur:'h',dot:true};
-  if(dur===H)return{dur:'h',dot:false};
-  if(dur===DQ)return{dur:'q',dot:true};
-  if(dur===Q)return{dur:'q',dot:false};
-  if(dur===E)return{dur:'8',dot:false};
-  return{dur:'q',dot:false};
+function groupMeasures(notes,xp){
+  var ms=[],cur=[],beats=0;
+  for(var i=0;i<notes.length;i++){cur.push({midi:notes[i].midi+xp,dur:notes[i].dur,idx:i});beats+=notes[i].dur;if(Math.round(beats*1000)>=4000){ms.push(cur);cur=[];beats=0;}}
+  if(cur.length)ms.push(cur);return ms;
 }
 
-/* ═══════════════════ GROUP INTO MEASURES ═══════════════════ */
-function groupMeasures(notes, xp){
-  var measures=[], cur=[], beats=0;
-  for(var i=0;i<notes.length;i++){
-    var note=notes[i];
-    cur.push({midi:note.midi+xp, dur:note.dur, origIdx:i});
-    beats+=note.dur;
-    if(Math.round(beats*100)>=400){
-      measures.push(cur);
-      cur=[];beats=0;
-    }
-  }
-  if(cur.length) measures.push(cur);
-  return measures;
-}
-
-/* ═══════════════════ RENDER ═══════════════════ */
 function doRender(){
-  var mel=MELODIES[document.getElementById('sMelody').value];
-  var xp=sI.xpose+sK.sem;
-  var totalXpose=((xp%12)+12)%12;
-  var keySig=VEX_KEYS[totalXpose];
-  var useSharps=KEY_SHARP[totalXpose];
-  var measures=groupMeasures(mel.notes,xp);
-
-  if(typeof Vex!=='undefined'){
-    renderVex(measures,keySig,useSharps);
-  } else {
-    document.getElementById('scoreContainer').innerHTML=
-      '<p style="color:#888;padding:20px;text-align:center;font-size:.85rem;">Music notation requires network access to load.<br>Check connection and reload.</p>';
-  }
+  var mel=MEL[document.getElementById('sMelody').value];
+  var xp=sI.xpose+sK.sem,tx=((xp%12)+12)%12;
+  renderScore(groupMeasures(mel.notes,xp),KEY_NAMES[tx],KEY_USESHARP[tx]);
 }
 
-function renderVex(measures, keySig, useSharps){
-  var VF=Vex.Flow;
-  var cont=document.getElementById('scoreContainer');
-  cont.innerHTML='';
-
-  var W=cont.offsetWidth||340;
-  var MPR=4; // measures per row
-  var rows=Math.ceil(measures.length/MPR);
-
-  // Row height: stave (45) + top padding (30) + bottom padding (30)
-  var ROW_H=105;
-  var totalH=rows*ROW_H+10;
-
-  var renderer=new VF.Renderer(cont,VF.Renderer.Backends.SVG);
-  renderer.resize(W,totalH);
-  var ctx=renderer.getContext();
-  ctx.setFont('Arial',10,'');
-  ctx.setFillStyle('#111');
-  ctx.setStrokeStyle('#111');
-
-  renderedNotes=[];
-
+function renderScore(measures,keySig,useSharps){
+  var wrap=document.getElementById('scoreWrap'),W=wrap.offsetWidth||340;
+  var NS='http://www.w3.org/2000/svg';
+  var rows=Math.ceil(measures.length/MPR),ROW_H=LG*4+PAD_T+ROW_EXTRA,svgH=rows*ROW_H+16;
+  var svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','0 0 '+W+' '+svgH);svg.setAttribute('width',W);svg.setAttribute('height',svgH);
+  svg.style.touchAction='none';renderedNotes=[];
+  var sh=KEY_SHARPS[keySig]||0,fl=KEY_FLATS[keySig]||0,accCt=sh+fl;
+  var CLEF_W=36,KSIG_W=accCt>0?accCt*9+4:0,TSIG_W=22,PR=10;
+  function mk(tag,a){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);return e;}
+  function ln(x1,y1,x2,y2,sw,col){return mk('line',{x1:x1,y1:y1,x2:x2,y2:y2,stroke:col||'#111','stroke-width':sw||1.3,'stroke-linecap':'round'});}
   for(var row=0;row<rows;row++){
     var rowMs=measures.slice(row*MPR,(row+1)*MPR);
-    var staveY=row*ROW_H+20;
-
-    // First measure gets extra width for clef/key/time sig
-    var firstExtraW=(row===0)?70:30;
-    var otherW=(W-firstExtraW-8)/Math.max(rowMs.length-1,1);
-    if(rowMs.length===1) otherW=0;
-
+    var sty=row*ROW_H+PAD_T,sbot=sty+LG*4,midY=sty+LG*2;
+    var leftM=CLEF_W+KSIG_W+(row===0?TSIG_W:0),availW=W-PR-leftM;
+    for(var l=0;l<5;l++) svg.appendChild(ln(0,sty+l*LG,W,sty+l*LG,1.3));
+    svg.appendChild(ln(0,sty,0,sbot,1.8));
+    addClef(svg,NS,sty);
+    var kx=CLEF_W+1,ac=sh>0?'\u266F':'\u266D',ay=sh>0?SHARP_Y:FLAT_Y;
+    for(var ai=0;ai<accCt;ai++){var ae=document.createElementNS(NS,'text');ae.setAttribute('x',String(kx));ae.setAttribute('y',String(sty+ay[ai]*LG+4));ae.setAttribute('font-size','11');ae.setAttribute('font-family','Georgia,serif');ae.setAttribute('fill','#111');ae.textContent=ac;svg.appendChild(ae);kx+=9;}
+    if(row===0){var tsx=CLEF_W+KSIG_W+TSIG_W/2;function mkts(y,t){var e=document.createElementNS(NS,'text');e.setAttribute('x',String(tsx));e.setAttribute('y',String(y));e.setAttribute('font-size',String(LG*1.9));e.setAttribute('font-weight','bold');e.setAttribute('font-family','Georgia,serif');e.setAttribute('fill','#111');e.setAttribute('text-anchor','middle');e.textContent=t;return e;}svg.appendChild(mkts(sty+LG*1.85,'4'));svg.appendChild(mkts(sty+LG*3.85,'4'));}
+    var rowBeats=0;for(var m=0;m<rowMs.length;m++)for(var ni=0;ni<rowMs[m].length;ni++)rowBeats+=rowMs[m][ni].dur;
+    var pxpb=availW/rowBeats,rowData=[],beatAcc=0;
     for(var m=0;m<rowMs.length;m++){
-      var isFirst=(m===0);
-      var staveX=(isFirst)?4:4+firstExtraW+(m-1)*otherW;
-      var staveW=(isFirst)?firstExtraW:(m===rowMs.length-1)?(W-4-staveX):otherW;
-
-      var stave=new VF.Stave(staveX,staveY,staveW-4);
-      if(isFirst&&row===0){
-        stave.addClef('treble').addKeySignature(keySig).addTimeSignature('4/4');
-      } else if(isFirst){
-        stave.addClef('treble').addKeySignature(keySig);
-      }
-      // Double barline at end of last measure of last row
-      if(row===rows-1&&m===rowMs.length-1){
-        stave.setEndBarType(VF.Barline.type.END);
-      }
-      stave.setContext(ctx).draw();
-
-      // Build VexFlow notes
-      var measure=rowMs[m];
-      var vfNotes=[];
-      for(var ni=0;ni<measure.length;ni++){
-        var nd=measure[ni];
-        var key=midiToVexKey(nd.midi,useSharps);
-        var dv=durToVex(nd.dur);
-        var sn=new VF.StaveNote({
-          keys:[key],
-          duration:dv.dur,
-          auto_stem:true
-        });
-        if(dv.dot) sn.addDotToAll();
-        vfNotes.push({sn:sn, midi:nd.midi, origIdx:nd.origIdx});
-      }
-
-      // Create voice
-      var voice=new VF.Voice({num_beats:4,beat_value:4}).setMode(VF.Voice.Mode.SOFT);
-      voice.addTickables(vfNotes.map(function(x){return x.sn;}));
-
-      // Auto-apply accidentals based on key signature
-      VF.Accidental.applyAccidentals([voice],keySig);
-
-      // Auto-beam eighth notes
-      var beams=VF.Beam.generateBeams(vfNotes.map(function(x){return x.sn;}));
-
-      // Format and draw
-      new VF.Formatter().joinVoices([voice]).format([voice],staveW-8);
-      voice.draw(ctx,stave);
-      beams.forEach(function(b){b.setContext(ctx).draw();});
-
-      // Range highlighting: recolor note heads
-      if(rangeStart>=0){
-        vfNotes.forEach(function(ni2){
-          var idx=ni2.origIdx;
-          if(idx>=rangeStart&&idx<=rangeEnd){
-            var col=(idx===rangeStart||idx===rangeEnd)?'#ff7a30':'#e8c020';
-            var x=ni2.sn.getAbsoluteX();
-            var ys=ni2.sn.getYs();
-            var y=ys&&ys[0]?ys[0]:staveY+22;
-            // Draw colored circle over note head
-            ctx.save();
-            ctx.setFillStyle(col);
-            ctx.setStrokeStyle(col);
-            ctx.beginPath();
-            ctx.ellipse(x,y,6.5,4.5,0,0,Math.PI*2);
-            ctx.fill();
-            ctx.restore();
-          }
-        });
-      }
-
-      // Collect note positions for tap detection
-      vfNotes.forEach(function(ni2){
-        var x=ni2.sn.getAbsoluteX();
-        var ys=ni2.sn.getYs();
-        var y=ys&&ys[0]?ys[0]:staveY+22;
-        renderedNotes.push({midi:ni2.midi,idx:ni2.origIdx,cx:x,cy:y});
-      });
+      for(var ni=0;ni<rowMs[m].length;ni++){var nd=rowMs[m][ni],ny=midiY(nd.midi,sty),nx=leftM+beatAcc*pxpb+Math.min(pxpb*0.25,10),up=ny>=midY,sx=up?nx+NRX-0.5:nx-NRX+0.5,sy1=up?ny-NRY+0.5:ny+NRY-0.5,sy2=up?ny-STEM_LEN:ny+STEM_LEN;rowData.push({nd:nd,nx:nx,ny:ny,up:up,sx:sx,sy1:sy1,sy2:sy2,mIdx:m});beatAcc+=nd.dur;}
+      var bx=leftM+beatAcc*pxpb;if(m<rowMs.length-1)svg.appendChild(ln(bx,sty,bx,sbot,1.4));
     }
+    if(row===rows-1){svg.appendChild(ln(W-PR-3,sty,W-PR-3,sbot,1.4));svg.appendChild(ln(W-PR,sty,W-PR,sbot,3.5));}
+    else svg.appendChild(ln(W-PR,sty,W-PR,sbot,1.4));
+    var beamed={},bgs=[],run=[],lastM=-1;
+    for(var ri=0;ri<rowData.length;ri++){var rd=rowData[ri];if(rd.nd.dur===E){if(run.length&&rd.mIdx!==lastM){if(run.length>=2)bgs.push(run.slice());run=[];}run.push(ri);lastM=rd.mIdx;}else{if(run.length>=2)bgs.push(run.slice());run=[];lastM=-1;}}
+    if(run.length>=2)bgs.push(run.slice());
+    for(var bi=0;bi<bgs.length;bi++)for(var bj=0;bj<bgs[bi].length;bj++)beamed[bgs[bi][bj]]=bi;
+    for(var ri=0;ri<rowData.length;ri++){
+      var rd=rowData[ri],nd=rd.nd,nx=rd.nx,ny=rd.ny,col='#111';
+      if(rangeStart>=0&&nd.idx>=rangeStart&&nd.idx<=rangeEnd)col=nd.idx===rangeStart||nd.idx===rangeEnd?'#ff7a30':'#e8c020';
+      var isH=nd.dur>=2,isW=nd.dur>=4,isD=(nd.dur===DQ||nd.dur===DH);
+      for(var ll=sbot+LG;ll<=ny+1;ll+=LG)svg.appendChild(ln(nx-NRX-3,ll,nx+NRX+3,ll,1.3,col));
+      for(var ll2=sty-LG;ll2>=ny-1;ll2-=LG)svg.appendChild(ln(nx-NRX-3,ll2,nx+NRX+3,ll2,1.3,col));
+      var sw=1.8,hsw=sw/2,nrx,nry,nf,ns,nw;
+      if(isW){nrx=NRX*1.08-hsw;nry=NRY*1.08-hsw;nf='#fff';ns=col;nw=String(sw);}
+      else if(isH){nrx=NRX-hsw;nry=NRY-hsw;nf='#fff';ns=col;nw=String(sw);}
+      else{nrx=NRX;nry=NRY;nf=(col==='#111'?'#000':col);ns='none';nw='0';}
+      svg.appendChild(mk('ellipse',{cx:String(nx),cy:String(ny),rx:String(nrx),ry:String(nry),transform:'rotate(-22,'+nx+','+ny+')',fill:nf,stroke:ns,'stroke-width':nw}));
+      if(isD){var dy=ny;if(Math.abs((ny-sty)%LG)<2)dy=ny-LG/2;svg.appendChild(mk('circle',{cx:String(nx+NRX+6),cy:String(dy),r:'2.0',fill:col}));}
+      if(!isW){
+        svg.appendChild(ln(rd.sx,rd.sy1,rd.sx,rd.sy2,1.3,col));
+        if(nd.dur===E&&!beamed.hasOwnProperty(ri)){var fp=document.createElementNS(NS,'path'),fx=rd.sx,fy=rd.sy2;fp.setAttribute('d',rd.up?'M'+fx+','+fy+' C'+(fx+13)+','+(fy+5)+' '+(fx+11)+','+(fy+13)+' '+(fx+3)+','+(fy+18):'M'+fx+','+fy+' C'+(fx+13)+','+(fy-5)+' '+(fx+11)+','+(fy-13)+' '+(fx+3)+','+(fy-18));fp.setAttribute('stroke',col);fp.setAttribute('stroke-width','1.6');fp.setAttribute('fill','none');fp.setAttribute('stroke-linecap','round');svg.appendChild(fp);}
+      }
+      renderedNotes.push({midi:nd.midi,idx:nd.idx,cx:nx,cy:ny});
+    }
+    for(var bi=0;bi<bgs.length;bi++){var grp=bgs[bi],f=rowData[grp[0]],l=rowData[grp[grp.length-1]];svg.appendChild(mk('line',{x1:String(f.sx),y1:String(f.sy2),x2:String(l.sx),y2:String(l.sy2),stroke:'#111','stroke-width':'4','stroke-linecap':'butt'}));for(var bj=1;bj<grp.length-1;bj++){var rd2=rowData[grp[bj]],t=(rd2.sx-f.sx)/(l.sx-f.sx||1);svg.appendChild(ln(rd2.sx,rd2.sy1,rd2.sx,f.sy2+(l.sy2-f.sy2)*t,1.3));}}
   }
-
-  // Wire touch/click on the SVG
-  var svg=cont.querySelector('svg');
-  if(svg){
-    svg.style.touchAction='none';
-    svg.addEventListener('touchstart',function(e){
-      e.preventDefault();
-      var t=e.changedTouches[0]||e.touches[0];
-      handleTap(t.clientX,t.clientY,svg);
-    },{passive:false});
-    svg.addEventListener('click',function(e){
-      handleTap(e.clientX,e.clientY,svg);
-    });
-  }
+  svg.addEventListener('touchstart',function(e){e.preventDefault();var t=e.changedTouches[0]||e.touches[0];handleTap(t.clientX,t.clientY,svg);},{passive:false});
+  svg.addEventListener('click',function(e){handleTap(e.clientX,e.clientY,svg);});
+  wrap.innerHTML='';wrap.appendChild(svg);
 }
 
-/* ═══════════════════ TAP DETECTION ═══════════════════ */
-function handleTap(clientX,clientY,svg){
-  var r=svg.getBoundingClientRect();
-  var svgW=svg.getAttribute('width')||r.width;
-  var svgH=svg.getAttribute('height')||r.height;
-  var scaleX=svgW/r.width;
-  var scaleY=svgH/r.height;
-  var sx=(clientX-r.left)*scaleX;
-  var sy=(clientY-r.top)*scaleY;
-
-  var best=null,bestD=99999;
-  for(var i=0;i<renderedNotes.length;i++){
-    var rn=renderedNotes[i];
-    var dx=sx-rn.cx, dy=(sy-rn.cy)*0.35;
-    var d=Math.sqrt(dx*dx+dy*dy);
-    if(d<bestD){bestD=d;best=rn;}
-  }
-  if(!best||bestD>55)return;
-  if(mode==='finger') showPopup(best.midi,clientX,clientY);
-  else handleRange(best.idx);
+function handleTap(cx,cy,svg){
+  var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;
+  var sx=(cx-r.left)*(vb.width/r.width),sy=(cy-r.top)*(vb.height/r.height);
+  var best=null,bestD=9999;
+  for(var i=0;i<renderedNotes.length;i++){var rn=renderedNotes[i],d=Math.sqrt(Math.pow(sx-rn.cx,2)+Math.pow((sy-rn.cy)*0.35,2));if(d<bestD){bestD=d;best=rn;}}
+  if(!best||bestD>60)return;
+  if(mode==='finger')showPopup(best.midi,cx,cy);else handleRange(best.idx);
 }
 
-/* ═══════════════════ RANGE ═══════════════════ */
 function handleRange(idx){
-  if(rangeStep===0||rangeStep===2){
-    rangeStart=idx;rangeEnd=idx;rangeStep=1;
-    setStatus('s-or','② Now tap your last note');
-    document.getElementById('clearBtn').classList.remove('show');
-  } else {
-    rangeEnd=idx;
-    if(rangeEnd<rangeStart){var t=rangeStart;rangeStart=rangeEnd;rangeEnd=t;}
-    rangeStep=2;setStatus('s-gr','✓ Range set!');
-    document.getElementById('clearBtn').classList.add('show');
-  }
+  if(rangeStep===0||rangeStep===2){rangeStart=idx;rangeEnd=idx;rangeStep=1;setStatus('s-or','Tap the last note of your range');}
+  else{rangeEnd=idx;if(rangeEnd<rangeStart){var t=rangeStart;rangeStart=rangeEnd;rangeEnd=t;}rangeStep=2;setStatus('s-gr','Range set');document.getElementById('clearBtn').classList.add('show');}
   doRender();
 }
-function clearRange(){rangeStart=-1;rangeEnd=-1;rangeStep=0;doRender();setStatus('s-or','① Tap your first note');document.getElementById('clearBtn').classList.remove('show');}
-
-/* ═══════════════════ MODE ═══════════════════ */
+function clearRange(){rangeStart=-1;rangeEnd=-1;rangeStep=0;doRender();setStatus('s-or','Tap the first note of your range');document.getElementById('clearBtn').classList.remove('show');}
 function setMode(m){
   mode=m;
   document.getElementById('btnF').classList.toggle('on',m==='finger');
   document.getElementById('btnR').classList.toggle('on',m==='range');
-  if(m==='finger') setStatus('','Tap any note to see how to play it.');
-  else{rangeStart=-1;rangeEnd=-1;rangeStep=0;setStatus('s-or','① Tap your first note');document.getElementById('clearBtn').classList.remove('show');doRender();}
+  if(m==='finger'){setStatus('','Tap any note to see how to play it.');}
+  else{rangeStart=-1;rangeEnd=-1;rangeStep=0;setStatus('s-or','Tap the first note of your range');document.getElementById('clearBtn').classList.remove('show');doRender();}
 }
-function setStatus(cls,txt){var el=document.getElementById('statusEl');el.className='status'+(cls?' '+cls:'');el.textContent=txt;}
+function setStatus(cls,txt){var el=document.getElementById('statusEl');el.className='statusbar'+(cls?' '+cls:'');el.textContent=txt;}
 
-/* ═══════════════════ INSTRUMENT UI ═══════════════════ */
-var ICO={piano:'🎹',violin:'🎻',viola:'🎻',cello:'🎻',dbass:'🎻',flute:'🪈',clarBb:'🎵',altosax:'🎷',tenorsax:'🎷',bassoon:'🎵',trumpet:'🎺',horn:'🪗',trombone:'📯',tuba:'📯'};
+/* Drawer */
+function toggleDrawer(){var o=document.getElementById('drawerOverlay');o.classList.toggle('open');document.getElementById('settingsBtn').classList.toggle('active',o.classList.contains('open'));}
+function closeDrawer(){document.getElementById('drawerOverlay').classList.remove('open');document.getElementById('settingsBtn').classList.remove('active');}
+
+/* Instrument UI */
+var ICO={piano:'&#x1F3B9;',violin:'&#x1F3BB;',viola:'&#x1F3BB;',cello:'&#x1F3BB;',dbass:'&#x1F3BB;',flute:'&#x1F3B5;',clarBb:'&#x1F3B5;',altosax:'&#x1F3B7;',tenorsax:'&#x1F3B7;',bassoon:'&#x1F3B5;',trumpet:'&#x1F3BA;',horn:'&#x1F3BA;',trombone:'&#x1F4EF;',tuba:'&#x1F4EF;'};
 function buildFamTabs(){document.getElementById('famTabs').innerHTML=FAM.map(function(f,i){return'<button class="fam-btn'+(f.id===sF.id?' sel':'')+'" onclick="pickFam('+i+')"><span class="fico">'+f.ico+'</span><span class="flbl">'+(f.id===sF.id?sI.label:f.label)+'</span></button>';}).join('');}
-function buildInstGrid(){var p=document.getElementById('instPanel');if(sF.insts.length<=1){p.classList.remove('open');return;}document.getElementById('instGrid').innerHTML=sF.insts.map(function(inst,i){return'<button class="inst-btn'+(inst.id===sI.id?' sel':'')+'" onclick="pickInst('+i+')"><span class="iico">'+(ICO[inst.id]||'🎵')+'</span><span><div class="ilbl">'+inst.label+'</div></span></button>';}).join('');p.classList.add('open');}
+function buildInstGrid(){var g=document.getElementById('instGrid');if(sF.insts.length<=1){g.style.display='none';return;}g.style.display='grid';g.innerHTML=sF.insts.map(function(inst,i){return'<button class="inst-btn'+(inst.id===sI.id?' sel':'')+'" onclick="pickInst('+i+')"><span class="iico">'+(ICO[inst.id]||'?')+'</span><span><div class="ilbl">'+inst.label+'</div></span></button>';}).join('');}
 function pickFam(i){sF=FAM[i];sI=sF.insts[0];buildFamTabs();buildInstGrid();doRender();}
-function pickInst(i){sI=sF.insts[i]||sF.insts[0];document.getElementById('instPanel').classList.remove('open');buildFamTabs();doRender();}
+function pickInst(i){sI=sF.insts[i]||sF.insts[0];buildFamTabs();buildInstGrid();doRender();}
+function buildKeyRow(){document.getElementById('keyRow').innerHTML=KEYS.map(function(k,i){return'<button class="key-btn'+(k.label===sK.label?' sel':'')+'" onclick="pickKey('+i+')">'+k.label+'</button>';}).join('');}
+function pickKey(i){sK=KEYS[i]||KEYS[0];document.querySelectorAll('.key-btn').forEach(function(b,j){b.classList.toggle('sel',j===i);});doRender();}
 
-/* ═══════════════════ KEY UI ═══════════════════ */
-function buildKeyRow(){document.getElementById('keyRow').innerHTML=KEYS.map(function(k,i){return'<button class="key-btn'+(k.label===sK.label?' sel':'')+'" onclick="pickKey('+i+')">'+k.label+'</button>';}).join('');updateKeyInfo();}
-function pickKey(i){sK=KEYS[i]||KEYS[0];document.querySelectorAll('.key-btn').forEach(function(b,j){b.classList.toggle('sel',j===i);});updateKeyInfo();doRender();}
-function updateKeyInfo(){document.getElementById('keyInfo').textContent=sK.sem===0?'C Major — no sharps or flats':sK.label+' Major';}
-
-/* ═══════════════════ DIAGRAMS ═══════════════════ */
+/* Diagrams */
 var G='#e8a820',DK='#0b0c1a',GR='#2a2d4a',LT='#4a4e6a';
-function pianoSVG(sharp,oct){var WK=['C','D','E','F','G','A','B'],BK=[null,'C#','D#',null,'F#','G#','A#'],BP=[null,.65,1.65,null,3.65,4.65,5.65],FM={Cb:'B',Db:'C#',Eb:'D#',Fb:'E',Gb:'F#',Ab:'G#',Bb:'A#'},eff=FM[sharp]||sharp,isB=sharp.length>1,u=28,sw=7*u-2+4,ws='',bs='';for(var i=0;i<7;i++){var t=!isB&&WK[i]===eff;ws+='<rect x="'+(i*u+2)+'" y="2" width="26" height="72" rx="2" fill="'+(t?G:'#fff')+'" stroke="'+(t?'#c07810':'#ccc')+'" stroke-width="1.5"/>';}for(var i=0;i<7;i++){if(!BP[i])continue;var t=isB&&eff===BK[i];bs+='<rect x="'+(BP[i]*u-8+2)+'" y="2" width="16" height="44" rx="2" fill="'+(t?G:'#111')+'"/>';}return'<svg width="'+sw+'" height="82" viewBox="0 0 '+sw+' 82"><rect width="'+sw+'" height="82" rx="6" fill="'+GR+'"/>'+ws+bs+'<text x="'+(sw/2)+'" y="78" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" fill="'+G+'" font-weight="700">'+sharp+oct+'</text></svg>';}
-function valveSVG(v){var cx=[30,80,130],c='';v.forEach(function(on,i){c+=(on?'<circle cx="'+cx[i]+'" cy="36" r="24" fill="rgba(232,168,32,.2)"/>':"")+'<circle cx="'+cx[i]+'" cy="36" r="22" fill="'+(on?G:GR)+'" stroke="'+(on?'#c07810':LT)+'" stroke-width="2"/><text x="'+cx[i]+'" y="41" text-anchor="middle" font-family="Outfit,sans-serif" font-size="14" font-weight="700" fill="'+(on?DK:LT)+'">'+(i+1)+'</text><text x="'+cx[i]+'" y="68" text-anchor="middle" font-family="Outfit,sans-serif" font-size="9" fill="'+LT+'">'+(on?'▼ press':'○ open')+'</text>';});return'<svg width="160" height="76" viewBox="0 0 160 76"><rect width="160" height="76" rx="8" fill="'+DK+'"/><line x1="8" y1="36" x2="152" y2="36" stroke="'+LT+'" stroke-width="1" opacity=".3"/>'+c+'</svg>';}
-function woodwindSVG(holes){var cx=55,h=240,P=[{y:20,r:8},{y:55,r:11},{y:80,r:11},{y:105,r:11},{y:128,r:7},{y:155,r:11},{y:175,r:11},{y:195,r:11},{y:215,r:7}],L=['Reg','L1','L2','L3','◇','R1','R2','R3','◇'],b='<line x1="'+cx+'" y1="12" x2="'+cx+'" y2="'+(h-10)+'" stroke="'+LT+'" stroke-width="4" stroke-linecap="round"/>';P.forEach(function(p,i){if(i>=holes.length)return;var on=holes[i];b+='<circle cx="'+cx+'" cy="'+p.y+'" r="'+p.r+'" fill="'+(on?G:'#fff')+'" stroke="'+(on?'#c07810':GR)+'" stroke-width="1.5"/>';if(on)b+='<circle cx="'+cx+'" cy="'+p.y+'" r="'+(p.r-4)+'" fill="'+DK+'" opacity=".3"/>';b+='<text x="'+(cx+p.r+5)+'" y="'+(p.y+4)+'" font-family="Outfit,sans-serif" font-size="9" fill="'+LT+'">'+L[i]+'</text>';});return'<svg width="110" height="'+(h+10)+'" viewBox="0 0 110 '+(h+10)+'"><rect width="110" height="'+(h+10)+'" rx="8" fill="'+DK+'"/>'+b+'</svg>';}
-function tromboneSVG(pos){var pct=(pos-1)/6,sx=20+pct*130,t='';for(var i=1;i<=7;i++){var x=20+(i-1)/6*130;t+='<line x1="'+x+'" y1="28" x2="'+x+'" y2="38" stroke="'+LT+'" stroke-width="1"/><text x="'+x+'" y="50" text-anchor="middle" font-family="Outfit,sans-serif" font-size="8" fill="'+LT+'">'+i+'</text>';}return'<svg width="200" height="68" viewBox="0 0 200 68"><rect width="200" height="68" rx="8" fill="'+DK+'"/><rect x="16" y="30" width="138" height="5" rx="2" fill="'+GR+'"/>'+t+'<rect x="'+(sx-4)+'" y="20" width="12" height="25" rx="4" fill="'+G+'" stroke="#c07810" stroke-width="1.5"/><text x="100" y="63" text-anchor="middle" font-family="Outfit,sans-serif" font-size="10" font-weight="700" fill="'+G+'">Position '+pos+'</text></svg>';}
-function stringsSVG(name,os){var xs=[25,65,110,155],c='',root=name.charAt(0);os.forEach(function(s,i){var mm=s.charAt(0)===root;c+='<line x1="'+xs[i]+'" y1="10" x2="'+xs[i]+'" y2="62" stroke="'+(mm?G:LT)+'" stroke-width="'+(mm?3:1.5)+'"/>';if(mm)c+='<circle cx="'+xs[i]+'" cy="36" r="14" fill="'+G+'" stroke="#c07810" stroke-width="2"/>';c+='<text x="'+xs[i]+'" y="'+(mm?41:57)+'" text-anchor="middle" font-family="Outfit,sans-serif" font-size="'+(mm?11:9)+'" font-weight="700" fill="'+(mm?DK:LT)+'">'+s+'</text>';});return'<svg width="185" height="72" viewBox="0 0 185 72"><rect width="185" height="72" rx="8" fill="'+DK+'"/><text x="92" y="11" text-anchor="middle" font-family="Outfit,sans-serif" font-size="8" fill="'+LT+'">Open strings</text>'+c+'<text x="92" y="70" text-anchor="middle" font-family="Outfit,sans-serif" font-size="8" fill="rgba(232,168,32,.5)">Gold = your string</text></svg>';}
+function pianoSVG(sharp,oct){var WK=['C','D','E','F','G','A','B'],BK=[null,'C#','D#',null,'F#','G#','A#'],BP=[null,.65,1.65,null,3.65,4.65,5.65],FM={Cb:'B',Db:'C#',Eb:'D#',Fb:'E',Gb:'F#',Ab:'G#',Bb:'A#'},eff=FM[sharp]||sharp,isB=sharp.length>1,u=28,sw=7*u-2+4,ws='',bs='';for(var i=0;i<7;i++){var t=!isB&&WK[i]===eff;ws+='<rect x="'+(i*u+2)+'" y="2" width="26" height="72" rx="2" fill="'+(t?G:'#fff')+'" stroke="'+(t?'#c07810':'#ccc')+'" stroke-width="1.5"/>';}for(var i=0;i<7;i++){if(!BP[i])continue;var t=isB&&eff===BK[i];bs+='<rect x="'+(BP[i]*u-8+2)+'" y="2" width="16" height="44" rx="2" fill="'+(t?G:'#111')+'"/>';}return'<svg width="'+sw+'" height="82" viewBox="0 0 '+sw+' 82"><rect width="'+sw+'" height="82" rx="6" fill="'+GR+'"/>'+ws+bs+'<text x="'+(sw/2)+'" y="78" text-anchor="middle" font-size="10" fill="'+G+'" font-weight="700">'+sharp+oct+'</text></svg>';}
+function valveSVG(v){var cx=[30,80,130],c='';v.forEach(function(on,i){c+=(on?'<circle cx="'+cx[i]+'" cy="36" r="24" fill="rgba(232,168,32,.2)"/>':"")+'<circle cx="'+cx[i]+'" cy="36" r="22" fill="'+(on?G:GR)+'" stroke="'+(on?'#c07810':LT)+'" stroke-width="2"/><text x="'+cx[i]+'" y="41" text-anchor="middle" font-size="14" font-weight="700" fill="'+(on?DK:LT)+'">'+(i+1)+'</text>';});return'<svg width="160" height="68" viewBox="0 0 160 68"><rect width="160" height="68" rx="8" fill="'+DK+'"/>'+c+'</svg>';}
+function woodwindSVG(holes){var cx=55,h=240,P=[{y:20,r:8},{y:55,r:11},{y:80,r:11},{y:105,r:11},{y:128,r:7},{y:155,r:11},{y:175,r:11},{y:195,r:11},{y:215,r:7}],b='<line x1="'+cx+'" y1="12" x2="'+cx+'" y2="'+(h-10)+'" stroke="'+LT+'" stroke-width="4" stroke-linecap="round"/>';P.forEach(function(p,i){if(i>=holes.length)return;var on=holes[i];b+='<circle cx="'+cx+'" cy="'+p.y+'" r="'+p.r+'" fill="'+(on?G:'#fff')+'" stroke="'+(on?'#c07810':GR)+'" stroke-width="1.5"/>';});return'<svg width="110" height="'+(h+10)+'" viewBox="0 0 110 '+(h+10)+'"><rect width="110" height="'+(h+10)+'" rx="8" fill="'+DK+'"/>'+b+'</svg>';}
+function tromboneSVG(pos){var sx=20+(pos-1)/6*130,t='';for(var i=1;i<=7;i++){var x=20+(i-1)/6*130;t+='<line x1="'+x+'" y1="28" x2="'+x+'" y2="38" stroke="'+LT+'" stroke-width="1"/><text x="'+x+'" y="50" text-anchor="middle" font-size="8" fill="'+LT+'">'+i+'</text>';}return'<svg width="200" height="62" viewBox="0 0 200 62"><rect width="200" height="62" rx="8" fill="'+DK+'"/><rect x="16" y="30" width="138" height="5" rx="2" fill="'+GR+'"/>'+t+'<rect x="'+(sx-4)+'" y="20" width="12" height="25" rx="4" fill="'+G+'"/><text x="100" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="'+G+'">Position '+pos+'</text></svg>';}
+function stringsSVG(name,os){var xs=[25,65,110,155],c='',root=name.charAt(0);os.forEach(function(s,i){var mm=s.charAt(0)===root;c+='<line x1="'+xs[i]+'" y1="10" x2="'+xs[i]+'" y2="62" stroke="'+(mm?G:LT)+'" stroke-width="'+(mm?3:1.5)+'"/>';if(mm)c+='<circle cx="'+xs[i]+'" cy="36" r="14" fill="'+G+'" stroke="#c07810" stroke-width="2"/>';c+='<text x="'+xs[i]+'" y="'+(mm?41:57)+'" text-anchor="middle" font-size="'+(mm?11:9)+'" font-weight="700" fill="'+(mm?DK:LT)+'">'+s+'</text>';});return'<svg width="185" height="72" viewBox="0 0 185 72"><rect width="185" height="72" rx="8" fill="'+DK+'"/><text x="92" y="11" text-anchor="middle" font-size="8" fill="'+LT+'">Open strings</text>'+c+'</svg>';}
 
-/* ═══════════════════ POPUP ═══════════════════ */
 function showPopup(midi,cx,cy){
   var nn=m2n(midi),name=nn.s===nn.f?nn.s:nn.s+'/'+nn.f;
-  document.getElementById('pNote').textContent=name;
-  document.getElementById('pInst').textContent=sI.label;
+  document.getElementById('pNote').textContent=name;document.getElementById('pInst').textContent=sI.label;
   var d=document.getElementById('pDiag'),tp=document.getElementById('pTip'),lb=document.getElementById('pLbl');
   d.innerHTML='';tp.textContent='';lb.textContent='Fingering';
   switch(sI.diag){
     case 'piano':lb.textContent='Key to Press';d.innerHTML=pianoSVG(nn.s,nn.o);tp.textContent=nn.o<=3?'Lower half':nn.o>=5?'Upper half':'Near middle';break;
-    case 'valve':
-      var vm=sI.id==='horn'?HV:TV,v=vm[nn.s]||vm[nn.f]||[0,0,0],ao=v.every(function(x){return!x;});
-      lb.textContent='Valve Fingering';
-      if(ao){d.innerHTML='<div class="open-tag"><span>Open — no valves!</span></div>';tp.textContent='Just blow!';}
-      else{d.innerHTML=valveSVG(v);var pr=v.map(function(x,i){return x?i+1:null;}).filter(Boolean);tp.textContent='Press valve'+(pr.length>1?'s':'')+' '+pr.join('+')+' firmly';}
-      break;
-    case 'trombone':
-      var k=nn.s+nn.o,k2=nn.f+nn.o,pos=TBONE[k]||TBONE[k2]||1;
-      lb.textContent='Slide Position';d.innerHTML=tromboneSVG(pos);
-      tp.textContent=pos===1?'Slide fully in':pos===7?'Fully extended':'Position '+pos;break;
-    case 'clarinet':
-      var h=CLAR[nn.s]||CLAR[nn.f]||[0,1,1,1,0,1,1,1,0];
-      lb.textContent='Clarinet Keys';d.innerHTML=woodwindSVG(h);tp.textContent=h[0]?'Use register key':'Lower register';break;
-    case 'sax':
-      var h=SAX[nn.s]||SAX[nn.f]||[0,1,1,1,0,1,1,1,0];
-      lb.textContent='Sax Keys';d.innerHTML=woodwindSVG(h);tp.textContent=h[0]?'Use octave key':'Lower register';break;
-    case 'strings':
-      var os=(sI.id==='cello'||sI.id==='dbass')?['C','G','D','A']:['G','D','A','E'];
-      lb.textContent='Open Strings';d.innerHTML=stringsSVG(name,os);tp.textContent='Gold = your string';break;
-    default:
-      lb.textContent='Note';
-      d.innerHTML='<div style="background:rgba(0,0,0,.3);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:2.4rem;font-family:serif;color:'+G+';">'+name+'</div><div style="font-size:.72rem;color:var(--muted);margin-top:5px;">Octave '+nn.o+'</div></div>';
+    case 'valve':var vm=sI.id==='horn'?HV:TV,v=vm[nn.s]||vm[nn.f]||[0,0,0],ao=v.every(function(x){return!x;});lb.textContent='Valve Fingering';if(ao){d.innerHTML='<div class="open-tag"><span>Open!</span></div>';tp.textContent='Just blow!';}else{d.innerHTML=valveSVG(v);var pr=v.map(function(x,i){return x?i+1:null;}).filter(Boolean);tp.textContent='Press valve'+(pr.length>1?'s':'')+' '+pr.join('+');}break;
+    case 'trombone':var k=nn.s+nn.o,pos=TBONE[k]||TBONE[nn.f+nn.o]||1;lb.textContent='Slide Position';d.innerHTML=tromboneSVG(pos);break;
+    case 'clarinet':var h=CLAR[nn.s]||CLAR[nn.f]||[0,1,1,1,0,1,1,1,0];lb.textContent='Clarinet Keys';d.innerHTML=woodwindSVG(h);tp.textContent=h[0]?'Use register key':'Lower register';break;
+    case 'sax':var h=SAX[nn.s]||SAX[nn.f]||[0,1,1,1,0,1,1,1,0];lb.textContent='Sax Keys';d.innerHTML=woodwindSVG(h);tp.textContent=h[0]?'Use octave key':'Lower register';break;
+    case 'strings':var os=(sI.id==='cello'||sI.id==='dbass')?['C','G','D','A']:['G','D','A','E'];lb.textContent='Open Strings';d.innerHTML=stringsSVG(name,os);break;
+    default:lb.textContent='Note';d.innerHTML='<div style="background:rgba(0,0,0,.3);border-radius:10px;padding:14px;text-align:center;"><div style="font-size:2rem;font-family:serif;color:'+G+';">'+name+'</div><div style="font-size:.7rem;color:var(--muted);margin-top:4px;">Octave '+nn.o+'</div></div>';
   }
-  var pop=document.getElementById('popup');
-  pop.classList.add('on');document.getElementById('pov').classList.add('on');
-  requestAnimationFrame(function(){
-    var pw=pop.offsetWidth||255,ph=pop.offsetHeight||240,mg=12;
-    var left=cx+mg,top=cy-ph/2;
-    if(left+pw>window.innerWidth-mg)left=cx-pw-mg;
-    if(top<mg)top=mg;
-    if(top+ph>window.innerHeight-mg)top=window.innerHeight-ph-mg;
-    pop.style.left=Math.max(mg,left)+'px';pop.style.top=Math.max(mg,top)+'px';
-  });
+  var pop=document.getElementById('popup');pop.classList.add('on');document.getElementById('pov').classList.add('on');
+  requestAnimationFrame(function(){var pw=pop.offsetWidth||250,ph=pop.offsetHeight||220,mg=12;var left=cx+mg,top=cy-ph/2;if(left+pw>window.innerWidth-mg)left=cx-pw-mg;if(top<mg)top=mg;if(top+ph>window.innerHeight-mg)top=window.innerHeight-ph-mg;pop.style.left=Math.max(mg,left)+'px';pop.style.top=Math.max(mg,top)+'px';});
 }
 function closePopup(){document.getElementById('popup').classList.remove('on');document.getElementById('pov').classList.remove('on');}
 
-/* ═══════════════════ INIT ═══════════════════ */
 buildFamTabs();buildKeyRow();
-window.addEventListener('load',doRender);
+window.addEventListener('load',function(){initClef();setTimeout(doRender,100);});
 window.addEventListener('resize',function(){clearTimeout(window._rt);window._rt=setTimeout(doRender,300);});
-document.addEventListener('click',function(e){
-  var p=document.getElementById('instPanel');
-  if(p.classList.contains('open')&&!p.contains(e.target)&&!e.target.closest('.fam-tabs'))p.classList.remove('open');
-});
 </script>
 
 </body>
