@@ -31,15 +31,20 @@ background:linear-gradient(120deg,#e8a820,#f5e060);
 
 /* Custom dropdown pills */
 .dd-wrap{position:relative;}
-.dd-btn{display:flex;align-items:center;gap:5px;padding:7px 10px 7px 11px;
-background:var(–card);border:1.5px solid var(–border);border-radius:20px;
-color:var(–text);font-family:‘Outfit’,sans-serif;font-size:.72rem;font-weight:600;
-cursor:pointer;white-space:nowrap;min-width:0;transition:border-color .15s;width:100%;}
-.ctrl-btn{padding:10px 12px;font-size:.82rem;border-radius:14px;border-width:1.5px;}
+.dd-btn{-webkit-appearance:none;appearance:none;
+display:flex;align-items:center;gap:6px;padding:10px 12px;
+background:var(–card);border:1.5px solid var(–border);border-radius:13px;
+color:var(–text);font-family:‘Outfit’,sans-serif;font-size:.82rem;font-weight:600;
+cursor:pointer;white-space:nowrap;min-width:0;width:100%;
+transition:border-color .15s,background .15s;text-align:left;}
+.dd-btn:active,.dd-btn.open{border-color:var(–gold);background:#22254a;color:var(–gold);}
 .dd-btn:active,.dd-btn.open{border-color:var(–gold);color:var(–gold);}
 .dd-btn .dd-label{max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.dd-btn .dd-arrow{font-size:.6rem;opacity:.6;flex-shrink:0;transition:transform .2s;}
+.dd-btn .dd-arrow{font-size:.6rem;opacity:.5;flex-shrink:0;transition:transform .2s;margin-left:auto;}
 .dd-btn.open .dd-arrow{transform:rotate(180deg);}
+.dd-stack{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;text-align:left;}
+.dd-sublabel{font-size:.55rem;font-weight:600;color:var(–muted);letter-spacing:.07em;text-transform:uppercase;}
+.dd-val{font-size:.88rem;font-weight:700;color:var(–text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .dd-icon{font-size:.9rem;flex-shrink:0;}
 
 .dd-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:500;
@@ -74,13 +79,14 @@ color:var(–muted);background:var(–surf);transition:all .12s;}
 .dd-key.sel{border-color:var(–gold);color:var(–gold);background:rgba(232,168,32,.12);}
 
 /* ── MODE BAR ── */
-.mode-bar{display:flex;gap:6px;padding:0 10px 6px;flex-shrink:0;}
-.mode-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
-padding:7px 6px 6px;border-radius:11px;border:1.5px solid var(–border);
+.mode-bar{display:flex;gap:6px;padding:0 10px 7px;flex-shrink:0;}
+.mode-btn{-webkit-appearance:none;appearance:none;
+flex:1;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;
+padding:8px 6px;border-radius:10px;border:1.5px solid var(–border);
 background:var(–surf);cursor:pointer;font-family:‘Outfit’,sans-serif;
 transition:all .18s;}
-.mode-btn .m-ico{font-size:1.05rem;line-height:1;}
-.mode-btn .m-lbl{font-size:.58rem;font-weight:700;letter-spacing:.04em;
+.mode-btn .m-ico{font-size:.95rem;line-height:1;flex-shrink:0;}
+.mode-btn .m-lbl{font-size:.72rem;font-weight:700;letter-spacing:.03em;
 text-transform:uppercase;color:var(–muted);}
 .mode-btn.active-play{border-color:var(–green);background:rgba(62,207,142,.1);}
 .mode-btn.active-play .m-lbl{color:var(–green);}
@@ -93,8 +99,8 @@ text-transform:uppercase;color:var(–muted);}
 .sub-bar{display:flex;gap:6px;padding:0 12px 8px;
 overflow:hidden;max-height:0;transition:max-height .22s ease,padding .22s ease,opacity .18s;opacity:0;}
 .sub-bar.show{max-height:52px;opacity:1;}
-.sub-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
-padding:8px 12px;border-radius:11px;border:1.5px solid var(–border);
+.sub-btn{-webkit-appearance:none;appearance:none;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+padding:8px 12px;border-radius:10px;border:1.5px solid var(–border);
 background:var(–surf);cursor:pointer;font-family:‘Outfit’,sans-serif;
 font-size:.73rem;font-weight:700;color:var(–muted);transition:all .15s;}
 .sub-btn.on{border-color:var(–gold);background:rgba(232,168,32,.12);color:var(–gold);}
@@ -169,10 +175,12 @@ color:var(–green);border-radius:20px;padding:3px 12px;font-size:.7rem;font-wei
 
 <div class="ctrl-row">
   <!-- Song dropdown -->
-  <div class="dd-wrap" id="ddSong" style="flex:2;">
-    <button class="dd-btn ctrl-btn" onclick="toggleDD('song')">
-      <span class="dd-icon">&#x1F3B5;</span>
-      <span class="dd-label" id="songLabel">Ode to Joy</span>
+  <div class="dd-wrap" id="ddSong" style="flex:2;min-width:0;">
+    <button class="dd-btn" onclick="toggleDD('song')">
+      <span class="dd-stack">
+        <span class="dd-sublabel">Song</span>
+        <span class="dd-val" id="songLabel">Ode to Joy</span>
+      </span>
       <span class="dd-arrow">&#9660;</span>
     </button>
     <div class="dd-panel" id="panelSong">
@@ -185,10 +193,12 @@ color:var(–green);border-radius:20px;padding:3px 12px;font-size:.7rem;font-wei
 
   <!-- Instrument dropdown -->
 
-  <div class="dd-wrap" id="ddInst" style="flex:2;">
-    <button class="dd-btn ctrl-btn" onclick="toggleDD('inst')">
-      <span class="dd-icon">&#x1F3B9;</span>
-      <span class="dd-label" id="instLabel">Piano</span>
+  <div class="dd-wrap" id="ddInst" style="flex:2;min-width:0;">
+    <button class="dd-btn" onclick="toggleDD('inst')">
+      <span class="dd-stack">
+        <span class="dd-sublabel">Instrument</span>
+        <span class="dd-val" id="instLabel">Piano</span>
+      </span>
       <span class="dd-arrow">&#9660;</span>
     </button>
     <div class="dd-panel" id="panelInst">
@@ -199,10 +209,12 @@ color:var(–green);border-radius:20px;padding:3px 12px;font-size:.7rem;font-wei
 
   <!-- Key dropdown -->
 
-  <div class="dd-wrap" id="ddKey" style="flex:1;">
-    <button class="dd-btn ctrl-btn" onclick="toggleDD('key')">
-      <span class="dd-icon">&#x266F;</span>
-      <span class="dd-label" id="keyLabel">C</span>
+  <div class="dd-wrap" id="ddKey" style="flex:1;min-width:0;">
+    <button class="dd-btn" onclick="toggleDD('key')">
+      <span class="dd-stack">
+        <span class="dd-sublabel">Key</span>
+        <span class="dd-val" id="keyLabel" style="color:var(--gold);">C</span>
+      </span>
       <span class="dd-arrow">&#9660;</span>
     </button>
     <div class="dd-panel dd-panel-right" id="panelKey">
