@@ -15,6 +15,7 @@ html,body{height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;}
 
 /* ===== TOKENS ===== */
 :root{
+color-scheme:dark;
 –bg:#06060f;
 –surf:#10101e;
 –surf2:#181828;
@@ -36,8 +37,8 @@ html,body{height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none;}
 /* ===== BASE ===== */
 body{
 font-family:‘Arial Black’,‘Helvetica Neue’,Arial,sans-serif;
-background:var(–bg);
-color:var(–ink);
+background-color:#06060f;background-color:var(–bg);
+color:#f0e6d0;color:var(–ink);
 -webkit-font-smoothing:antialiased;
 -webkit-tap-highlight-color:transparent;
 touch-action:manipulation;
@@ -805,9 +806,13 @@ animation:t-in .38s cubic-bezier(.34,1.56,.64,1) forwards;
       <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
     </div>
     <div class="cmp-tempo-row">
-      <button class="cmp-tempo-btn" onclick="Cmp.slower()">🐢 Slower</button>
+      <button class="cmp-tempo-btn" id="cmp-slower-btn"
+        ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()"
+        onmousedown="Cmp.startHold(-1)" onmouseup="Cmp.endHold()" onmouseleave="Cmp.endHold()">🐢 Slower</button>
       <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 60</div>
-      <button class="cmp-tempo-btn" onclick="Cmp.faster()">⚡ Faster</button>
+      <button class="cmp-tempo-btn" id="cmp-faster-btn"
+        ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()"
+        onmousedown="Cmp.startHold(1)" onmouseup="Cmp.endHold()" onmouseleave="Cmp.endHold()">⚡ Faster</button>
     </div>
     <div class="cmp-staff-wrap">
       <svg id="cmp-svg" preserveAspectRatio="xMinYMid meet"></svg>
@@ -826,6 +831,7 @@ animation:t-in .38s cubic-bezier(.34,1.56,.64,1) forwards;
         <button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">³ Triplet</button>
         <button class="cmp-edit-btn" onclick="Cmp.undo()">↩ Undo</button>
         <button class="cmp-edit-btn" onclick="Cmp.trash()">🗑 Rest</button>
+        <button class="cmp-edit-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke It</button>
       </div>
     </div>
     <div class="cmp-title-row">
@@ -2156,67 +2162,102 @@ const Cmp = {
     else if(this.step==='timesig') this._showStep('entry');
   },
 
-  _updTempoDisp(){
-    if(!this.ts)return;
-    document.getElementById('cmp-tempo-disp').textContent=`${this.ts.bul} = ${this.tempo}`;
+  // FEATURE 1 — hold-to-accelerate tempo
+  _holdDir:0, _holdTimer:null, _holdInterval:null, _holdMs:0,
+  startHold(dir){
+    if(this._holdTimer)return;
+    this._holdMs=0;
+    this._stepTempo(dir); // immediate single tap
+    this._holdTimer=setTimeout(()=>{
+      this._holdInterval=setInterval(()=>{
+        this._holdMs+=60;
+        const rate=this._holdMs<800?1:this._holdMs<2000?2:5;
+        this._stepTempo(dir*rate);
+      },60);
+    },400);
   },
-
-  slower(){this.tempo=Math.max(40,this.tempo-5);this._updTempoDisp();},
-  faster(){this.tempo=Math.min(280,this.tempo+5);this._updTempoDisp();},
-
-  _dur8(d,dot){
-    const base={1:8,2:4,4:2,8:1,16:0.5}[d]||2;
-    return dot?base*1.5:base;
+  endHold(){
+    clearTimeout(this._holdTimer);clearInterval(this._holdInterval);
+    this._holdTimer=null;this._holdInterval=null;this._holdMs=0;
   },
+  _stepTempo(delta){
+    this.tempo=Math.min(280,Math.max(40,this.tempo+delta));
+    this._updTempoDisp();
+  },
+  slower(){this._stepTempo(-1);},
+  faster(){this._stepTempo(1);},
 
+  _dur8(d,dot){const base={1:8,2:4,4:2,8:1,16:0.5}[d]||2;return dot?base*1.5:base;},
   _totalCap(){return this.totalMeasures*(this.ts?.cap||8);},
   _filled(){return this.notes.reduce((a,n)=>a+n.dur8,0);},
 
+  // BUG 3 — explicit triplet group tracking
+  _tg:{base:0,count:0,accum:0}, // triplet group state
+
   addEntry(pitch,d,dot,isRest){
     if(!this.ts)return;
-    const baseDur8=this._dur8(d,dot);
-    const dur8=this.tripletMode?parseFloat((baseDur8*2/3).toFixed(4)):baseDur8;
     const totalCap=this._totalCap();
     const filled=this._filled();
 
-    if(filled>=totalCap-0.01){
-      Toast.show({ic:'🎵',title:'Staff Full!',sub:'Submit or undo to make room.',type:'e'});return;
+    // BUG 2 — strict cap (use small epsilon for float safety)
+    if(filled>=totalCap-0.001){
+      Toast.show({ic:'🎵',title:'Measures full!',sub:'Nuke it or undo to make room.',type:'e'});return;
+    }
+
+    const baseDur8=this._dur8(d,dot);
+    let dur8;
+
+    if(this.tripletMode){
+      // BUG 3 — group-aware triplet math
+      if(this._tg.count===0){this._tg.base=baseDur8;this._tg.accum=0;}
+      const targetGroup=this._tg.base*2; // "next value up" total duration
+      if(this._tg.count<2){
+        dur8=parseFloat((targetGroup/3).toFixed(6));
+      } else {
+        dur8=parseFloat((targetGroup-this._tg.accum).toFixed(6)); // exact remainder
+      }
+      this._tg.accum=parseFloat((this._tg.accum+dur8).toFixed(6));
+      this._tg.count++;
+      if(this._tg.count>=3){
+        this._tg={base:0,count:0,accum:0};
+        this.tripletMode=false;
+        document.getElementById('cmp-triplet-btn')?.classList.remove('on');
+      }
+    } else {
+      dur8=baseDur8;
     }
 
     const curMi=Math.floor(filled/this.ts.cap);
-    const beatInMeasure=filled-curMi*this.ts.cap;
-    const remaining=this.ts.cap-beatInMeasure;
+    const beatInMeasure=parseFloat((filled-curMi*this.ts.cap).toFixed(6));
+    const remaining=parseFloat((this.ts.cap-beatInMeasure).toFixed(6));
 
-    // Mark previous note as not current
     if(this.notes.length) this.notes[this.notes.length-1].current=false;
 
-    const isTriplet=this.tripletMode;
-    const tripletPos=isTriplet?this._curTripletPos():null;
+    const isTriplet=this.tripletMode||this._tg.count>0; // still in group?
+    const tripletPos=(this._tg.count===0&&isTriplet)?2:this._tg.count===1?0:this._tg.count===2?1:null;
 
     if(dur8<=remaining+0.001){
-      this.notes.push({p:isRest?'REST':pitch,d,dot,dur8,rest:isRest,triplet:isTriplet,tripletPos,tied:false,current:true});
+      const actualDur8=Math.min(dur8,remaining); // BUG 2 — never exceed remaining
+      this.notes.push({p:isRest?'REST':pitch,d,dot,dur8:actualDur8,rest:isRest,triplet:false,tripletPos:null,tied:false,current:true});
     } else {
-      // Split: fill remainder of current measure, tie into next
+      // Split with tie — first half fills measure, second goes to next
       const d1=this._closestDur(remaining);
-      const part2=dur8-remaining;
+      const part2=parseFloat((dur8-remaining).toFixed(6));
       const d2=this._closestDur(part2);
-      if(d1){
-        this.notes.push({p:isRest?'REST':pitch,d:d1.d,dot:d1.dot,dur8:remaining,rest:isRest,triplet:false,tripletPos:null,tied:false,current:false});
-      }
-      if(d2&&filled+remaining<totalCap-0.01){
-        this.notes.push({p:isRest?'REST':pitch,d:d2.d,dot:d2.dot,dur8:part2,rest:isRest,triplet:false,tripletPos:null,tied:true,current:true});
+      this.notes.push({p:isRest?'REST':pitch,d:d1.d,dot:d1.dot,dur8:remaining,rest:isRest,triplet:false,tripletPos:null,tied:false,current:false});
+      const newFilled=parseFloat((filled+remaining).toFixed(6));
+      // BUG 2 — only add tie-continuation if still within cap
+      if(newFilled<totalCap-0.001){
+        const maxPart2=Math.min(part2,parseFloat((totalCap-newFilled).toFixed(6)));
+        const d2b=this._closestDur(maxPart2);
+        this.notes.push({p:isRest?'REST':pitch,d:d2b.d,dot:d2b.dot,dur8:maxPart2,rest:isRest,triplet:false,tripletPos:null,tied:true,current:true});
       }
     }
 
-    if(isTriplet){this.tripletMode=false;document.getElementById('cmp-triplet-btn')?.classList.remove('on');}
     this.render();
   },
 
-  _curTripletPos(){
-    // Count consecutive triplet notes at end
-    let c=0;for(let i=this.notes.length-1;i>=0;i--){if(this.notes[i].triplet)c++;else break;}
-    return c%3;
-  },
+  _curTripletPos(){let c=0;for(let i=this.notes.length-1;i>=0;i--){if(this.notes[i].triplet)c++;else break;}return c%3;},
 
   _closestDur(dur8){
     const opts=[
@@ -2230,20 +2271,31 @@ const Cmp = {
     if(!this.notes.length){Toast.show({ic:'↩',title:'Nothing to undo',sub:'Staff is already empty.',type:'e'});return;}
     this.notes.pop();
     if(this.notes.length) this.notes[this.notes.length-1].current=true;
+    // Reset triplet group if undoing into one
+    this._tg={base:0,count:0,accum:0};
     this.render();
   },
 
   trash(){
     if(!this.notes.length)return;
     const n=this.notes[this.notes.length-1];
-    n.p='REST';n.rest=true;
+    n.p='REST';n.rest=true;this.render();
+  },
+
+  // FEATURE 2 — nuke entire composition
+  nuke(){
+    this.stop();this.notes=[];this._tg={base:0,count:0,accum:0};
+    this.tripletMode=false;
+    document.getElementById('cmp-triplet-btn')?.classList.remove('on');
+    Toast.show({ic:'💣',title:'Nuked.',sub:'Staff cleared. Start over, champion.'});
     this.render();
   },
 
   toggleTriplet(){
     this.tripletMode=!this.tripletMode;
+    if(!this.tripletMode) this._tg={base:0,count:0,accum:0};
     document.getElementById('cmp-triplet-btn')?.classList.toggle('on',this.tripletMode);
-    if(this.tripletMode) Toast.show({ic:'³',title:'Triplet Mode',sub:'Tap a note or rest button.',type:''});
+    if(this.tripletMode) Toast.show({ic:'³',title:'Triplet Mode',sub:'Tap a note or rest — auto-exits after 3.'});
   },
 
   render(){
@@ -2251,21 +2303,145 @@ const Cmp = {
     CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures});
   },
 
-  play(){
-    if(this.playing)return;
-    const audible=this.notes.filter(n=>!n.rest);
-    if(!audible.length){Toast.show({ic:'🎵',title:'Nothing to play',sub:'Add some notes first.',type:'e'});return;}
-    this.playing=true;
-    document.getElementById('cmp-play-btn')?.classList.add('on');
-    // Compute tempo: beats are in quarter-note beats. sec-per-eighth = 60/tempo * (4/beatUnit) / 4
-    const secPerEighth=(60/this.tempo)*(this.ts.beatUnit<=2?2:1)*0.5;
-    Syn.tune(this.notes.map(n=>({p:n.p,d:n.d,dot:n.dot})),this.tempo);
-    const totalMs=this.notes.reduce((a,n)=>a+n.dur8*secPerEighth*1000,0);
-    this.playTimer=setTimeout(()=>{this.playing=false;document.getElementById('cmp-play-btn')?.classList.remove('on');},totalMs+300);
+  // FEATURE 3 — WebAudio violin D4 synthesis with proper pause/stop
+  _wac:null,   // WebAudioContext
+  _wStart:0,   // audioCtx time when playback started
+  _wPauseAt:0, // audioCtx time when paused
+  _wPaused:false,
+  _wNodes:[],  // all oscillator nodes (to cancel on stop)
+  _wTimer:null,
+
+  _secPerEighth(){
+    if(!this.ts)return 0.25;
+    // beatUnit tells us the BPM denominator: 4=quarter, 2=half, 8=eighth
+    // For compound (♩.) the beat = dotted quarter = 3 eighths
+    const bu=this.ts.beatUnit;
+    const eighthsPerBeat=bu===2?4:bu===8?1:2; // half=4, quarter=2, eighth=1
+    // compound time sigs (6/8, 9/8, 12/8) group in dotted quarters = 3 eighths per beat
+    const isCompound=(this.ts.v===8&&this.ts.b%3===0&&this.ts.b>3);
+    const ePB=isCompound?3:eighthsPerBeat;
+    return (60/this.tempo)/ePB;
   },
 
-  pause(){this.playing=false;clearTimeout(this.playTimer);document.getElementById('cmp-play-btn')?.classList.remove('on');},
-  stop(){this.pause();},
+  _getWAC(){
+    if(!this._wac||this._wac.state==='closed'){
+      this._wac=new(window.AudioContext||window.webkitAudioContext)();
+    }
+    return this._wac;
+  },
+
+  _playViolin(ctx,freq,startTime,durSec){
+    if(durSec<=0)return null;
+    const osc=ctx.createOscillator();
+    const filter=ctx.createBiquadFilter();
+    const gain=ctx.createGain();
+    const vib=ctx.createOscillator();
+    const vibGain=ctx.createGain();
+
+    // Sawtooth → lowpass filter → gain envelope → output
+    osc.type='sawtooth';
+    osc.frequency.value=freq;
+    filter.type='lowpass';
+    filter.frequency.value=1800;
+    filter.Q.value=0.6;
+
+    // Gentle vibrato after attack settles
+    vib.frequency.value=5.5;
+    vibGain.gain.value=0;
+    vib.connect(vibGain);
+    vibGain.connect(osc.frequency);
+    vib.start(startTime);
+    vib.stop(startTime+durSec+0.05);
+    vibGain.gain.setValueAtTime(0,startTime);
+    vibGain.gain.linearRampToValueAtTime(3.5,startTime+Math.min(0.15,durSec*0.4));
+
+    // ADSR envelope — bowed string feel
+    const atk=Math.min(0.03,durSec*0.15);
+    const dec=Math.min(0.06,durSec*0.2);
+    const sus=0.32;
+    const rel=Math.min(0.08,durSec*0.15);
+    gain.gain.setValueAtTime(0,startTime);
+    gain.gain.linearRampToValueAtTime(0.42,startTime+atk);
+    gain.gain.linearRampToValueAtTime(sus,startTime+atk+dec);
+    gain.gain.setValueAtTime(sus,startTime+durSec-rel);
+    gain.gain.linearRampToValueAtTime(0,startTime+durSec);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(startTime);
+    osc.stop(startTime+durSec+0.02);
+    return osc;
+  },
+
+  play(){
+    if(!this.ts)return;
+    if(this._wac&&this._wac.state==='running'&&this.playing)return;
+
+    if(this._wPaused&&this._wac&&this._wac.state==='suspended'){
+      // Resume from pause
+      this._wac.resume();
+      this.playing=true;
+      document.getElementById('cmp-play-btn')?.classList.add('on');
+      // Restart completion timer for remaining duration
+      const elapsed=this._wPauseAt-this._wStart;
+      const spe=this._secPerEighth();
+      const total=this.notes.reduce((a,n)=>a+n.dur8*spe,0);
+      const left=Math.max(0,total-elapsed)*1000;
+      this._wTimer=setTimeout(()=>this._onPlayEnd(),left+200);
+      this._wPaused=false;
+      return;
+    }
+
+    if(this.notes.length===0){Toast.show({ic:'🎵',title:'Nothing to play',sub:'Add some notes first.',type:'e'});return;}
+
+    this.stop();
+    const ctx=this._getWAC();
+    if(ctx.state==='suspended') ctx.resume();
+    const spe=this._secPerEighth();
+    const D4=293.66;
+    let t=ctx.currentTime+0.05;
+    this._wStart=t;
+    this._wNodes=[];
+
+    this.notes.forEach(n=>{
+      const dur=n.dur8*spe;
+      if(!n.rest){
+        const node=this._playViolin(ctx,D4,t,dur);
+        if(node)this._wNodes.push(node);
+      }
+      t+=dur;
+    });
+
+    const totalMs=this.notes.reduce((a,n)=>a+n.dur8*spe,0)*1000;
+    this.playing=true;this._wPaused=false;
+    document.getElementById('cmp-play-btn')?.classList.add('on');
+    this._wTimer=setTimeout(()=>this._onPlayEnd(),totalMs+300);
+  },
+
+  _onPlayEnd(){
+    this.playing=false;this._wPaused=false;
+    document.getElementById('cmp-play-btn')?.classList.remove('on');
+  },
+
+  pause(){
+    if(!this.playing||!this._wac)return;
+    clearTimeout(this._wTimer);
+    this._wPauseAt=this._wac.currentTime;
+    this._wac.suspend();
+    this.playing=false;this._wPaused=true;
+    document.getElementById('cmp-play-btn')?.classList.remove('on');
+  },
+
+  stop(){
+    clearTimeout(this._wTimer);
+    if(this._wac&&this._wac.state!=='closed'){
+      try{this._wac.close();}catch(e){}
+    }
+    this._wac=null;this._wNodes=[];
+    this.playing=false;this._wPaused=false;this._wPauseAt=0;this._wStart=0;
+    document.getElementById('cmp-play-btn')?.classList.remove('on');
+  },
 
   submit(){
     const title=document.getElementById('c-title')?.value.trim();
