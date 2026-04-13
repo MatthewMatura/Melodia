@@ -51,7 +51,11 @@ display:none;flex-direction:column;overflow-y:auto;
 -webkit-overflow-scrolling:touch;
 }
 .view.active{display:flex;}
+/* LAYOUT FIX 3: home must be block so children stack+scroll naturally */
+#view-home.active{display:block;overflow-y:scroll;-webkit-overflow-scrolling:touch;}
 #view-practice.active{overflow:hidden;}
+/* compose: flex-column, allow scroll if content overflows */
+#view-compose.active{display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 #view-battle{bottom:0;z-index:90;}
 
 /* ===== BOTTOM NAV ===== */
@@ -308,16 +312,23 @@ cursor:pointer;transition:background .18s,box-shadow .18s;
 .prac-ctrls{display:flex;gap:8px;padding:0 14px 12px;flex-shrink:0;}
 
 /* ===== COMPOSE ===== */
-.cinput{background:var(–surf);border:1px solid var(–dimmer);border-radius:7px;padding:11px 14px;color:var(–ink);font-family:inherit;font-size:13px;width:100%;outline:none;-webkit-appearance:none;}
-.cinput:focus{border-color:var(–gold);}
-@keyframes cmp-fade{0%{opacity:0;transform:translateY(10px);}100%{opacity:1;transform:translateY(0);}}
-.cmp-step{display:none;flex-direction:column;width:100%;animation:cmp-fade .28s ease forwards;}
-.cmp-step.cmp-active{display:flex;}
+.cinput{background:#10101e;background:var(–surf);border:1px solid rgba(240,230,208,.22);border:1px solid var(–dimmer);border-radius:7px;padding:11px 14px;color:#f0e6d0;color:var(–ink);font-family:inherit;font-size:13px;width:100%;outline:none;-webkit-appearance:none;}
+.cinput:focus{border-color:#f5c518;border-color:var(–gold);}
+@keyframes cmp-fade{0%{opacity:0;transform:translateY(8px);}100%{opacity:1;transform:translateY(0);}}
+.cmp-step{display:none;flex-direction:column;width:100%;flex-shrink:0;}
+.cmp-step.cmp-active{display:flex;animation:cmp-fade .3s ease forwards;}
+/* dragon background behind all compose steps */
+.cmp-dragon-bg{
+position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+}
+.cmp-dragon-bg svg{width:100%;height:100%;opacity:.055;}
+/* all steps sit above dragon */
+#view-compose > .cmp-step{position:relative;z-index:1;}
 /* — entry — */
-.cmp-entry-hero{padding:30px 20px 8px;text-align:center;}
-.cmp-entry-title{font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(135deg,var(–red),var(–gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.cmp-entry-sub{font-size:12px;color:var(–dim);margin-top:5px;font-style:italic;font-family:Georgia,serif;}
-.cmp-entry-btns{display:flex;flex-direction:column;gap:14px;padding:18px 20px 30px;}
+.cmp-entry-hero{padding:28px 20px 6px;text-align:center;}
+.cmp-entry-title{font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(135deg,#e8142a,#f5c518);background:linear-gradient(135deg,var(–red),var(–gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.cmp-entry-sub{font-size:12px;color:rgba(240,230,208,.55);color:var(–dim);margin-top:4px;font-style:italic;font-family:Georgia,serif;}
+.cmp-entry-btns{display:flex;flex-direction:column;gap:14px;padding:16px 20px 24px;}
 .cmp-mode-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px;border-radius:18px;border:none;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .13s,filter .13s;width:100%;}
 .cmp-mode-btn:active{transform:scale(.96);}
 .cmb-ic{font-size:40px;line-height:1;}
@@ -326,40 +337,69 @@ cursor:pointer;transition:background .18s,box-shadow .18s;
 .cmp-rhythm{background:linear-gradient(135deg,#003d8a,#0066dd);color:#fff;box-shadow:0 6px 28px rgba(0,102,221,.45);}
 .cmp-pitch{background:linear-gradient(135deg,#005c3a,#00d97e);color:#fff;box-shadow:0 6px 28px rgba(0,217,126,.38);}
 .cmp-both{background:linear-gradient(135deg,#6e0000,#e8142a);color:#fff;box-shadow:0 6px 28px rgba(232,20,42,.45);}
-/* — time sig — */
-.cmp-step-hdr{padding:18px 16px 8px;text-align:center;font-size:13px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;color:var(–gold);}
-.cmp-ts-grid{display:flex;flex-wrap:wrap;gap:10px;padding:6px 16px 28px;justify-content:center;}
-.cmp-ts-btn{min-width:82px;padding:13px 10px;border-radius:13px;border:2px solid var(–gold2);background:var(–surf);color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;line-height:1.5;}
-.cmp-ts-btn:active,.cmp-ts-btn.on{background:var(–gold);border-color:var(–gold);color:#111;transform:scale(.96);}
-.cmp-ts-main{font-size:17px;display:block;}
-/* — compose step — */
-.cmp-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(–surf);border-bottom:1px solid var(–gold2);flex-shrink:0;}
-.cmp-back-btn{padding:7px 10px;border-radius:8px;border:none;background:transparent;color:var(–dim);font-family:inherit;font-weight:900;font-size:18px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.cmp-submit-btn{padding:8px 14px;border-radius:8px;border:none;background:var(–gold);color:#111;font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.cmp-ts-label{font-size:14px;font-weight:900;color:var(–gold);letter-spacing:.1em;}
-.cmp-tempo-row{display:flex;align-items:center;gap:8px;padding:8px 14px;flex-shrink:0;}
-.cmp-tempo-btn{flex:1;padding:11px;border-radius:10px;border:2px solid var(–dimmer);background:var(–surf);color:var(–ink);font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .13s;}
-.cmp-tempo-btn:active{background:var(–red);border-color:var(–red);}
-.cmp-tempo-disp{flex:1.6;text-align:center;font-size:17px;font-weight:900;color:var(–gold);letter-spacing:.06em;}
-.cmp-staff-wrap{flex-shrink:0;margin:6px 14px;border-radius:10px;background:#0b0b18;border:1px solid var(–gold2);overflow:hidden;height:90px;display:flex;align-items:center;}
-#cmp-svg{width:100%;display:block;}
-.cmp-playbar{display:flex;gap:10px;padding:8px 14px;flex-shrink:0;justify-content:center;}
-.cmp-play-btn{width:54px;height:54px;border-radius:50%;border:2px solid var(–gold2);background:var(–surf);color:var(–gold);font-size:22px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .14s;display:flex;align-items:center;justify-content:center;}
-.cmp-play-btn:active,.cmp-play-btn.on{background:var(–gold);color:#111;border-color:var(–gold);}
-.cmp-input-area{flex-shrink:0;padding:0 14px 4px;}
-.cmp-input-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(–gold);margin-bottom:6px;}
+/* — time sig screen — */
+.cmp-step-hdr{padding:16px 16px 6px;text-align:center;font-size:11px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:#f5c518;color:var(–gold);}
+.cmp-ts-mascots{display:flex;justify-content:space-around;align-items:flex-end;padding:0 20px 4px;pointer-events:none;}
+.cmp-ts-mascots svg{opacity:.82;filter:drop-shadow(0 0 14px rgba(245,197,24,.25));}
+/* FEATURE 1+2: stacked numeral card buttons */
+.cmp-ts-grid{display:flex;flex-wrap:wrap;gap:11px;padding:8px 16px 24px;justify-content:center;}
+.cmp-ts-btn{
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+min-width:74px;padding:14px 10px 10px;border-radius:16px;
+border:2px solid rgba(245,197,24,.18);
+background:linear-gradient(160deg,#181828,#10101e);
+background:linear-gradient(160deg,var(–surf2),var(–surf));
+color:#f0e6d0;color:var(–ink);font-family:inherit;
+cursor:pointer;-webkit-tap-highlight-color:transparent;
+transition:all .18s;box-shadow:0 3px 12px rgba(0,0,0,.4);
+position:relative;overflow:hidden;
+}
+.cmp-ts-btn::before{
+content:’’;position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(to right,rgba(245,197,24,.5),transparent);
+}
+.cmp-ts-btn:active,.cmp-ts-btn.on{
+background:linear-gradient(135deg,rgba(245,197,24,.18),rgba(232,20,42,.14));
+border-color:#f5c518;border-color:var(–gold);
+box-shadow:0 0 20px rgba(245,197,24,.35),0 4px 16px rgba(0,0,0,.5);
+transform:scale(.96);
+}
+/* stacked top/bottom numerals — proper music notation style */
+.cmp-tsn-wrap{display:flex;flex-direction:column;align-items:center;line-height:1;gap:0;}
+.cmp-tsn-top{font-size:24px;font-weight:900;color:#f5c518;color:var(–gold);line-height:1;}
+.cmp-tsn-bot{font-size:24px;font-weight:900;color:#f0e6d0;color:var(–ink);line-height:1;}
+.cmp-ts-name{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(240,230,208,.5);margin-top:6px;}
+.cmp-ts-btn-text{font-size:13px;font-weight:900;color:rgba(240,230,208,.55);}/* Make Your Own */
+/* — compose step (step 3) — */
+.cmp-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#10101e;background:var(–surf);border-bottom:1px solid rgba(245,197,24,.22);border-bottom:1px solid var(–gold2);flex-shrink:0;}
+.cmp-back-btn{padding:7px 10px;border-radius:8px;border:none;background:transparent;color:rgba(240,230,208,.55);color:var(–dim);font-family:inherit;font-weight:900;font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.cmp-submit-btn{padding:9px 16px;border-radius:9px;border:none;background:#f5c518;background:var(–gold);color:#111;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;}
+/* LAYOUT FIX 1+2: input area above staff, no overlap */
+.cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);}
+.cmp-input-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#f5c518;color:var(–gold);margin-bottom:5px;margin-top:4px;}
 .cmp-note-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
 .cmp-note-row::-webkit-scrollbar{display:none;}
-.cmp-nbtn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 7px 7px;border-radius:11px;border:2px solid var(–dimmer);background:var(–surf);cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:54px;transition:all .14s;}
-.cmp-nbtn:active,.cmp-nbtn.sel{border-color:var(–gold);background:rgba(245,197,24,.1);}
+.cmp-nbtn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 7px 6px;border-radius:11px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:52px;transition:all .14s;}
+.cmp-nbtn:active,.cmp-nbtn.sel{border-color:#f5c518;border-color:var(–gold);background:rgba(245,197,24,.1);}
 .cmp-nbtn svg{display:block;}
-.cmp-nbtn-lbl{font-size:8px;color:var(–dim);text-align:center;letter-spacing:.04em;text-transform:uppercase;line-height:1.3;}
-.cmp-edit-row{display:flex;gap:8px;padding:8px 0 6px;}
-.cmp-triplet-btn{padding:11px 14px;border-radius:10px;border:2px solid var(–dimmer);background:var(–surf);color:var(–ink);font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .14s;}
-.cmp-triplet-btn.on{border-color:var(–red);background:var(–red2);}
-.cmp-edit-btn{flex:1;padding:12px;border-radius:10px;border:2px solid var(–dimmer);background:var(–surf);color:var(–ink);font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .14s;}
-.cmp-edit-btn:active{background:var(–red2);border-color:var(–red);}
-.cmp-title-row{padding:0 14px 14px;flex-shrink:0;}
+.cmp-nbtn-lbl{font-size:8px;color:rgba(240,230,208,.55);color:var(–dim);text-align:center;letter-spacing:.04em;text-transform:uppercase;line-height:1.3;}
+.cmp-edit-row{display:flex;gap:7px;padding:7px 0 4px;}
+.cmp-triplet-btn{padding:10px 12px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .14s;white-space:nowrap;}
+.cmp-triplet-btn.on{border-color:#e8142a;border-color:var(–red);background:rgba(232,20,42,.28);background:var(–red2);}
+.cmp-edit-btn{flex:1;padding:10px 6px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .14s;white-space:nowrap;}
+.cmp-edit-btn:active{background:rgba(232,20,42,.28);background:var(–red2);border-color:#e8142a;border-color:var(–red);}
+.cmp-tempo-row{display:flex;align-items:center;gap:8px;padding:8px 14px;flex-shrink:0;}
+.cmp-tempo-btn{flex:1;padding:11px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .13s;}
+.cmp-tempo-btn:active{background:#e8142a;background:var(–red);border-color:#e8142a;border-color:var(–red);}
+.cmp-tempo-disp{flex:1.6;text-align:center;font-size:17px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.06em;}
+/* LAYOUT FIX 2: staff never overlaps adjacent elements */
+.cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow:hidden;height:88px;display:flex;align-items:center;}
+#cmp-svg{width:100%;display:block;}
+.cmp-playbar{display:flex;gap:10px;padding:6px 14px 2px;flex-shrink:0;justify-content:center;}
+.cmp-play-btn{width:50px;height:50px;border-radius:50%;border:2px solid rgba(245,197,24,.22);border:2px solid var(–gold2);background:#10101e;background:var(–surf);color:#f5c518;color:var(–gold);font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .14s;display:flex;align-items:center;justify-content:center;}
+.cmp-play-btn:active,.cmp-play-btn.on{background:#f5c518;background:var(–gold);color:#111;border-color:#f5c518;border-color:var(–gold);}
+.cmp-title-row{padding:6px 14px 14px;flex-shrink:0;}
 
 /* ===== PROFILE ===== */
 .profile-hero{
@@ -764,6 +804,36 @@ animation:t-in .38s cubic-bezier(.34,1.56,.64,1) forwards;
 
 <div id="view-compose" class="view">
 
+  <!-- FEATURE 4: subtle dragon silhouette background -->
+
+  <div class="cmp-dragon-bg" aria-hidden="true">
+    <svg viewBox="0 0 400 700" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <!-- Winding dragon body — serpentine silhouette -->
+      <path d="M200 30 C240 60 280 50 300 90 C320 130 290 170 260 180
+               C230 190 200 170 210 140 C220 110 250 115 255 135
+               C260 155 240 165 225 155
+               M260 185 C280 210 310 230 320 270 C330 310 305 345 275 350
+               C245 355 220 335 230 305 C240 275 268 280 270 300
+               C272 320 255 328 242 320
+               M270 358 C295 390 315 420 305 465 C295 510 260 530 235 520
+               C210 510 202 482 218 458 C234 434 258 442 255 462
+               C252 482 235 486 224 476
+               M228 525 C220 560 230 600 210 640 C190 680 160 690 145 680"
+        stroke="#f5c518" stroke-width="18" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+      <!-- Head -->
+      <ellipse cx="196" cy="26" rx="22" ry="16" fill="#f5c518" opacity=".7"/>
+      <!-- Horns -->
+      <path d="M185 14 L175 0 M207 14 L217 0" stroke="#f5c518" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+      <!-- Eye -->
+      <circle cx="191" cy="23" r="4" fill="#e8142a" opacity=".8"/>
+      <!-- Whiskers -->
+      <path d="M175 28 Q165 24 155 28 M175 32 Q162 30 152 36" stroke="#f5c518" stroke-width="2" fill="none" opacity=".5" stroke-linecap="round"/>
+      <path d="M217 28 Q227 24 237 28 M217 32 Q230 30 240 36" stroke="#f5c518" stroke-width="2" fill="none" opacity=".5" stroke-linecap="round"/>
+      <!-- Claws at bottom -->
+      <path d="M145 680 L135 700 M145 680 L148 702 M145 680 L158 698" stroke="#f5c518" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+    </svg>
+  </div>
+
   <!-- STEP 1: Mode Entry -->
 
   <div id="cmp-s1" class="cmp-step cmp-active">
@@ -794,6 +864,11 @@ animation:t-in .38s cubic-bezier(.34,1.56,.64,1) forwards;
 
   <div id="cmp-s2" class="cmp-step">
     <div class="cmp-step-hdr">⏱ Pick Your Time Signature</div>
+    <!-- FEATURE 3: mascots flanking (inline SVG, uses existing defs) -->
+    <div class="cmp-ts-mascots">
+      <svg viewBox="0 0 120 145" width="72" height="86" style="transform:scaleX(-1)"><use href="#mp"/></svg>
+      <svg viewBox="0 0 120 145" width="72" height="86"><use href="#mf"/></svg>
+    </div>
     <div class="cmp-ts-grid" id="cmp-ts-grid"></div>
   </div>
 
@@ -805,38 +880,50 @@ animation:t-in .38s cubic-bezier(.34,1.56,.64,1) forwards;
       <span class="cmp-ts-label" id="cmp-ts-label">4/4</span>
       <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
     </div>
-    <div class="cmp-tempo-row">
-      <button class="cmp-tempo-btn" id="cmp-slower-btn"
-        ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()"
-        onmousedown="Cmp.startHold(-1)" onmouseup="Cmp.endHold()" onmouseleave="Cmp.endHold()">🐢 Slower</button>
-      <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 60</div>
-      <button class="cmp-tempo-btn" id="cmp-faster-btn"
-        ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()"
-        onmousedown="Cmp.startHold(1)" onmouseup="Cmp.endHold()" onmouseleave="Cmp.endHold()">⚡ Faster</button>
-    </div>
-    <div class="cmp-staff-wrap">
-      <svg id="cmp-svg" preserveAspectRatio="xMinYMid meet"></svg>
-    </div>
-    <div class="cmp-playbar">
-      <button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
-      <button class="cmp-play-btn" onclick="Cmp.pause()" title="Pause">⏸</button>
-      <button class="cmp-play-btn" onclick="Cmp.stop()" title="Stop">⏹</button>
-    </div>
-    <div class="cmp-input-area">
-      <div class="cmp-input-label">Notes</div>
-      <div class="cmp-note-row" id="cmp-note-row"></div>
-      <div class="cmp-input-label" style="margin-top:9px">Rests</div>
-      <div class="cmp-note-row" id="cmp-rest-row"></div>
-      <div class="cmp-edit-row">
-        <button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">³ Triplet</button>
-        <button class="cmp-edit-btn" onclick="Cmp.undo()">↩ Undo</button>
-        <button class="cmp-edit-btn" onclick="Cmp.trash()">🗑 Rest</button>
-        <button class="cmp-edit-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke It</button>
-      </div>
-    </div>
-    <div class="cmp-title-row">
-      <input class="cinput" id="c-title" type="text" placeholder="Song title...">
-    </div>
+
+```
+<!-- LAYOUT FIX 1: note/rest buttons moved to header area, above staff -->
+<div class="cmp-input-area">
+  <div class="cmp-input-label">Notes</div>
+  <div class="cmp-note-row" id="cmp-note-row"></div>
+  <div class="cmp-input-label" style="margin-top:7px">Rests</div>
+  <div class="cmp-note-row" id="cmp-rest-row"></div>
+  <div class="cmp-edit-row">
+    <button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">³ Triplet</button>
+    <button class="cmp-edit-btn" onclick="Cmp.undo()">↩ Undo</button>
+    <button class="cmp-edit-btn" onclick="Cmp.trash()">🗑 Rest</button>
+    <button class="cmp-edit-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
+  </div>
+</div>
+
+<!-- Tempo controls below input, above staff -->
+<div class="cmp-tempo-row">
+  <button class="cmp-tempo-btn" id="cmp-slower-btn"
+    ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()"
+    onmousedown="Cmp.startHold(-1)" onmouseup="Cmp.endHold()" onmouseleave="Cmp.endHold()">🐢 Slower</button>
+  <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 60</div>
+  <button class="cmp-tempo-btn" id="cmp-faster-btn"
+    ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()"
+    onmousedown="Cmp.startHold(1)" onmouseup="Cmp.endHold()" onmouseleave="Cmp.endHold()">⚡ Faster</button>
+</div>
+
+<!-- Staff — nothing overlaps it -->
+<div class="cmp-staff-wrap">
+  <svg id="cmp-svg" preserveAspectRatio="xMinYMid meet"></svg>
+</div>
+
+<!-- Playback controls below staff -->
+<div class="cmp-playbar">
+  <button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
+  <button class="cmp-play-btn" onclick="Cmp.pause()" title="Pause">⏸</button>
+  <button class="cmp-play-btn" onclick="Cmp.stop()" title="Stop">⏹</button>
+</div>
+
+<div class="cmp-title-row">
+  <input class="cinput" id="c-title" type="text" placeholder="Song title...">
+</div>
+```
+
   </div>
 
 </div>
@@ -2102,20 +2189,51 @@ const Cmp = {
   },
 
   _showStep(s){
-    document.getElementById('cmp-s1')?.classList.remove('cmp-active');
-    document.getElementById('cmp-s2')?.classList.remove('cmp-active');
-    document.getElementById('cmp-s3')?.classList.remove('cmp-active');
+    // Fade out current, fade in next
+    const ids=['cmp-s1','cmp-s2','cmp-s3'];
     const map={entry:'cmp-s1',timesig:'cmp-s2',compose:'cmp-s3'};
-    document.getElementById(map[s])?.classList.add('cmp-active');
+    ids.forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el)return;
+      if(el.classList.contains('cmp-active')){
+        el.style.opacity='0';
+        el.style.transition='opacity .18s ease';
+        setTimeout(()=>{el.classList.remove('cmp-active');el.style.opacity='';el.style.transition='';},180);
+      }
+    });
+    const next=document.getElementById(map[s]);
+    if(next){
+      setTimeout(()=>{
+        next.classList.add('cmp-active');
+        next.style.opacity='0';
+        next.style.transition='opacity .22s ease';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{next.style.opacity='1';}));
+        setTimeout(()=>{next.style.opacity='';next.style.transition='';},420);
+      },190);
+    }
     this.step=s;
   },
 
   _buildTimeSigs(){
     const grid=document.getElementById('cmp-ts-grid');if(!grid)return;
     grid.innerHTML=this.TIME_SIGS.map((ts,i)=>{
-      const main=ts.sub?`<span class="cmp-ts-main">${ts.sub}</span><br>`:'';
-      const dim=ts.placeholder?'style="opacity:.45"':'';
-      return `<button class="cmp-ts-btn" ${dim} onclick="Cmp.pickTs(${i})">${main}${ts.label}</button>`;
+      const dim=ts.placeholder?'style="opacity:.42"':'';
+      // FEATURE 1+2: stacked numerals — proper music notation style
+      if(ts.placeholder){
+        return `<button class="cmp-ts-btn" ${dim}
+          onclick="Cmp.pickTs(${i})" ontouchend="event.preventDefault();Cmp.pickTs(${i})">
+          <span class="cmp-ts-btn-text">Make Your Own</span>
+        </button>`;
+      }
+      const label=ts.label!==ts.sub&&ts.label?`<span class="cmp-ts-name">${ts.label}</span>`:'';
+      return `<button class="cmp-ts-btn" ${dim}
+        onclick="Cmp.pickTs(${i})" ontouchend="event.preventDefault();Cmp.pickTs(${i})">
+        <div class="cmp-tsn-wrap">
+          <span class="cmp-tsn-top">${ts.b}</span>
+          <span class="cmp-tsn-bot">${ts.v}</span>
+        </div>
+        ${label}
+      </button>`;
     }).join('');
   },
 
