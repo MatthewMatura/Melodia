@@ -44,36 +44,38 @@ color:#f0e6d0;color:var(–ink);
 touch-action:manipulation;
 }
 
-/* ===== VIEWS ===== */
-.view{
-position:fixed;top:0;left:0;right:0;bottom:var(–nav);
-display:none;flex-direction:column;overflow-y:auto;
--webkit-overflow-scrolling:touch;
-}
-.view.active{display:flex;}
-/* LAYOUT FIX 3: home must be block so children stack+scroll naturally */
-#view-home.active{display:block;overflow-y:scroll;-webkit-overflow-scrolling:touch;}
-#view-practice.active{overflow:hidden;}
-/* compose: flex-column, allow scroll if content overflows */
-#view-compose.active{display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-#view-battle{bottom:0;z-index:90;}
-
-/* ===== BOTTOM NAV ===== */
+/* ===== TOP NAV HEADER ===== */
 #nav{
-position:fixed;bottom:0;left:0;right:0;height:var(–nav);
-background:var(–surf);border-top:1px solid var(–gold2);
-display:flex;z-index:100;
+position:fixed;top:0;left:0;right:0;height:var(–nav);z-index:100;
+background:#10101e;background:var(–surf);
+border-bottom:1px solid rgba(245,197,24,.22);border-bottom:1px solid var(–gold2);
+display:flex;
 }
 .nb{
 flex:1;display:flex;flex-direction:column;align-items:center;
 justify-content:center;gap:2px;cursor:pointer;
-background:none;border:none;color:var(–dimmer);
+background:none;border:none;color:rgba(240,230,208,.22);color:var(–dimmer);
 font-size:9px;letter-spacing:.05em;text-transform:uppercase;
 font-family:inherit;font-weight:700;transition:color .18s;
 -webkit-tap-highlight-color:transparent;
 }
 .nb .ni{font-size:22px;line-height:1;}
-.nb.on{color:var(–gold);}
+.nb.on{color:#f5c518;color:var(–gold);}
+
+/* ===== VIEWS ===== */
+.view{
+position:fixed;top:var(–nav);left:0;right:0;bottom:0;
+display:none;flex-direction:column;overflow-y:auto;
+-webkit-overflow-scrolling:touch;
+}
+.view.active{display:flex;}
+/* home must be block so children stack+scroll naturally */
+#view-home.active{display:block;overflow-y:scroll;-webkit-overflow-scrolling:touch;}
+#view-practice.active{overflow:hidden;}
+/* compose: flex-column, scrollable */
+#view-compose.active{display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+/* battle covers full viewport including under nav */
+#view-battle{top:0;bottom:0;z-index:90;}
 
 /* ===== COMMON ===== */
 .sec-title{
@@ -2189,28 +2191,12 @@ const Cmp = {
   },
 
   _showStep(s){
-    // Fade out current, fade in next
-    const ids=['cmp-s1','cmp-s2','cmp-s3'];
-    const map={entry:'cmp-s1',timesig:'cmp-s2',compose:'cmp-s3'};
-    ids.forEach(id=>{
-      const el=document.getElementById(id);
-      if(!el)return;
-      if(el.classList.contains('cmp-active')){
-        el.style.opacity='0';
-        el.style.transition='opacity .18s ease';
-        setTimeout(()=>{el.classList.remove('cmp-active');el.style.opacity='';el.style.transition='';},180);
-      }
+    // Synchronous class toggle — CSS @keyframes cmp-fade handles the enter animation
+    ['cmp-s1','cmp-s2','cmp-s3'].forEach(id=>{
+      document.getElementById(id)?.classList.remove('cmp-active');
     });
-    const next=document.getElementById(map[s]);
-    if(next){
-      setTimeout(()=>{
-        next.classList.add('cmp-active');
-        next.style.opacity='0';
-        next.style.transition='opacity .22s ease';
-        requestAnimationFrame(()=>requestAnimationFrame(()=>{next.style.opacity='1';}));
-        setTimeout(()=>{next.style.opacity='';next.style.transition='';},420);
-      },190);
-    }
+    const map={entry:'cmp-s1',timesig:'cmp-s2',compose:'cmp-s3'};
+    document.getElementById(map[s])?.classList.add('cmp-active');
     this.step=s;
   },
 
@@ -2218,21 +2204,17 @@ const Cmp = {
     const grid=document.getElementById('cmp-ts-grid');if(!grid)return;
     grid.innerHTML=this.TIME_SIGS.map((ts,i)=>{
       const dim=ts.placeholder?'style="opacity:.42"':'';
-      // FEATURE 1+2: stacked numerals — proper music notation style
       if(ts.placeholder){
-        return `<button class="cmp-ts-btn" ${dim}
-          onclick="Cmp.pickTs(${i})" ontouchend="event.preventDefault();Cmp.pickTs(${i})">
+        return `<button class="cmp-ts-btn" ${dim} onclick="Cmp.pickTs(${i})">
           <span class="cmp-ts-btn-text">Make Your Own</span>
         </button>`;
       }
-      const label=ts.label!==ts.sub&&ts.label?`<span class="cmp-ts-name">${ts.label}</span>`:'';
-      return `<button class="cmp-ts-btn" ${dim}
-        onclick="Cmp.pickTs(${i})" ontouchend="event.preventDefault();Cmp.pickTs(${i})">
+      // FIX 2: stacked numerals only — no redundant label underneath
+      return `<button class="cmp-ts-btn" ${dim} onclick="Cmp.pickTs(${i})">
         <div class="cmp-tsn-wrap">
           <span class="cmp-tsn-top">${ts.b}</span>
           <span class="cmp-tsn-bot">${ts.v}</span>
         </div>
-        ${label}
       </button>`;
     }).join('');
   },
@@ -2264,14 +2246,12 @@ const Cmp = {
   pickTs(i){
     const ts=this.TIME_SIGS[i];
     if(ts.placeholder){Toast.show({ic:'🔨',title:'Coming Soon!',sub:'Custom time sigs are in the works!',type:'e'});return;}
-    document.querySelectorAll('.cmp-ts-btn').forEach((b,j)=>b.classList.toggle('on',j===i));
-    setTimeout(()=>{
-      this.ts=ts;this.tempo=60;this.notes=[];
-      document.getElementById('cmp-ts-label').textContent=ts.sub||ts.label;
-      this._updTempoDisp();
-      this._showStep('compose');
-      this.render();
-    },220);
+    // FIX 3: advance immediately — no setTimeout delay, no double-tap issues
+    this.ts=ts;this.tempo=60;this.notes=[];
+    document.getElementById('cmp-ts-label').textContent=ts.sub||ts.label;
+    this._updTempoDisp();
+    this._showStep('compose');
+    this.render();
   },
 
   goBack(){
