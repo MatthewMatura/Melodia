@@ -47,20 +47,21 @@ touch-action:manipulation;
 /* ===== TOP NAV HEADER ===== */
 #nav{
 position:fixed;top:0;left:0;right:0;height:var(–nav);z-index:100;
-background:#10101e;background:var(–surf);
-border-bottom:1px solid rgba(245,197,24,.22);border-bottom:1px solid var(–gold2);
-display:flex;
+background:linear-gradient(135deg,#6b0000,#a01010);
+border-bottom:2px solid rgba(245,197,24,.35);
+display:flex;padding:0 4px;
+box-shadow:0 2px 16px rgba(0,0,0,.5);
 }
 .nb{
 flex:1;display:flex;flex-direction:column;align-items:center;
-justify-content:center;gap:2px;cursor:pointer;
-background:none;border:none;color:rgba(240,230,208,.22);color:var(–dimmer);
+justify-content:center;gap:4px;cursor:pointer;
+background:none;border:none;color:rgba(255,210,190,.5);
 font-size:9px;letter-spacing:.05em;text-transform:uppercase;
 font-family:inherit;font-weight:700;transition:color .18s;
--webkit-tap-highlight-color:transparent;
+-webkit-tap-highlight-color:transparent;padding:8px 2px;
 }
-.nb .ni{font-size:22px;line-height:1;}
-.nb.on{color:#f5c518;color:var(–gold);}
+.nb .ni{font-size:24px;line-height:1;}
+.nb.on{color:#f5c518;}
 
 /* ===== VIEWS ===== */
 .view{
@@ -327,22 +328,22 @@ position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
 /* all steps sit above dragon */
 #view-compose > .cmp-step{position:relative;z-index:1;}
 /* — entry — */
-.cmp-entry-hero{padding:28px 20px 6px;text-align:center;}
+.cmp-entry-hero{padding:10px 20px 4px;text-align:center;}
 .cmp-entry-title{font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(135deg,#e8142a,#f5c518);background:linear-gradient(135deg,var(–red),var(–gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .cmp-entry-sub{font-size:12px;color:rgba(240,230,208,.55);color:var(–dim);margin-top:4px;font-style:italic;font-family:Georgia,serif;}
-.cmp-entry-btns{display:flex;flex-direction:column;gap:14px;padding:16px 20px 24px;}
-.cmp-mode-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px;border-radius:18px;border:none;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .13s,filter .13s;width:100%;}
+.cmp-entry-btns{display:flex;flex-direction:column;gap:12px;padding:10px 20px 20px;}
+.cmp-mode-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px;border-radius:18px;border:none;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .13s,filter .13s;width:100%;}
 .cmp-mode-btn:active{transform:scale(.96);}
-.cmb-ic{font-size:40px;line-height:1;}
+.cmb-ic{font-size:36px;line-height:1;}
 .cmb-label{font-size:20px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;}
 .cmb-sub{font-size:11px;opacity:.8;font-family:Georgia,serif;font-style:italic;}
 .cmp-rhythm{background:linear-gradient(135deg,#003d8a,#0066dd);color:#fff;box-shadow:0 6px 28px rgba(0,102,221,.45);}
 .cmp-pitch{background:linear-gradient(135deg,#005c3a,#00d97e);color:#fff;box-shadow:0 6px 28px rgba(0,217,126,.38);}
 .cmp-both{background:linear-gradient(135deg,#6e0000,#e8142a);color:#fff;box-shadow:0 6px 28px rgba(232,20,42,.45);}
 /* — time sig screen — */
-.cmp-step-hdr{padding:16px 16px 6px;text-align:center;font-size:11px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:#f5c518;color:var(–gold);}
-.cmp-ts-mascots{display:flex;justify-content:space-around;align-items:flex-end;padding:0 20px 4px;pointer-events:none;}
-.cmp-ts-mascots svg{opacity:.82;filter:drop-shadow(0 0 14px rgba(245,197,24,.25));}
+.cmp-step-hdr{padding:8px 16px 4px;text-align:center;font-size:11px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:#f5c518;color:var(–gold);}
+.cmp-ts-mascots{display:flex;justify-content:space-around;align-items:flex-end;padding:0 20px 2px;pointer-events:none;}
+.cmp-ts-mascots svg{opacity:.82;filter:drop-shadow(0 0 14px rgba(245,197,24,.25));width:54px !important;height:64px !important;}
 /* FEATURE 1+2: stacked numeral card buttons */
 .cmp-ts-grid{display:flex;flex-wrap:wrap;gap:11px;padding:8px 16px 24px;justify-content:center;}
 .cmp-ts-btn{
@@ -2185,6 +2186,19 @@ const Cmp = {
   init(){
     this._buildTimeSigs();
     this._buildNoteButtons();
+
+    // FIX 4: wire time sig buttons via addEventListener (both click + touchend)
+    // Bypasses any onclick attribute issues on iOS Safari with dynamic content
+    document.querySelectorAll('#cmp-ts-grid button[data-idx]').forEach(btn=>{
+      const i=parseInt(btn.dataset.idx,10);
+      const handler=(e)=>{
+        e.preventDefault();
+        this.pickTs(i);
+      };
+      btn.addEventListener('click',handler);
+      btn.addEventListener('touchend',handler);
+    });
+
     if(!this.ts) this._showStep('entry');
     else this._showStep(this.step);
     if(this.step==='compose') this.render();
@@ -2202,15 +2216,15 @@ const Cmp = {
 
   _buildTimeSigs(){
     const grid=document.getElementById('cmp-ts-grid');if(!grid)return;
+    // FIX 4: use data-idx, no onclick attribute — addEventListener wired in init()
     grid.innerHTML=this.TIME_SIGS.map((ts,i)=>{
       const dim=ts.placeholder?'style="opacity:.42"':'';
       if(ts.placeholder){
-        return `<button class="cmp-ts-btn" ${dim} onclick="Cmp.pickTs(${i})">
+        return `<button class="cmp-ts-btn" data-idx="${i}" ${dim}>
           <span class="cmp-ts-btn-text">Make Your Own</span>
         </button>`;
       }
-      // FIX 2: stacked numerals only — no redundant label underneath
-      return `<button class="cmp-ts-btn" ${dim} onclick="Cmp.pickTs(${i})">
+      return `<button class="cmp-ts-btn" data-idx="${i}" ${dim}>
         <div class="cmp-tsn-wrap">
           <span class="cmp-tsn-top">${ts.b}</span>
           <span class="cmp-tsn-bot">${ts.v}</span>
@@ -2245,8 +2259,8 @@ const Cmp = {
 
   pickTs(i){
     const ts=this.TIME_SIGS[i];
+    console.log('time sig selected:',ts);
     if(ts.placeholder){Toast.show({ic:'🔨',title:'Coming Soon!',sub:'Custom time sigs are in the works!',type:'e'});return;}
-    // FIX 3: advance immediately — no setTimeout delay, no double-tap issues
     this.ts=ts;this.tempo=60;this.notes=[];
     document.getElementById('cmp-ts-label').textContent=ts.sub||ts.label;
     this._updTempoDisp();
