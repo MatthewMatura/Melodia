@@ -358,8 +358,8 @@ const CmpSheet = {
       const y=ST+i*8;
       s+=`<line x1="4" y1="${y}" x2="${W-4}" y2="${y}" stroke="${lc[i]}" stroke-width="1.3" opacity=".7"/>`;
     }
-    // Treble clef
-    s+=`<text x="12" y="${ST+(SB-ST)/2+11}" font-size="36" fill="#f5c518" opacity=".85">𝄥</text>`;
+    // Neutral/rhythm clef — two vertical bars (hand-drawn, font-independent)
+    s+=`<rect x="10" y="${ST+3}" width="3.5" height="${SB-ST-6}" fill="#f5c518" opacity=".9"/><rect x="17" y="${ST+3}" width="3.5" height="${SB-ST-6}" fill="#f5c518" opacity=".9"/>`;
     // Time sig
     s+=`<text x="52" y="${ST+14}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.b}</text>`;
     s+=`<text x="52" y="${ST+27}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.v}</text>`;
@@ -527,6 +527,8 @@ const Cmp = {
   init(){
     this._buildTimeSigs();
     this._buildNoteButtons();
+    // iOS Safari doesn't re-layout SVG text on font-swap — rebuild buttons once Bravura loads
+    if(document.fonts?.ready) document.fonts.ready.then(()=>this._buildNoteButtons());
 
     // FIX 4: wire time sig buttons via addEventListener (both click + touchend)
     // Bypasses any onclick attribute issues on iOS Safari with dynamic content
