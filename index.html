@@ -333,7 +333,7 @@ const CmpSheet = {
     const rests={1:'𝄻',2:'𝄼',4:'𝄽',8:'𝄾',16:'𝄿'};
     const ch=(rest?rests:notes)[d]||'';
     const dotCh=dot?' .':'';
-    return `<svg viewBox="0 0 36 46" width="30" height="40"><text x="18" y="34" font-size="30" fill="#000" text-anchor="middle" font-family="'Times New Roman',serif">${ch}${dotCh}</text></svg>`;
+    return `<svg viewBox="0 0 36 46" width="30" height="40"><text x="18" y="34" font-size="30" fill="#000" text-anchor="middle">${ch}${dotCh}</text></svg>`;
   },
 
   _restSVG(d){
@@ -359,7 +359,7 @@ const CmpSheet = {
       s+=`<line x1="4" y1="${y}" x2="${W-4}" y2="${y}" stroke="${lc[i]}" stroke-width="1.3" opacity=".7"/>`;
     }
     // Treble clef
-    s+=`<text x="4" y="${H-10}" font-size="60" font-family="'Times New Roman',serif" fill="#f5c518" opacity=".85">𝄞</text>`;
+    s+=`<text x="12" y="${ST+(SB-ST)/2+11}" font-size="36" fill="#f5c518" opacity=".85">𝄥</text>`;
     // Time sig
     s+=`<text x="52" y="${ST+14}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.b}</text>`;
     s+=`<text x="52" y="${ST+27}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.v}</text>`;
@@ -371,9 +371,12 @@ const CmpSheet = {
       const mNotes=measures[mi]||[];
       const filled=mNotes.reduce((a,n)=>a+n.dur8,0);
       const remaining=ts.cap-filled;
-      // Draw actual notes
-      mNotes.forEach(n=>{
-        const nx=mx+Math.max(10,((n.startBeat8+n.dur8/2)/ts.cap)*mW);
+      // Draw actual notes (neighbor-aware spacing: floor at prevNx+18 so consecutive short notes don't stack)
+      let prevNx=mx;
+      mNotes.forEach((n,i)=>{
+        const baseNx=mx+((n.startBeat8+n.dur8/2)/ts.cap)*mW;
+        const nx=i===0?Math.max(mx+15,baseNx):Math.max(prevNx+18,baseNx);
+        prevNx=nx;
         s+=this._drawNote(n,nx,ST,SB);
       });
       // Fill remaining with rest
