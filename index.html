@@ -126,7 +126,7 @@ transform:scale(.96);
 .cmp-input-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#f5c518;color:var(–gold);margin-bottom:5px;margin-top:4px;}
 .cmp-note-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
 .cmp-note-row::-webkit-scrollbar{display:none;}
-.cmp-nbtn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 7px 6px;border-radius:11px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:52px;}
+.cmp-nbtn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 7px 6px;border-radius:11px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:52px;}
 .cmp-nbtn:active,.cmp-nbtn.sel{border-color:#f5c518;border-color:var(–gold);background:rgba(245,197,24,.1);}
 .cmp-nbtn svg{display:block;}
 .cmp-nbtn-lbl{font-size:8px;color:rgba(240,230,208,.55);color:var(–dim);text-align:center;letter-spacing:.04em;text-transform:uppercase;line-height:1.3;}
@@ -216,8 +216,8 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
       <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
     </div>
 
-```
 <!-- LAYOUT FIX 1: note/rest buttons moved to header area, above staff -->
+
 <div class="cmp-input-area">
   <div class="cmp-input-label">Notes</div>
   <div class="cmp-note-row" id="cmp-note-row"></div>
@@ -232,22 +232,23 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
 </div>
 
 <!-- Tempo controls below input, above staff -->
+
 <div class="cmp-tempo-row">
   <button class="cmp-tempo-btn" id="cmp-slower-btn"
-    ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()"
-    onmousedown="Cmp.startHold(-1)" onmouseup="Cmp.endHold()" onmouseleave="Cmp.endHold()">🐢 Slower</button>
+    ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()">🐢 Slower</button>
   <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 60</div>
   <button class="cmp-tempo-btn" id="cmp-faster-btn"
-    ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()"
-    onmousedown="Cmp.startHold(1)" onmouseup="Cmp.endHold()" onmouseleave="Cmp.endHold()">⚡ Faster</button>
+    ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()">⚡ Faster</button>
 </div>
 
 <!-- Staff — nothing overlaps it -->
+
 <div class="cmp-staff-wrap">
   <svg id="cmp-svg" preserveAspectRatio="xMinYMid meet"></svg>
 </div>
 
 <!-- Playback controls below staff -->
+
 <div class="cmp-playbar">
   <button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
   <button class="cmp-play-btn" onclick="Cmp.pause()" title="Pause">⏸</button>
@@ -257,7 +258,6 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
 <div class="cmp-title-row">
   <input class="cinput" id="c-title" type="text" placeholder="Song title...">
 </div>
-```
 
   </div>
 
