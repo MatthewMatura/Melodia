@@ -203,6 +203,7 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
   <!-- STEP 2: Time Signature -->
 
   <div id="cmp-s2" class="cmp-step">
+    <button class="cmp-back-btn" onclick="Cmp.goBack()" style="position:absolute;top:6px;left:6px;z-index:2">‹</button>
     <div class="cmp-step-hdr">⏱ Pick Your Time Signature</div>
     <div class="cmp-ts-grid" id="cmp-ts-grid"></div>
   </div>
@@ -337,7 +338,7 @@ const CmpSheet = {
       if(twoFlags)flag+=`<path d="M22 16 C34 20 35 28 25 33" stroke="var(--ink)" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
     }
     const dotEl=dot?`<circle cx="26" cy="30" r="2.5" fill="var(--ink)"/>`:''
-    return `<svg viewBox="0 0 36 46" width="30" height="40" overflow="visible">${head}${stem}${flag}${dotEl}</svg>`;
+    return `<svg viewBox="0 0 36 46" width="30" height="40" overflow="visible">${head}${stem}${flag}${dotEl}</svg>`.replace(/var\(--ink\)/g,'#000');
   },
 
   _restSVG(d){
@@ -347,7 +348,7 @@ const CmpSheet = {
     else if(d===4)sh=`<path d="M18 12 C24 16 21 21 17 23 C22 25 22 30 17 33 L15 38 M15 38 C17 32 12 31 13 26 C13 21 18 20 19 17 C18 14 15 13 17 11" stroke="var(--ink)" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
     else if(d===8)sh=`<circle cx="14" cy="26" r="4" fill="var(--ink)"/><line x1="18" y1="26" x2="26" y2="12" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/><path d="M26 12 C31 16 29 23 22 25" stroke="var(--ink)" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
     else sh=`<circle cx="11" cy="24" r="3.5" fill="var(--ink)"/><line x1="14" y1="24" x2="22" y2="10" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 10 C27 14 25 21 18 23" stroke="var(--ink)" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="18" cy="32" r="3.5" fill="var(--ink)"/><line x1="21" y1="32" x2="29" y2="18" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M29 18 C34 22 32 29 25 31" stroke="var(--ink)" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
-    return `<svg viewBox="0 0 36 46" width="30" height="40">${sh}</svg>`;
+    return `<svg viewBox="0 0 36 46" width="30" height="40">${sh}</svg>`.replace(/var\(--ink\)/g,'#000');
   },
 
   render(svgEl, state){
