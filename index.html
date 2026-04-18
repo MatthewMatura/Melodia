@@ -651,6 +651,10 @@ const Cmp = {
   },
   slower(){this._stepTempo(-1);},
   faster(){this._stepTempo(1);},
+  _updTempoDisp(){
+    const el=document.getElementById('cmp-tempo-disp');
+    if(el) el.textContent=`♩ = ${this.tempo}`;
+  },
 
   _dur8(d,dot){const base={1:8,2:4,4:2,8:1,16:0.5}[d]||2;return dot?base*1.5:base;},
   _totalCap(){return this.totalMeasures*(this.ts?.cap||8);},
