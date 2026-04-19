@@ -143,7 +143,7 @@ transform:scale(.96);
 .cmp-tempo-btn:active{background:#e8142a;background:var(–red);border-color:#e8142a;border-color:var(–red);}
 .cmp-tempo-disp{flex:1.6;text-align:center;font-size:17px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.06em;}
 /* LAYOUT FIX 2: staff never overlaps adjacent elements */
-.cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow:hidden;height:88px;display:flex;align-items:center;}
+.cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;height:88px;display:flex;align-items:center;}
 #cmp-svg{width:100%;display:block;}
 .cmp-playbar{display:flex;gap:10px;padding:6px 14px 2px;flex-shrink:0;justify-content:center;}
 .cmp-play-btn{width:50px;height:50px;border-radius:50%;border:2px solid rgba(245,197,24,.22);border:2px solid var(–gold2);background:#10101e;background:var(–surf);color:#f5c518;color:var(–gold);font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;}
@@ -336,7 +336,7 @@ const CmpSheet = {
       else if(d===2) body=`<rect x="10" y="25" width="16" height="5" fill="#000"/>`;
       else if(d===4) body=`<path d="M14 12 Q22 18 16 24 Q22 28 15 34 L13 38 Q18 32 13 30 Q10 26 17 22 Q11 18 15 14" fill="#000" stroke="#000" stroke-width="1"/>`;
       else if(d===8) body=`<circle cx="13" cy="26" r="2.5" fill="#000"/><line x1="15" y1="26" x2="18" y2="14" stroke="#000" stroke-width="1.6"/>`;
-      else           body=`<circle cx="11" cy="28" r="2.5" fill="#000"/><circle cx="15" cy="22" r="2.5" fill="#000"/><line x1="17" y1="22" x2="21" y2="10" stroke="#000" stroke-width="1.6"/>`;
+      else           body=`<circle cx="11" cy="30" r="2" fill="#000"/><circle cx="15" cy="22" r="2" fill="#000"/><line x1="17" y1="22" x2="21" y2="8" stroke="#000" stroke-width="1.6"/>`;
     } else {
       const open=d<=2;
       const head=open
@@ -345,7 +345,7 @@ const CmpSheet = {
       const stem=d>1?`<line x1="19" y1="30" x2="19" y2="10" stroke="#000" stroke-width="1.6"/>`:'';
       let flag='';
       if(d>=8)  flag=`<path d="M19 10 Q27 14 25 22" stroke="#000" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
-      if(d>=16) flag+=`<path d="M19 16 Q27 20 25 28" stroke="#000" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+      if(d>=16) flag+=`<path d="M19 22 Q27 26 25 34" stroke="#000" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
       body=head+stem+flag;
     }
     const dotEl=dot?`<circle cx="24" cy="30" r="1.8" fill="#000"/>`:'';
@@ -365,8 +365,9 @@ const CmpSheet = {
   render(svgEl, state){
     const {notes,ts,totalMeasures}=state;
     if(!ts){svgEl.innerHTML='';return;}
-    const W=620,H=90,ST=this.ST,SB=this.SB;
-    const mLeft=68,mW=Math.floor((W-mLeft)/totalMeasures);
+    const mLeft=68,mW=140,H=90,ST=this.ST,SB=this.SB;
+    const W=Math.max(620,mLeft+totalMeasures*mW);
+    svgEl.style.width=W+'px';
     const lc=['#8B0000','#B8860B','#d4a800','#B8860B','#8B0000'];
     let s=`<rect width="${W}" height="${H}" fill="#0b0b18"/>`;
     // Staff lines
