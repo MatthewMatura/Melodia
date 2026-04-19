@@ -414,7 +414,7 @@ const CmpSheet = {
     s+=`<line x1="${ex}" y1="${ST}" x2="${ex}" y2="${SB}" stroke="rgba(245,197,24,.7)" stroke-width="2.5"/>`;
     s+=`<line x1="${ex+5}" y1="${ST}" x2="${ex+5}" y2="${SB}" stroke="rgba(245,197,24,.7)" stroke-width="6"/>`;
     // Playhead (hidden until play)
-    s+=`<g id="cmp-playhead" display="none" transform="translate(0,0)"><polygon points="-5,12 5,12 0,22" fill="#f5c518" opacity="0.9"/><line x1="0" y1="22" x2="0" y2="58" stroke="#f5c518" stroke-width="1.5" opacity="0.9"/></g>`;
+    s+=`<g id="cmp-playhead" transform="translate(68,0)"><polygon points="-5,12 5,12 0,22" fill="#f5c518" opacity="0.9"/><line x1="0" y1="22" x2="0" y2="58" stroke="#f5c518" stroke-width="1.5" opacity="0.9"/></g>`;
     svgEl.setAttribute('viewBox',`0 0 ${W} ${H}`);
     svgEl.setAttribute('height',H);
     svgEl.innerHTML=s;
@@ -855,18 +855,17 @@ const Cmp = {
     // Playhead RAF tick — reads audio clock, positions #cmp-playhead
     this._phTick=()=>{
       const ph=document.getElementById('cmp-playhead');
-      if(!ph||!this._wac)return;
-      if(this._wac.state==='closed'){ph.setAttribute('display','none');return;}
-      if(this._wac.state==='suspended')return;
-      const m=this._phMeta;if(!m)return;
-      const elapsed=Math.max(0,this._wac.currentTime-this._wStart);
-      if(elapsed>=m.totalDur){ph.setAttribute('display','none');return;}
-      const beat8=elapsed/m.spe;
-      const mi=Math.floor(beat8/m.cap);
-      const bim=beat8-mi*m.cap;
-      const x=m.mLeft+mi*m.mW+(bim/m.cap)*m.mW;
-      ph.removeAttribute('display');
-      ph.setAttribute('transform',`translate(${x},0)`);
+      if(!ph||!this.playing||!this._wac)return;
+      const m=this._phMeta;
+      if(m&&this._wac.state==='running'){
+        const elapsed=Math.max(0,this._wac.currentTime-this._wStart);
+        const clamped=Math.min(elapsed,m.totalDur);
+        const beat8=clamped/m.spe;
+        const mi=Math.floor(beat8/m.cap);
+        const bim=beat8-mi*m.cap;
+        const x=m.mLeft+mi*m.mW+(bim/m.cap)*m.mW;
+        ph.setAttribute('transform',`translate(${x},0)`);
+      }
       this._wRAF=requestAnimationFrame(this._phTick);
     };
 
