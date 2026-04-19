@@ -777,6 +777,7 @@ const Cmp = {
     document.getElementById('cmp-triplet-btn')?.classList.remove('on');
     Toast.show({ic:'💣',title:'Nuked.',sub:'Staff cleared. Start over, champion.'});
     this.render();
+    document.getElementById('cmp-svg').parentElement.scrollLeft=0;
   },
 
   toggleTriplet(){
