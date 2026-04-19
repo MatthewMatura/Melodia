@@ -365,9 +365,12 @@ const CmpSheet = {
   render(svgEl, state){
     const {notes,ts,totalMeasures}=state;
     if(!ts){svgEl.innerHTML='';return;}
-    const mLeft=68,mW=140,H=90,ST=this.ST,SB=this.SB;
-    const W=Math.max(620,mLeft+totalMeasures*mW);
+    const mLeft=68,H=90,ST=this.ST,SB=this.SB;
+    const vp=svgEl.parentElement?.clientWidth||600;
+    const mW=Math.max(80,(vp-mLeft)/4);
+    const W=mLeft+totalMeasures*mW;
     svgEl.style.width=W+'px';
+    svgEl.style.flexShrink='0';
     const lc=['#8B0000','#B8860B','#d4a800','#B8860B','#8B0000'];
     let s=`<rect width="${W}" height="${H}" fill="#0b0b18"/>`;
     // Staff lines
@@ -680,12 +683,13 @@ const Cmp = {
 
   addEntry(pitch,d,dot,isRest){
     if(!this.ts)return;
-    const totalCap=this._totalCap();
+    let totalCap=this._totalCap();
     const filled=this._filled();
 
-    // BUG 2 — strict cap (use small epsilon for float safety)
-    if(filled>=totalCap-0.001){
+    // Only grow staff when incoming note actually overflows total cap
+    if(filled+this._dur8(d,dot)>totalCap+0.001){
       this.totalMeasures++;
+      totalCap=this._totalCap();
     }
 
     const baseDur8=this._dur8(d,dot);
@@ -768,7 +772,7 @@ const Cmp = {
 
   // FEATURE 2 — nuke entire composition
   nuke(){
-    this.stop();this.notes=[];this._tg={base:0,count:0,accum:0};
+    this.stop();this.notes=[];this.totalMeasures=4;this._tg={base:0,count:0,accum:0};
     this.tripletMode=false;
     document.getElementById('cmp-triplet-btn')?.classList.remove('on');
     Toast.show({ic:'💣',title:'Nuked.',sub:'Staff cleared. Start over, champion.'});
