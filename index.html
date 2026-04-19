@@ -856,14 +856,14 @@ const Cmp = {
     this._phTick=()=>{
       const ph=document.getElementById('cmp-playhead');
       if(!ph||!this.playing||!this._wac)return;
-      const m=this._phMeta;
-      if(m&&this._wac.state==='running'){
-        const elapsed=Math.max(0,this._wac.currentTime-this._wStart);
-        const clamped=Math.min(elapsed,m.totalDur);
-        const beat8=clamped/m.spe;
-        const mi=Math.floor(beat8/m.cap);
-        const bim=beat8-mi*m.cap;
-        const x=m.mLeft+mi*m.mW+(bim/m.cap)*m.mW;
+      const sc=this._phSchedule;
+      if(sc&&sc.length&&this._wac.state==='running'){
+        const last=sc[sc.length-1];
+        const t=Math.max(0,Math.min(this._wac.currentTime-this._wStart,last.t));
+        let i=0;while(i<sc.length-1&&sc[i+1].t<=t)i++;
+        const a=sc[i],b=sc[i+1]||a;
+        const frac=b.t>a.t?(t-a.t)/(b.t-a.t):0;
+        const x=a.x+(b.x-a.x)*frac;
         ph.setAttribute('transform',`translate(${x},0)`);
       }
       this._wRAF=requestAnimationFrame(this._phTick);
@@ -900,6 +900,19 @@ const Cmp = {
     if(wrap) wrap.scrollLeft=0;
     const cap=this.ts.cap, pMW=wrap?Math.max(80,(wrap.clientWidth-68)/4):140;
     this._phMeta={mLeft:68,mW:pMW,cap,spe,totalDur:this.notes.reduce((a,n)=>a+n.dur8*spe,0)};
+    // Build playhead schedule: (time, drawn_x) per note, mirroring CmpSheet.render layout
+    this._phSchedule=[];
+    const pMs=CmpSheet._getMeasures(this.notes,cap,this.totalMeasures);
+    for(let mi=0;mi<this.totalMeasures;mi++){
+      const mx=68+mi*pMW;let prevNx=mx;
+      (pMs[mi]||[]).forEach((n,i)=>{
+        const baseNx=mx+((n.startBeat8+n.dur8/2)/cap)*pMW;
+        const nx=i===0?Math.max(mx+15,baseNx):Math.max(prevNx+18,baseNx);
+        prevNx=nx;
+        this._phSchedule.push({t:(mi*cap+n.startBeat8)*spe,x:nx});
+      });
+    }
+    this._phSchedule.push({t:this._phMeta.totalDur,x:68+this.totalMeasures*pMW});
     this._wScrollTimers=[];
     let beat8=0, lastMi=-1;
 
