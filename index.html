@@ -413,6 +413,8 @@ const CmpSheet = {
     const ex=mLeft+totalMeasures*mW;
     s+=`<line x1="${ex}" y1="${ST}" x2="${ex}" y2="${SB}" stroke="rgba(245,197,24,.7)" stroke-width="2.5"/>`;
     s+=`<line x1="${ex+5}" y1="${ST}" x2="${ex+5}" y2="${SB}" stroke="rgba(245,197,24,.7)" stroke-width="6"/>`;
+    // Playhead (hidden until play)
+    s+=`<g id="cmp-playhead" display="none" transform="translate(0,0)"><polygon points="-5,12 5,12 0,22" fill="#f5c518" opacity="0.9"/><line x1="0" y1="22" x2="0" y2="58" stroke="#f5c518" stroke-width="1.5" opacity="0.9"/></g>`;
     svgEl.setAttribute('viewBox',`0 0 ${W} ${H}`);
     svgEl.setAttribute('height',H);
     svgEl.innerHTML=s;
@@ -850,6 +852,24 @@ const Cmp = {
     if(!this.ts)return;
     if(this._wac&&this._wac.state==='running'&&this.playing)return;
 
+    // Playhead RAF tick — reads audio clock, positions #cmp-playhead
+    this._phTick=()=>{
+      const ph=document.getElementById('cmp-playhead');
+      if(!ph||!this._wac)return;
+      if(this._wac.state==='closed'){ph.setAttribute('display','none');return;}
+      if(this._wac.state==='suspended')return;
+      const m=this._phMeta;if(!m)return;
+      const elapsed=Math.max(0,this._wac.currentTime-this._wStart);
+      if(elapsed>=m.totalDur){ph.setAttribute('display','none');return;}
+      const beat8=elapsed/m.spe;
+      const mi=Math.floor(beat8/m.cap);
+      const bim=beat8-mi*m.cap;
+      const x=m.mLeft+mi*m.mW+(bim/m.cap)*m.mW;
+      ph.setAttribute('display','block');
+      ph.setAttribute('transform',`translate(${x},0)`);
+      this._wRAF=requestAnimationFrame(this._phTick);
+    };
+
     if(this._wPaused&&this._wac&&this._wac.state==='suspended'){
       // Resume from pause
       this._wac.resume();
@@ -862,6 +882,7 @@ const Cmp = {
       const left=Math.max(0,total-elapsed)*1000;
       this._wTimer=setTimeout(()=>this._onPlayEnd(),left+200);
       this._wPaused=false;
+      this._phTick();
       return;
     }
 
@@ -879,6 +900,7 @@ const Cmp = {
     const wrap=document.querySelector('.cmp-staff-wrap');
     if(wrap) wrap.scrollLeft=0;
     const cap=this.ts.cap, pMW=wrap?Math.max(80,(wrap.clientWidth-68)/4):140;
+    this._phMeta={mLeft:68,mW:pMW,cap,spe,totalDur:this.notes.reduce((a,n)=>a+n.dur8*spe,0)};
     this._wScrollTimers=[];
     let beat8=0, lastMi=-1;
 
@@ -904,6 +926,7 @@ const Cmp = {
     this.playing=true;this._wPaused=false;
     document.getElementById('cmp-play-btn')?.classList.add('on');
     this._wTimer=setTimeout(()=>this._onPlayEnd(),totalMs+300);
+    this._phTick();
   },
 
   _onPlayEnd(){
@@ -924,6 +947,8 @@ const Cmp = {
   stop(){
     clearTimeout(this._wTimer);
     this._wScrollTimers?.forEach(id=>clearTimeout(id));this._wScrollTimers=[];
+    if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
+    const ph=document.getElementById('cmp-playhead');if(ph)ph.setAttribute('display','none');
     if(this._wac&&this._wac.state!=='closed'){
       try{this._wac.close();}catch(e){}
     }
