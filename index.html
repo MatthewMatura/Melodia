@@ -416,6 +416,15 @@ const CmpSheet = {
     svgEl.setAttribute('viewBox',`0 0 ${W} ${H}`);
     svgEl.setAttribute('height',H);
     svgEl.innerHTML=s;
+    // Entry-follow: smooth-scroll the current note into view if past right edge
+    const cur=svgEl.querySelector('ellipse[rx="15"][ry="10"]');
+    if(cur){
+      const curNx=parseFloat(cur.getAttribute('cx'));
+      const par=svgEl.parentElement;
+      if(par && curNx>par.scrollLeft+par.clientWidth-40){
+        par.scrollTo({left:Math.max(0,curNx-mLeft-20),behavior:'smooth'});
+      }
+    }
   },
 
   _getMeasures(notes,cap,total){
@@ -820,47 +829,21 @@ const Cmp = {
   },
 
   _playViolin(ctx,freq,startTime,durSec){
-    if(durSec<=0)return null;
-    const osc=ctx.createOscillator();
-    const filter=ctx.createBiquadFilter();
+    // Clap sound — white-noise burst with sharp envelope (freq/durSec ignored; uniform clap per note)
+    const bufLen=Math.floor(ctx.sampleRate*0.05);
+    const buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufLen;i++) data[i]=Math.random()*2-1;
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const filt=ctx.createBiquadFilter();
+    filt.type='bandpass';filt.frequency.value=1500;filt.Q.value=1.2;
     const gain=ctx.createGain();
-    const vib=ctx.createOscillator();
-    const vibGain=ctx.createGain();
-
-    // Sawtooth → lowpass filter → gain envelope → output
-    osc.type='sawtooth';
-    osc.frequency.value=freq;
-    filter.type='lowpass';
-    filter.frequency.value=1800;
-    filter.Q.value=0.6;
-
-    // Gentle vibrato after attack settles
-    vib.frequency.value=5.5;
-    vibGain.gain.value=0;
-    vib.connect(vibGain);
-    vibGain.connect(osc.frequency);
-    vib.start(startTime);
-    vib.stop(startTime+durSec+0.05);
-    vibGain.gain.setValueAtTime(0,startTime);
-    vibGain.gain.linearRampToValueAtTime(3.5,startTime+Math.min(0.15,durSec*0.4));
-
-    // ADSR envelope — bowed string feel
-    const atk=Math.min(0.03,durSec*0.15);
-    const dec=Math.min(0.06,durSec*0.2);
-    const sus=0.32;
-    const rel=Math.min(0.08,durSec*0.15);
     gain.gain.setValueAtTime(0,startTime);
-    gain.gain.linearRampToValueAtTime(0.42,startTime+atk);
-    gain.gain.linearRampToValueAtTime(sus,startTime+atk+dec);
-    gain.gain.setValueAtTime(sus,startTime+durSec-rel);
-    gain.gain.linearRampToValueAtTime(0,startTime+durSec);
-
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(startTime);
-    osc.stop(startTime+durSec+0.02);
-    return osc;
+    gain.gain.linearRampToValueAtTime(0.6,startTime+0.003);
+    gain.gain.exponentialRampToValueAtTime(0.001,startTime+0.045);
+    src.connect(filt);filt.connect(gain);gain.connect(ctx.destination);
+    src.start(startTime);src.stop(startTime+0.05);
+    return src;
   },
 
   play(){
@@ -892,6 +875,12 @@ const Cmp = {
     let t=ctx.currentTime+0.05;
     this._wStart=t;
     this._wNodes=[];
+    // Playback-follow: reset staff scroll to beginning, schedule per-measure scrolls
+    const wrap=document.querySelector('.cmp-staff-wrap');
+    if(wrap) wrap.scrollLeft=0;
+    const cap=this.ts.cap, pMW=wrap?Math.max(80,(wrap.clientWidth-68)/4):140;
+    this._wScrollTimers=[];
+    let beat8=0, lastMi=-1;
 
     this.notes.forEach(n=>{
       const dur=n.dur8*spe;
@@ -899,6 +888,15 @@ const Cmp = {
         const node=this._playViolin(ctx,D4,t,dur);
         if(node)this._wNodes.push(node);
       }
+      if(wrap){
+        const mi=Math.floor(beat8/cap);
+        if(mi!==lastMi){
+          lastMi=mi;
+          const tid=setTimeout(()=>wrap.scrollTo({left:mi*pMW,behavior:'smooth'}),Math.max(0,(t-ctx.currentTime)*1000));
+          this._wScrollTimers.push(tid);
+        }
+      }
+      beat8+=n.dur8;
       t+=dur;
     });
 
@@ -916,6 +914,7 @@ const Cmp = {
   pause(){
     if(!this.playing||!this._wac)return;
     clearTimeout(this._wTimer);
+    this._wScrollTimers?.forEach(id=>clearTimeout(id));this._wScrollTimers=[];
     this._wPauseAt=this._wac.currentTime;
     this._wac.suspend();
     this.playing=false;this._wPaused=true;
@@ -924,6 +923,7 @@ const Cmp = {
 
   stop(){
     clearTimeout(this._wTimer);
+    this._wScrollTimers?.forEach(id=>clearTimeout(id));this._wScrollTimers=[];
     if(this._wac&&this._wac.state!=='closed'){
       try{this._wac.close();}catch(e){}
     }
