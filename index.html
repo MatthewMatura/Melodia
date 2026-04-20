@@ -385,24 +385,26 @@ const CmpSheet = {
     s+=`<text x="52" y="${ST+27}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.v}</text>`;
     // Measures
     const measures=this._getMeasures(notes,ts.cap,totalMeasures);
-    const beatSize=Math.max(1,ts.cap/ts.b);
+    const isCompound=(ts.v===8&&ts.b%3===0&&ts.b>3);
+    const beatSize=isCompound?3:Math.max(1,ts.cap/ts.b);
     for(let mi=0;mi<totalMeasures;mi++){
       const mx=mLeft+mi*mW;
       s+=`<line x1="${mx}" y1="${ST}" x2="${mx}" y2="${SB}" stroke="rgba(245,197,24,.35)" stroke-width="1"/>`;
       const mNotes=measures[mi]||[];
       const filled=mNotes.reduce((a,n)=>a+n.dur8,0);
       const remaining=ts.cap-filled;
-      // Beam groups: runs of ≥2 consecutive 8ths/16ths within one beat (no rests/triplets/dots)
+      // Beam groups: runs of ≥2 consecutive 8ths/16ths within one beat (no rests/dots; triplets beam with triplets)
       const ng=new Array(mNotes.length).fill(-1);const groups=[];let cur=[];
       const flush=()=>{if(cur.length>=2){groups.push(cur);cur.forEach(i=>ng[i]=groups.length-1);}cur=[];};
       for(let i=0;i<mNotes.length;i++){
         const n=mNotes[i];
-        const beamable=!n.rest&&!n.triplet&&!n.dot&&(n.d===8||n.d===16);
+        const beamable=!n.rest&&!n.dot&&(n.d===8||n.d===16);
         if(!beamable){flush();continue;}
         if(cur.length===0){cur=[i];continue;}
         const fb=Math.floor(mNotes[cur[0]].startBeat8/beatSize);
         const tb=Math.floor(n.startBeat8/beatSize);
-        if(fb===tb){cur.push(i);}else{flush();cur=[i];}
+        const mixTr=!!mNotes[cur[0]].triplet!==!!n.triplet;
+        if(fb===tb&&!mixTr){cur.push(i);}else{flush();cur=[i];}
       }
       flush();
       // Beam-aware spacing: tighter floor (+11) for consecutive notes within a group, else +18
@@ -415,16 +417,23 @@ const CmpSheet = {
         prevNx=nx;pos[i]=nx;
         s+=this._drawNote(n,nx,ST,SB,ng[i]>=0);
       });
-      // Beams: primary rect across stem tips, secondary rect under runs of ≥2 consecutive 16ths
-      const beamCol='rgba(240,230,208,.75)',beamY=26;
+      // Beams: primary across stem tips; secondary under runs of ≥2 consecutive 16ths; partial stubs for isolated 16ths
+      const beamY=26;
       groups.forEach(g=>{
+        const bc=g.some(i=>mNotes[i].current)?'#f5c518':'rgba(240,230,208,.75)';
         const x1=pos[g[0]]+5.4,xN=pos[g[g.length-1]]+5.4;
-        s+=`<rect x="${x1}" y="${beamY}" width="${xN-x1}" height="3" fill="${beamCol}"/>`;
+        s+=`<rect x="${x1}" y="${beamY}" width="${xN-x1}" height="3" fill="${bc}"/>`;
+        const is16=g.map(i=>mNotes[i].d===16);const inRun=new Set();
         let rs=-1;
         for(let k=0;k<=g.length;k++){
-          const is16=k<g.length&&mNotes[g[k]].d===16;
-          if(is16){if(rs<0)rs=k;}
-          else{if(rs>=0&&k-rs>=2){const xa=pos[g[rs]]+5.4,xb=pos[g[k-1]]+5.4;s+=`<rect x="${xa}" y="${beamY+5}" width="${xb-xa}" height="3" fill="${beamCol}"/>`;}rs=-1;}
+          if(k<g.length&&is16[k]){if(rs<0)rs=k;}
+          else{if(rs>=0){if(k-rs>=2){const xa=pos[g[rs]]+5.4,xb=pos[g[k-1]]+5.4;s+=`<rect x="${xa}" y="${beamY+5}" width="${xb-xa}" height="3" fill="${bc}"/>`;for(let q=rs;q<k;q++)inRun.add(q);}rs=-1;}}
+        }
+        for(let k=0;k<g.length;k++){
+          if(is16[k]&&!inRun.has(k)){
+            const cx=pos[g[k]]+5.4,dir=(k===g.length-1)?-1:1,stubW=6;
+            s+=`<rect x="${dir>0?cx:cx-stubW}" y="${beamY+5}" width="${stubW}" height="3" fill="${bc}"/>`;
+          }
         }
       });
       // Fill remaining with rest
@@ -931,19 +940,21 @@ const Cmp = {
     // Build playhead schedule: (time, drawn_x) per note, mirroring CmpSheet.render layout
     this._phSchedule=[];
     const pMs=CmpSheet._getMeasures(this.notes,cap,this.totalMeasures);
-    const beatSize=Math.max(1,cap/this.ts.b);
+    const isCompound=(this.ts.v===8&&this.ts.b%3===0&&this.ts.b>3);
+    const beatSize=isCompound?3:Math.max(1,cap/this.ts.b);
     for(let mi=0;mi<this.totalMeasures;mi++){
       const mx=68+mi*pMW;const mNotes=pMs[mi]||[];
       const ng=new Array(mNotes.length).fill(-1);let cur=[],grp=0;
       const flush=()=>{if(cur.length>=2){cur.forEach(i=>ng[i]=grp);grp++;}cur=[];};
       for(let i=0;i<mNotes.length;i++){
         const n=mNotes[i];
-        const beamable=!n.rest&&!n.triplet&&!n.dot&&(n.d===8||n.d===16);
+        const beamable=!n.rest&&!n.dot&&(n.d===8||n.d===16);
         if(!beamable){flush();continue;}
         if(cur.length===0){cur=[i];continue;}
         const fb=Math.floor(mNotes[cur[0]].startBeat8/beatSize);
         const tb=Math.floor(n.startBeat8/beatSize);
-        if(fb===tb){cur.push(i);}else{flush();cur=[i];}
+        const mixTr=!!mNotes[cur[0]].triplet!==!!n.triplet;
+        if(fb===tb&&!mixTr){cur.push(i);}else{flush();cur=[i];}
       }
       flush();
       let prevNx=mx;
