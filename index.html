@@ -410,7 +410,7 @@ const CmpSheet = {
       // Beam-aware spacing: tighter floor (+11) for consecutive notes within a group, else +18
       let prevNx=mx;const pos=[];
       mNotes.forEach((n,i)=>{
-        const baseNx=mx+((n.startBeat8+n.dur8/2)/ts.cap)*mW;
+        const baseNx=mx+(n.startBeat8/ts.cap)*mW+10;
         const beamed=i>0&&ng[i]>=0&&ng[i]===ng[i-1];
         const floor=beamed?prevNx+11:prevNx+18;
         const nx=i===0?Math.max(mx+15,baseNx):Math.max(floor,baseNx);
@@ -431,7 +431,10 @@ const CmpSheet = {
         }
         for(let k=0;k<g.length;k++){
           if(is16[k]&&!inRun.has(k)){
-            const cx=pos[g[k]]+5.4,dir=(k===g.length-1)?-1:1,stubW=6;
+            const cx=pos[g[k]]+5.4,stubW=6;
+            let nearest=-1,bestDist=Infinity;
+            for(let q=0;q<g.length;q++){if(q!==k&&is16[q]){const dist=Math.abs(q-k);if(dist<bestDist){bestDist=dist;nearest=q;}}}
+            const dir=nearest>=0?(nearest>k?1:-1):(k===g.length-1?-1:1);
             s+=`<rect x="${dir>0?cx:cx-stubW}" y="${beamY+5}" width="${stubW}" height="3" fill="${bc}"/>`;
           }
         }
@@ -959,7 +962,7 @@ const Cmp = {
       flush();
       let prevNx=mx;
       mNotes.forEach((n,i)=>{
-        const baseNx=mx+((n.startBeat8+n.dur8/2)/cap)*pMW;
+        const baseNx=mx+(n.startBeat8/cap)*pMW+10;
         const beamed=i>0&&ng[i]>=0&&ng[i]===ng[i-1];
         const floor=beamed?prevNx+11:prevNx+18;
         const nx=i===0?Math.max(mx+15,baseNx):Math.max(floor,baseNx);
@@ -973,7 +976,7 @@ const Cmp = {
 
     this.notes.forEach(n=>{
       const dur=n.dur8*spe;
-      if(!n.rest){
+      if(!n.rest&&!n.tied){
         const node=this._playViolin(ctx,D4,t,dur);
         if(node)this._wNodes.push(node);
       }
