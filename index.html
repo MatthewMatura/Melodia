@@ -418,7 +418,7 @@ const CmpSheet = {
         s+=this._drawNote(n,nx,ST,SB,ng[i]>=0);
       });
       // Beams: primary across stem tips; secondary under runs of ≥2 consecutive 16ths; partial stubs for isolated 16ths
-      const beamY=26;
+      const beamY=14;
       groups.forEach(g=>{
         const bc=g.some(i=>mNotes[i].current)?'#f5c518':'rgba(240,230,208,.75)';
         const x1=pos[g[0]]+5.4,xN=pos[g[g.length-1]]+5.4;
@@ -466,6 +466,8 @@ const CmpSheet = {
       if(par && curNx>par.scrollLeft+par.clientWidth-40){
         par.scrollTo({left:Math.max(0,curNx-mLeft-20),behavior:'smooth'});
       }
+      const ph=svgEl.querySelector('#cmp-playhead');
+      if(ph) ph.setAttribute('transform',`translate(${curNx},0)`);
     }
   },
 
@@ -483,7 +485,7 @@ const CmpSheet = {
 
   _drawNote(n,nx,ST,SB,beamed){
     if(n.rest)return this._drawRest(n.dur8,999,nx,ST,SB);
-    const ny=this.NY[n.p]||ST+28;
+    const ny=ST+16;
     const isCur=n.current;
     const fill=isCur?'#f5c518':'rgba(240,230,208,.75)';
     const open=n.d<=2;
@@ -497,7 +499,7 @@ const CmpSheet = {
     else s+=`<ellipse cx="${nx}" cy="${ny}" rx="6" ry="4" fill="${fill}" transform="rotate(-15 ${nx} ${ny})"/>`;
     // Stem
     if(n.d!==1){
-      const up=ny>ST+16;
+      const up=beamed||ny>ST+16;
       const sx=up?nx+5.4:nx-5.4;
       const sy2=ny+(up?-24:24);
       s+=`<line x1="${sx}" y1="${ny}" x2="${sx}" y2="${sy2}" stroke="${fill}" stroke-width="1.4"/>`;
@@ -559,7 +561,7 @@ const CmpSheet = {
     const mi=Math.floor(cum/ts.cap);
     const b8=cum-mi*ts.cap;
     if(mi>=(mLeft+mW*4)/mW)return null;
-    return mLeft+mi*mW+(b8/ts.cap)*mW+Math.max(6,(notes[idx].dur8/ts.cap)*mW*0.45);
+    return mLeft+mi*mW+(b8/ts.cap)*mW+10;
   },
 };
 
