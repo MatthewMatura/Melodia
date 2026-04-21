@@ -55,7 +55,6 @@ display:none;flex-direction:column;overflow-y:auto;
 /* ===== COMPOSE ===== */
 @font-face{font-family:Bravura;font-style:normal;font-display:block;font-weight:400;src:local(“Bravura”),url(‘https://cdn.jsdelivr.net/npm/@vexflow-fonts/bravura/bravura.woff2’) format(‘woff2’);}
 svg text.music,.cmp-nbtn svg text,#cmp-s3 svg text{font-family:‘Bravura’,‘Times New Roman’,serif !important;}
-.cmp-ts-grid{padding-top:60px !important;}
 .cinput{background:#10101e;background:var(–surf);border:1px solid rgba(240,230,208,.22);border:1px solid var(–dimmer);border-radius:7px;padding:11px 14px;color:#f0e6d0;color:var(–ink);font-family:inherit;font-size:13px;width:100%;outline:none;-webkit-appearance:none;}
 .cinput:focus{border-color:#f5c518;border-color:var(–gold);}
 /* Steps are absolutely positioned within the fixed view — always start at top:0 */
@@ -209,8 +208,12 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
   <!-- STEP 2: Time Signature -->
 
   <div id="cmp-s2" class="cmp-step">
-    <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="position:absolute;top:10px;left:14px;flex:unset;padding:8px 14px;z-index:2">‹ Back</button>
-    <div class="cmp-step-hdr">⏱ Pick Your Time Signature</div>
+    <div class="cmp-topbar">
+      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
+      <span class="cmp-ts-label">Rhythm</span>
+      <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
+    </div>
+    <div class="cmp-step-hdr" style="padding:12px 16px 6px">⏱ Pick Your Time Signature</div>
     <div class="cmp-ts-grid" id="cmp-ts-grid"></div>
   </div>
 
