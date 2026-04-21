@@ -362,16 +362,6 @@ const CmpSheet = {
     return `<svg viewBox="0 0 32 44" width="30" height="40">${body}${dotEl}</svg>`;
   },
 
-  _restSVG(d){
-    let sh='';
-    if(d===1)sh=`<rect x="6" y="22" width="20" height="7" rx="1" fill="var(--ink)"/><line x1="4" y1="22" x2="28" y2="22" stroke="var(--ink)" stroke-width="1.4"/>`;
-    else if(d===2)sh=`<rect x="6" y="29" width="20" height="7" rx="1" fill="var(--ink)"/><line x1="4" y1="36" x2="28" y2="36" stroke="var(--ink)" stroke-width="1.4"/>`;
-    else if(d===4)sh=`<path d="M18 12 C24 16 21 21 17 23 C22 25 22 30 17 33 L15 38 M15 38 C17 32 12 31 13 26 C13 21 18 20 19 17 C18 14 15 13 17 11" stroke="var(--ink)" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
-    else if(d===8)sh=`<circle cx="14" cy="26" r="4" fill="var(--ink)"/><line x1="18" y1="26" x2="26" y2="12" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/><path d="M26 12 C31 16 29 23 22 25" stroke="var(--ink)" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
-    else sh=`<circle cx="11" cy="24" r="3.5" fill="var(--ink)"/><line x1="14" y1="24" x2="22" y2="10" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M22 10 C27 14 25 21 18 23" stroke="var(--ink)" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="18" cy="32" r="3.5" fill="var(--ink)"/><line x1="21" y1="32" x2="29" y2="18" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M29 18 C34 22 32 29 25 31" stroke="var(--ink)" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
-    return `<svg viewBox="0 0 36 46" width="30" height="40">${sh}</svg>`.replace(/var\(--ink\)/g,'#000');
-  },
-
   render(svgEl, state){
     const {notes,ts,totalMeasures}=state;
     if(!ts){svgEl.innerHTML='';return;}
@@ -530,9 +520,9 @@ const CmpSheet = {
   },
 
   _drawRest(dur8,cap,cx,ST,SB,dot){
-    const mid=ST+(SB-ST)/2, col='rgba(240,230,208,.7)';
+    const mid=ST+(SB-ST)/2, col='rgba(240,230,208,.85)';
     let body='',dx=0,dy=0;
-    if(dur8>=cap){body=`<rect x="${cx-8}" y="${mid-5}" width="16" height="5" fill="${col}"/>`;dx=cx+11;dy=mid-9;}
+    if(dur8>=cap){body=`<rect x="${cx-8}" y="${ST+8}" width="16" height="5" fill="${col}"/>`;dx=cx+11;dy=ST+6;}
     else if(dur8>=4){body=`<rect x="${cx-8}" y="${mid}" width="16" height="5" fill="${col}"/>`;dx=cx+11;dy=mid-3;}
     else if(dur8>=2){body=`<path d="M${cx-2} ${mid-8} Q${cx+5} ${mid-2} ${cx-1} ${mid+2} Q${cx+5} ${mid+6} ${cx-3} ${mid+10}" fill="${col}" stroke="${col}" stroke-width="1"/>`;dx=cx+9;dy=mid;}
     else if(dur8>=1){body=`<path d="M${cx-5} ${mid+8} L${cx+4} ${mid-8}" stroke="${col}" stroke-width="1.8" stroke-linecap="round" fill="none"/><circle cx="${cx-3}" cy="${mid-4}" r="2.2" fill="${col}"/><path d="M${cx-3} ${mid-4} Q${cx+2} ${mid-6} ${cx+4} ${mid-8}" stroke="${col}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;dx=cx+8;dy=mid-4;}
@@ -835,6 +825,7 @@ const Cmp = {
 
   undo(){
     if(!this.notes.length){Toast.show({ic:'↩',title:'Nothing to undo',sub:'Staff is already empty.',type:'e'});return;}
+    this._selectedIdx=null;
     this.notes.pop();
     if(this.notes.length) this.notes[this.notes.length-1].current=true;
     // Reset triplet group if undoing into one
@@ -875,7 +866,7 @@ const Cmp = {
       Toast.show({ic:'⚠',title:'Too long',sub:'Replacement won\u2019t fit. Pick a shorter value or deselect.',type:'e'});
       return;
     }
-    orig.p=isRest?'REST':pitch;orig.d=d;orig.dot=dot;orig.rest=isRest;
+    orig.p=isRest?'REST':pitch;orig.d=d;orig.dot=dot;orig.rest=isRest;orig.tied=false;
     const gap=parseFloat((orig.dur8-newDur8).toFixed(6));
     orig.dur8=newDur8;
     if(gap>0.001){
@@ -888,6 +879,7 @@ const Cmp = {
   // FEATURE 2 — nuke entire composition
   nuke(){
     this.stop();this.notes=[];this.totalMeasures=4;this._tg={base:0,count:0,accum:0};
+    this._selectedIdx=null;
     this.tripletMode=false;
     document.getElementById('cmp-triplet-btn')?.classList.remove('on');
     Toast.show({ic:'💣',title:'Nuked.',sub:'Staff cleared. Start over, champion.'});
