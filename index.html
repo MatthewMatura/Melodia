@@ -549,12 +549,19 @@ const CmpSheet = {
     let s='';
     for(let i=0;i<notes.length;i++){
       if(notes[i].triplet&&notes[i].tripletPos===0){
+        // Walk forward to find group end (consecutive triplet notes with pos>0)
+        let j=i;
+        while(j+1<notes.length&&notes[j+1].triplet&&notes[j+1].tripletPos>0) j++;
         const x1=this._noteX(i,notes,mLeft,mW,ts);
-        const x3=this._noteX(Math.min(i+2,notes.length-1),notes,mLeft,mW,ts);
+        const x3=this._noteX(j,notes,mLeft,mW,ts);
         if(x1===null||x3===null)continue;
         const mx=(x1+x3)/2;
-        // Suppress bracket (keep "3") when triplet is fully beamed (all 8ths/16ths, no dots)
-        const allBeamed=[i,i+1,i+2].every(k=>notes[k]&&!notes[k].rest&&!notes[k].dot&&(notes[k].d===8||notes[k].d===16));
+        // Suppress bracket (keep "3") when entire group is fully beamed (all 8ths/16ths, no dots, no rests)
+        let allBeamed=true;
+        for(let k=i;k<=j;k++){
+          const nk=notes[k];
+          if(!nk||nk.rest||nk.dot||!(nk.d===8||nk.d===16)){allBeamed=false;break;}
+        }
         const col='rgba(240,230,208,.75)',y=ST-8;
         s+=`<text x="${mx}" y="${y-2}" font-size="11" fill="${col}" text-anchor="middle" font-style="italic" font-family="'Times New Roman',serif">3</text>`;
         if(!allBeamed){
@@ -572,7 +579,6 @@ const CmpSheet = {
     let cum=0;for(let i=0;i<idx;i++)cum+=notes[i].dur8;
     const mi=Math.floor(cum/ts.cap);
     const b8=cum-mi*ts.cap;
-    if(mi>=(mLeft+mW*4)/mW)return null;
     return mLeft+mi*mW+(b8/ts.cap)*mW+10;
   },
 };
@@ -765,19 +771,21 @@ const Cmp = {
     let isTriplet=false, tripletPos=null;
 
     if(this.tripletMode){
-      // BUG 3 — group-aware triplet math
+      // BUG 3 — group-aware triplet math (mixed-duration support)
       if(this._tg.count===0){this._tg.base=baseDur8;this._tg.accum=0;}
       const targetGroup=this._tg.base*2; // "next value up" total duration
-      isTriplet=true;
-      tripletPos=this._tg.count; // 0,1,2 — captured BEFORE increment
-      if(this._tg.count<2){
-        dur8=parseFloat((targetGroup/3).toFixed(6));
-      } else {
-        dur8=parseFloat((targetGroup-this._tg.accum).toFixed(6)); // exact remainder
+      const candidate=parseFloat((baseDur8*2/3).toFixed(6));
+      const newAccum=parseFloat((this._tg.accum+candidate).toFixed(6));
+      if(newAccum>targetGroup+0.001){
+        Toast.show({ic:'⚠',title:'Too long for triplet',sub:'That note would overflow the group. Pick a shorter value.',type:'e'});
+        return;
       }
-      this._tg.accum=parseFloat((this._tg.accum+dur8).toFixed(6));
+      isTriplet=true;
+      tripletPos=this._tg.count; // 0,1,2,3… — captured BEFORE increment
+      dur8=candidate;
+      this._tg.accum=newAccum;
       this._tg.count++;
-      if(this._tg.count>=3){
+      if(Math.abs(targetGroup-this._tg.accum)<0.001){
         this._tg={base:0,count:0,accum:0};
         this.tripletMode=false;
         document.getElementById('cmp-triplet-btn')?.classList.remove('on');
