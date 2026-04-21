@@ -273,10 +273,10 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
       <option value="laser">Laser</option>
     </optgroup>
     <optgroup label="Funny">
-      <option value="bark">Dog Bark</option>
-      <option value="meow">Cat Meow</option>
-      <option value="fart">Fart</option>
-      <option value="quack">Duck Quack</option>
+      <option value="slide">Slide Whistle</option>
+      <option value="squeak">Squeaky Toy</option>
+      <option value="raspberry">Raspberry</option>
+      <option value="honk">Horn Honk</option>
       <option value="boing">Boing</option>
     </optgroup>
   </select>
@@ -971,7 +971,7 @@ const Cmp = {
     const fn={
       piano:this._tonePiano, violin:this._toneViolin, flute:this._toneFlute, trumpet:this._toneTrumpet,
       clap:this._toneClap, kick808:this._toneKick808, laser:this._toneLaser,
-      bark:this._toneBark, meow:this._toneMeow, fart:this._toneFart, quack:this._toneQuack, boing:this._toneBoing
+      slide:this._toneSlide, squeak:this._toneSqueak, raspberry:this._toneRaspberry, honk:this._toneHonk, boing:this._toneBoing
     }[this.tone] || this._tonePiano;
     return fn.call(this,ctx,freq,startTime,durSec);
   },
@@ -1053,61 +1053,68 @@ const Cmp = {
     return osc;
   },
 
-  _toneBark(ctx,freq,t,d){
-    const dur=Math.min(d,0.2);
-    const bufLen=Math.max(1,Math.floor(ctx.sampleRate*dur));
-    const buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
-    const data=buf.getChannelData(0);for(let i=0;i<bufLen;i++)data[i]=Math.random()*2-1;
-    const src=ctx.createBufferSource();src.buffer=buf;
-    const filt=ctx.createBiquadFilter();filt.type='bandpass';filt.Q.value=3;
-    filt.frequency.setValueAtTime(900,t);filt.frequency.exponentialRampToValueAtTime(300,t+dur);
-    const g=ctx.createGain();
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.6,t+0.015);
-    g.gain.setValueAtTime(0.6,t+dur*0.3);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    src.connect(filt);filt.connect(g);g.connect(ctx.destination);
-    src.start(t);src.stop(t+dur);
-    return src;
-  },
-
-  _toneMeow(ctx,freq,t,d){
+  _toneSlide(ctx,freq,t,d){
+    // Classic cartoon slide whistle — sine sweeping up ~1.8x then back down
     const dur=Math.min(d,0.6);
-    const osc=ctx.createOscillator();osc.type='sawtooth';
-    osc.frequency.setValueAtTime(500,t);
-    osc.frequency.linearRampToValueAtTime(750,t+dur*0.3);
-    osc.frequency.linearRampToValueAtTime(400,t+dur);
-    const filt=ctx.createBiquadFilter();filt.type='bandpass';filt.Q.value=4;filt.frequency.value=900;
+    const osc=ctx.createOscillator();osc.type='sine';
+    const peak=dur*0.55;
+    osc.frequency.setValueAtTime(420,t);
+    osc.frequency.exponentialRampToValueAtTime(1700,t+peak);
+    osc.frequency.exponentialRampToValueAtTime(520,t+dur);
     const g=ctx.createGain();
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.3,t+0.04);
-    g.gain.setValueAtTime(0.3,t+Math.max(0,dur-0.08));g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    osc.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.32,t+0.015);
+    g.gain.setValueAtTime(0.32,t+Math.max(0.02,dur-0.04));g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.connect(g);g.connect(ctx.destination);
     osc.start(t);osc.stop(t+dur);
     return osc;
   },
 
-  _toneFart(ctx,freq,t,d){
-    const dur=Math.min(d,0.4);
-    const osc=ctx.createOscillator();osc.type='sawtooth';osc.frequency.value=90;
-    const lfo=ctx.createOscillator();lfo.frequency.value=18;
-    const lfoG=ctx.createGain();lfoG.gain.value=30;
-    const filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=500;filt.Q.value=3;
+  _toneSqueak(ctx,freq,t,d){
+    // Rubber ducky squeak — high sine with rapid upward chirp and slight vibrato
+    const dur=Math.min(d,0.25);
+    const osc=ctx.createOscillator();osc.type='sine';
+    osc.frequency.setValueAtTime(1100,t);
+    osc.frequency.exponentialRampToValueAtTime(1900,t+dur*0.5);
+    osc.frequency.exponentialRampToValueAtTime(1500,t+dur);
+    const lfo=ctx.createOscillator();lfo.frequency.value=22;
+    const lfoG=ctx.createGain();lfoG.gain.value=90;
     const g=ctx.createGain();
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.4,t+0.02);
-    g.gain.setValueAtTime(0.4,t+Math.max(0,dur-0.08));g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-    lfo.connect(lfoG);lfoG.connect(osc.frequency);osc.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.28,t+0.01);
+    g.gain.setValueAtTime(0.28,t+Math.max(0.02,dur-0.04));g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    lfo.connect(lfoG);lfoG.connect(osc.frequency);
+    osc.connect(g);g.connect(ctx.destination);
     osc.start(t);lfo.start(t);osc.stop(t+dur);lfo.stop(t+dur);
     return osc;
   },
 
-  _toneQuack(ctx,freq,t,d){
-    const dur=Math.min(d,0.18);
-    const osc=ctx.createOscillator();osc.type='sawtooth';
-    osc.frequency.setValueAtTime(350,t);osc.frequency.linearRampToValueAtTime(280,t+dur);
-    const filt=ctx.createBiquadFilter();filt.type='bandpass';filt.Q.value=5;filt.frequency.value=1200;
+  _toneRaspberry(ctx,freq,t,d){
+    // Tongue-blow raspberry — low sawtooth with fast LFO flutter through lowpass
+    const dur=Math.min(d,0.45);
+    const osc=ctx.createOscillator();osc.type='sawtooth';osc.frequency.value=75;
+    const lfo=ctx.createOscillator();lfo.type='square';lfo.frequency.value=32;
+    const lfoG=ctx.createGain();lfoG.gain.value=55;
+    const filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=650;filt.Q.value=5;
     const g=ctx.createGain();
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.5,t+0.01);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.45,t+0.025);
+    g.gain.setValueAtTime(0.45,t+Math.max(0.03,dur-0.06));g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    lfo.connect(lfoG);lfoG.connect(osc.frequency);
     osc.connect(filt);filt.connect(g);g.connect(ctx.destination);
-    osc.start(t);osc.stop(t+dur);
+    osc.start(t);lfo.start(t);osc.stop(t+dur);lfo.stop(t+dur);
     return osc;
+  },
+
+  _toneHonk(ctx,freq,t,d){
+    // Bicycle/clown horn — two detuned squares through lowpass for nasal buzz
+    const dur=Math.min(d,0.25);
+    const o1=ctx.createOscillator();o1.type='square';o1.frequency.value=260;
+    const o2=ctx.createOscillator();o2.type='square';o2.frequency.value=263;
+    const filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=1400;filt.Q.value=2;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.3,t+0.015);
+    g.gain.setValueAtTime(0.3,t+Math.max(0.02,dur-0.04));g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    o1.connect(filt);o2.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    o1.start(t);o2.start(t);o1.stop(t+dur);o2.stop(t+dur);
+    return o1;
   },
 
   _toneBoing(ctx,freq,t,d){
