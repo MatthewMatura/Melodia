@@ -148,6 +148,9 @@ transform:scale(.96);
 .cmp-playbar{display:flex;gap:10px;padding:6px 14px 2px;flex-shrink:0;justify-content:center;}
 .cmp-play-btn{width:50px;height:50px;border-radius:50%;border:2px solid rgba(245,197,24,.22);border:2px solid var(–gold2);background:#10101e;background:var(–surf);color:#f5c518;color:var(–gold);font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;}
 .cmp-play-btn:active,.cmp-play-btn.on{background:#f5c518;background:var(–gold);color:#111;border-color:#f5c518;border-color:var(–gold);}
+.cmp-tone-sel{height:40px;align-self:center;padding:0 10px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none;padding-right:22px;background-image:linear-gradient(45deg,transparent 50%,#f0e6d0 50%),linear-gradient(135deg,#f0e6d0 50%,transparent 50%);background-position:calc(100% - 11px) 50%,calc(100% - 7px) 50%;background-size:4px 4px,4px 4px;background-repeat:no-repeat;}
+.cmp-tone-sel optgroup{background:#10101e;color:#f5c518;font-style:normal;font-weight:900;}
+.cmp-tone-sel option{background:#10101e;color:#f0e6d0;font-weight:600;}
 .cmp-title-row{padding:6px 14px 14px;flex-shrink:0;}
 
 /* ===== TOAST ===== */
@@ -257,6 +260,26 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
   <button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
   <button class="cmp-play-btn" onclick="Cmp.pause()" title="Pause">⏸</button>
   <button class="cmp-play-btn" onclick="Cmp.stop()" title="Stop">⏹</button>
+  <select class="cmp-tone-sel" id="cmp-tone" onchange="Cmp.setTone(this.value)" title="Tone" aria-label="Tone">
+    <optgroup label="Instruments">
+      <option value="piano" selected>Piano</option>
+      <option value="violin">Violin</option>
+      <option value="flute">Flute</option>
+      <option value="trumpet">Trumpet</option>
+    </optgroup>
+    <optgroup label="Electronic">
+      <option value="clap">Clap</option>
+      <option value="kick808">808 Kick</option>
+      <option value="laser">Laser</option>
+    </optgroup>
+    <optgroup label="Funny">
+      <option value="bark">Dog Bark</option>
+      <option value="meow">Cat Meow</option>
+      <option value="fart">Fart</option>
+      <option value="quack">Duck Quack</option>
+      <option value="boing">Boing</option>
+    </optgroup>
+  </select>
 </div>
 
 <div class="cmp-title-row">
@@ -592,7 +615,7 @@ const Cmp = {
   ts:null, tempo:60,
   notes:[], durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
-  totalMeasures:4,
+  totalMeasures:4, tone:'piano',
 
   TIME_SIGS:[
     {label:'Cut Time', sub:'2/2',  b:2,  v:2, cap:8,  beatUnit:2, bul:'𝅗𝅥'},
@@ -942,6 +965,164 @@ const Cmp = {
     return this._wac;
   },
 
+  setTone(v){this.tone=v;},
+
+  _playTone(ctx,freq,startTime,durSec){
+    const fn={
+      piano:this._tonePiano, violin:this._toneViolin, flute:this._toneFlute, trumpet:this._toneTrumpet,
+      clap:this._toneClap, kick808:this._toneKick808, laser:this._toneLaser,
+      bark:this._toneBark, meow:this._toneMeow, fart:this._toneFart, quack:this._toneQuack, boing:this._toneBoing
+    }[this.tone] || this._tonePiano;
+    return fn.call(this,ctx,freq,startTime,durSec);
+  },
+
+  _tonePiano(ctx,freq,t,d){
+    const dur=Math.min(d,1.2);
+    const osc=ctx.createOscillator();osc.type='triangle';osc.frequency.value=freq;
+    const osc2=ctx.createOscillator();osc2.type='sine';osc2.frequency.value=freq*2;
+    const g=ctx.createGain();const g2=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.35,t+0.005);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(0.08,t+0.005);g2.gain.exponentialRampToValueAtTime(0.001,t+dur*0.5);
+    osc.connect(g);osc2.connect(g2);g.connect(ctx.destination);g2.connect(ctx.destination);
+    osc.start(t);osc2.start(t);osc.stop(t+dur);osc2.stop(t+dur*0.5);
+    return osc;
+  },
+
+  _toneViolin(ctx,freq,t,d){
+    const osc=ctx.createOscillator();osc.type='sawtooth';osc.frequency.value=freq;
+    const lfo=ctx.createOscillator();lfo.frequency.value=5;
+    const lfoG=ctx.createGain();lfoG.gain.value=freq*0.015;
+    const filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=2000;filt.Q.value=1;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.22,t+Math.min(0.08,d*0.2));
+    g.gain.setValueAtTime(0.22,t+Math.max(0,d-0.05));g.gain.linearRampToValueAtTime(0.001,t+d);
+    lfo.connect(lfoG);lfoG.connect(osc.frequency);osc.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    osc.start(t);lfo.start(t);osc.stop(t+d);lfo.stop(t+d);
+    return osc;
+  },
+
+  _toneFlute(ctx,freq,t,d){
+    const osc=ctx.createOscillator();osc.type='sine';osc.frequency.value=freq;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.3,t+Math.min(0.04,d*0.15));
+    g.gain.setValueAtTime(0.3,t+Math.max(0,d-0.04));g.gain.linearRampToValueAtTime(0.001,t+d);
+    const bufLen=Math.max(1,Math.floor(ctx.sampleRate*d));
+    const buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+    const data=buf.getChannelData(0);for(let i=0;i<bufLen;i++)data[i]=(Math.random()*2-1)*0.3;
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const nfilt=ctx.createBiquadFilter();nfilt.type='bandpass';nfilt.frequency.value=freq*2;nfilt.Q.value=2;
+    const ng=ctx.createGain();ng.gain.value=0.04;
+    osc.connect(g);g.connect(ctx.destination);src.connect(nfilt);nfilt.connect(ng);ng.connect(ctx.destination);
+    osc.start(t);src.start(t);osc.stop(t+d);src.stop(t+d);
+    return osc;
+  },
+
+  _toneTrumpet(ctx,freq,t,d){
+    const osc=ctx.createOscillator();osc.type='sawtooth';osc.frequency.value=freq;
+    const filt=ctx.createBiquadFilter();filt.type='lowpass';filt.Q.value=3;
+    filt.frequency.setValueAtTime(400,t);filt.frequency.linearRampToValueAtTime(2500,t+Math.min(0.05,d*0.3));
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.25,t+Math.min(0.03,d*0.15));
+    g.gain.setValueAtTime(0.25,t+Math.max(0,d-0.05));g.gain.linearRampToValueAtTime(0.001,t+d);
+    osc.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    osc.start(t);osc.stop(t+d);
+    return osc;
+  },
+
+  _toneClap(ctx,freq,t,d){return this._playViolin(ctx,freq,t,d);},
+
+  _toneKick808(ctx,freq,t,d){
+    const dur=Math.min(d,0.5);
+    const osc=ctx.createOscillator();osc.type='sine';
+    osc.frequency.setValueAtTime(150,t);osc.frequency.exponentialRampToValueAtTime(40,t+Math.min(0.1,dur*0.4));
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.7,t+0.005);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.connect(g);g.connect(ctx.destination);
+    osc.start(t);osc.stop(t+dur);
+    return osc;
+  },
+
+  _toneLaser(ctx,freq,t,d){
+    const dur=Math.min(d,0.35);
+    const osc=ctx.createOscillator();osc.type='sawtooth';
+    osc.frequency.setValueAtTime(1400,t);osc.frequency.exponentialRampToValueAtTime(120,t+dur);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.22,t+0.01);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.connect(g);g.connect(ctx.destination);
+    osc.start(t);osc.stop(t+dur);
+    return osc;
+  },
+
+  _toneBark(ctx,freq,t,d){
+    const dur=Math.min(d,0.2);
+    const bufLen=Math.max(1,Math.floor(ctx.sampleRate*dur));
+    const buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+    const data=buf.getChannelData(0);for(let i=0;i<bufLen;i++)data[i]=Math.random()*2-1;
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const filt=ctx.createBiquadFilter();filt.type='bandpass';filt.Q.value=3;
+    filt.frequency.setValueAtTime(900,t);filt.frequency.exponentialRampToValueAtTime(300,t+dur);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.6,t+0.015);
+    g.gain.setValueAtTime(0.6,t+dur*0.3);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    src.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    src.start(t);src.stop(t+dur);
+    return src;
+  },
+
+  _toneMeow(ctx,freq,t,d){
+    const dur=Math.min(d,0.6);
+    const osc=ctx.createOscillator();osc.type='sawtooth';
+    osc.frequency.setValueAtTime(500,t);
+    osc.frequency.linearRampToValueAtTime(750,t+dur*0.3);
+    osc.frequency.linearRampToValueAtTime(400,t+dur);
+    const filt=ctx.createBiquadFilter();filt.type='bandpass';filt.Q.value=4;filt.frequency.value=900;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.3,t+0.04);
+    g.gain.setValueAtTime(0.3,t+Math.max(0,dur-0.08));g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    osc.start(t);osc.stop(t+dur);
+    return osc;
+  },
+
+  _toneFart(ctx,freq,t,d){
+    const dur=Math.min(d,0.4);
+    const osc=ctx.createOscillator();osc.type='sawtooth';osc.frequency.value=90;
+    const lfo=ctx.createOscillator();lfo.frequency.value=18;
+    const lfoG=ctx.createGain();lfoG.gain.value=30;
+    const filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=500;filt.Q.value=3;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.4,t+0.02);
+    g.gain.setValueAtTime(0.4,t+Math.max(0,dur-0.08));g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    lfo.connect(lfoG);lfoG.connect(osc.frequency);osc.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    osc.start(t);lfo.start(t);osc.stop(t+dur);lfo.stop(t+dur);
+    return osc;
+  },
+
+  _toneQuack(ctx,freq,t,d){
+    const dur=Math.min(d,0.18);
+    const osc=ctx.createOscillator();osc.type='sawtooth';
+    osc.frequency.setValueAtTime(350,t);osc.frequency.linearRampToValueAtTime(280,t+dur);
+    const filt=ctx.createBiquadFilter();filt.type='bandpass';filt.Q.value=5;filt.frequency.value=1200;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.5,t+0.01);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    osc.start(t);osc.stop(t+dur);
+    return osc;
+  },
+
+  _toneBoing(ctx,freq,t,d){
+    const dur=Math.min(d,0.4);
+    const osc=ctx.createOscillator();osc.type='triangle';
+    osc.frequency.setValueAtTime(600,t);osc.frequency.exponentialRampToValueAtTime(160,t+dur);
+    const lfo=ctx.createOscillator();lfo.frequency.value=14;
+    const lfoG=ctx.createGain();lfoG.gain.value=80;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.4,t+0.01);g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    lfo.connect(lfoG);lfoG.connect(osc.frequency);osc.connect(g);g.connect(ctx.destination);
+    osc.start(t);lfo.start(t);osc.stop(t+dur);lfo.stop(t+dur);
+    return osc;
+  },
+
   _playViolin(ctx,freq,startTime,durSec){
     // Clap sound — white-noise burst with sharp envelope (freq/durSec ignored; uniform clap per note)
     const bufLen=Math.floor(ctx.sampleRate*0.05);
@@ -1049,7 +1230,7 @@ const Cmp = {
     this.notes.forEach(n=>{
       const dur=n.dur8*spe;
       if(!n.rest&&!n.tied){
-        const node=this._playViolin(ctx,D4,t,dur);
+        const node=this._playTone(ctx,D4,t,dur);
         if(node)this._wNodes.push(node);
       }
       if(wrap){
