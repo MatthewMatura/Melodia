@@ -142,9 +142,13 @@ transform:scale(.96);
 .cmp-tempo-btn:active{background:#e8142a;background:var(–red);border-color:#e8142a;border-color:var(–red);}
 .cmp-tempo-disp{flex:1.6;text-align:center;font-size:17px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.06em;}
 /* LAYOUT FIX 2: staff never overlaps adjacent elements */
-.cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;height:88px;display:flex;align-items:center;}
+.cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;height:110px;display:flex;align-items:center;}
+.cmp-surprise-btn{padding:10px 14px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
+.cmp-surprise-btn:active{background:rgba(245,197,24,.18);border-color:#f5c518;border-color:var(–gold);}
+.cmp-playbar{display:flex;align-items:center;padding:6px 14px 2px;flex-shrink:0;justify-content:space-between;gap:10px;}
+.cmp-playbar-left,.cmp-playbar-right{display:flex;align-items:center;}
+.cmp-playbar-center{display:flex;gap:10px;align-items:center;}
 #cmp-svg{width:100%;display:block;}
-.cmp-playbar{display:flex;gap:10px;padding:6px 14px 2px;flex-shrink:0;justify-content:center;}
 .cmp-play-btn{width:50px;height:50px;border-radius:50%;border:2px solid rgba(245,197,24,.22);border:2px solid var(–gold2);background:#10101e;background:var(–surf);color:#f5c518;color:var(–gold);font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;}
 .cmp-play-btn:active,.cmp-play-btn.on{background:#f5c518;background:var(–gold);color:#111;border-color:#f5c518;border-color:var(–gold);}
 .cmp-tone-sel{height:40px;align-self:center;padding:0 10px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none;padding-right:22px;background-image:linear-gradient(45deg,transparent 50%,#f0e6d0 50%),linear-gradient(135deg,#f0e6d0 50%,transparent 50%);background-position:calc(100% - 11px) 50%,calc(100% - 7px) 50%;background-size:4px 4px,4px 4px;background-repeat:no-repeat;}
@@ -239,7 +243,7 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
   <div class="cmp-input-label" style="margin-top:7px">Rests</div>
   <div class="cmp-note-row" id="cmp-rest-row"></div>
   <div class="cmp-edit-row">
-    <button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">³ Triplet</button>
+    <button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
     <button class="cmp-edit-btn" onclick="Cmp.undo()">↩ Undo</button>
     <button class="cmp-edit-btn" onclick="Cmp.trash()">🗑 Rest</button>
     <button class="cmp-edit-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
@@ -265,29 +269,36 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
 <!-- Playback controls below staff -->
 
 <div class="cmp-playbar">
-  <button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
-  <button class="cmp-play-btn" onclick="Cmp.pause()" title="Pause">⏸</button>
-  <button class="cmp-play-btn" onclick="Cmp.stop()" title="Stop">⏹</button>
-  <select class="cmp-tone-sel" id="cmp-tone" onchange="Cmp.setTone(this.value)" title="Tone" aria-label="Tone">
-    <optgroup label="Instruments">
-      <option value="piano" selected>Piano</option>
-      <option value="violin">Violin</option>
-      <option value="flute">Flute</option>
-      <option value="trumpet">Trumpet</option>
-    </optgroup>
-    <optgroup label="Electronic">
-      <option value="clap">Clap</option>
-      <option value="kick808">808 Kick</option>
-      <option value="laser">Laser</option>
-    </optgroup>
-    <optgroup label="Funny">
-      <option value="slide">Slide Whistle</option>
-      <option value="squeak">Squeaky Toy</option>
-      <option value="raspberry">Raspberry</option>
-      <option value="honk">Horn Honk</option>
-      <option value="boing">Boing</option>
-    </optgroup>
-  </select>
+  <div class="cmp-playbar-left">
+    <button class="cmp-surprise-btn" onclick="Cmp.surprise()">🎲 Surprise</button>
+  </div>
+  <div class="cmp-playbar-center">
+    <button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
+    <button class="cmp-play-btn" onclick="Cmp.pause()" title="Pause">⏸</button>
+    <button class="cmp-play-btn" onclick="Cmp.stop()" title="Stop">⏹</button>
+  </div>
+  <div class="cmp-playbar-right">
+    <select class="cmp-tone-sel" id="cmp-tone" onchange="Cmp.setTone(this.value)" title="Tone" aria-label="Tone">
+      <optgroup label="Instruments">
+        <option value="piano" selected>Piano</option>
+        <option value="violin">Violin</option>
+        <option value="flute">Flute</option>
+        <option value="trumpet">Trumpet</option>
+      </optgroup>
+      <optgroup label="Electronic">
+        <option value="clap">Clap</option>
+        <option value="kick808">808 Kick</option>
+        <option value="laser">Laser</option>
+      </optgroup>
+      <optgroup label="Funny">
+        <option value="slide">Slide Whistle</option>
+        <option value="squeak">Squeaky Toy</option>
+        <option value="raspberry">Raspberry</option>
+        <option value="honk">Horn Honk</option>
+        <option value="boing">Boing</option>
+      </optgroup>
+    </select>
+  </div>
 </div>
 
 <div class="cmp-title-row">
@@ -352,7 +363,7 @@ const Toast = {
 // ─────────────────────────────────────────
 
 const CmpSheet = {
-  ST:22, SB:54,
+  ST:32, SB:64,
   NY:{
     'G5':14,'F5':18,'E5':22,'D5':26,'C5':30,'B4':34,'A4':38,'G4':42,
     'F4':46,'E4':50,'D4':54,'C4':58,'B3':62,'A3':66,'G3':70,
@@ -394,9 +405,9 @@ const CmpSheet = {
   },
 
   render(svgEl, state){
-    const {notes,ts,totalMeasures}=state;
+    const {notes,ts,totalMeasures,selectedMeasure}=state;
     if(!ts){svgEl.innerHTML='';return;}
-    const mLeft=68,H=90,ST=this.ST,SB=this.SB;
+    const mLeft=68,H=108,ST=this.ST,SB=this.SB;
     const vp=svgEl.parentElement?.clientWidth||600;
     const mW=Math.max(80,(vp-mLeft)/4);
     const W=mLeft+totalMeasures*mW;
@@ -420,6 +431,13 @@ const CmpSheet = {
     const beatSize=isCompound?3:Math.max(1,ts.cap/ts.b);
     for(let mi=0;mi<totalMeasures;mi++){
       const mx=mLeft+mi*mW;
+      // Selection overlay behind staff/notes
+      if(selectedMeasure===mi){
+        s+=`<rect x="${mx}" y="${ST-14}" width="${mW}" height="${SB-ST+18}" fill="rgba(245,197,24,.08)"/>`;
+      }
+      // Measure number (tappable)
+      const numCx=mx+mW/2;
+      s+=`<g data-measure-idx="${mi}" style="cursor:pointer"><rect x="${mx}" y="0" width="${mW}" height="${ST-4}" fill="transparent" pointer-events="all"/><text x="${numCx}" y="${ST-8}" font-size="9" fill="rgba(245,197,24,.55)" text-anchor="middle" font-family="'Times New Roman',serif" font-weight="900">${mi+1}</text></g>`;
       s+=`<line x1="${mx}" y1="${ST}" x2="${mx}" y2="${SB}" stroke="rgba(245,197,24,.35)" stroke-width="1"/>`;
       const mNotes=measures[mi]||[];
       const filled=mNotes.reduce((a,n)=>a+n.dur8,0);
@@ -482,10 +500,10 @@ const CmpSheet = {
     s+=this._drawTies(notes,measures,mLeft,mW,ts);
     // Triplet brackets
     s+=this._drawTriplets(notes,measures,mLeft,mW,ts,ST);
-    // Final double barline
+    // Final double barline (standard: thin + gap + thick)
     const ex=mLeft+totalMeasures*mW;
-    s+=`<line x1="${ex}" y1="${ST}" x2="${ex}" y2="${SB}" stroke="rgba(245,197,24,.7)" stroke-width="2.5"/>`;
-    s+=`<line x1="${ex+5}" y1="${ST}" x2="${ex+5}" y2="${SB}" stroke="rgba(245,197,24,.7)" stroke-width="6"/>`;
+    s+=`<line x1="${ex-4}" y1="${ST}" x2="${ex-4}" y2="${SB}" stroke="#f5c518" stroke-opacity=".85" stroke-width="1.5"/>`;
+    s+=`<line x1="${ex}" y1="${ST}" x2="${ex}" y2="${SB}" stroke="#f5c518" stroke-opacity=".85" stroke-width="4.5"/>`;
     // Playhead (hidden until play)
     s+=`<g id="cmp-playhead" transform="translate(68,0)"><polygon points="-5,12 5,12 0,22" fill="#f5c518" opacity="0.9"/><line x1="0" y1="22" x2="0" y2="58" stroke="#f5c518" stroke-width="1.5" opacity="0.9"/></g>`;
     svgEl.setAttribute('viewBox',`0 0 ${W} ${H}`);
@@ -623,7 +641,7 @@ const Cmp = {
   ts:null, tempo:60,
   notes:[], durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
-  totalMeasures:4, tone:'piano',
+  totalMeasures:4, tone:'piano', selectedMeasure:null,
 
   TIME_SIGS:[
     {label:'Cut Time', sub:'2/2',  b:2,  v:2, cap:8,  beatUnit:2, bul:'𝅗𝅥'},
@@ -918,10 +936,45 @@ const Cmp = {
   // FEATURE 2 — nuke entire composition
   nuke(){
     this.stop();this.notes=[];this.totalMeasures=4;this._tg={base:0,count:0,accum:0};
-    this._selectedIdx=null;
+    this._selectedIdx=null;this.selectedMeasure=null;
     this.tripletMode=false;
     document.getElementById('cmp-triplet-btn')?.classList.remove('on');
     Toast.show({ic:'💣',title:'Nuked.',sub:'Staff cleared. Start over, champion.'});
+    this.render();
+    document.getElementById('cmp-svg').parentElement.scrollLeft=0;
+  },
+
+  surprise(){
+    if(!this.ts)return;
+    this.stop();
+    this._tg={base:0,count:0,accum:0};this._selectedIdx=null;this.selectedMeasure=null;
+    this.tripletMode=false;
+    document.getElementById('cmp-triplet-btn')?.classList.remove('on');
+    const cap=this.ts.cap;
+    const total=4*cap;
+    // Duration pool: [d, dot, dur8]
+    const poolFull=[
+      [1,false,8],[2,true,6],[2,false,4],[4,true,3],[4,false,2],[8,true,1.5],[8,false,1],[16,false,0.5]
+    ];
+    const pool=cap<4?poolFull.filter(p=>p[2]>=1):poolFull;
+    const notes=[];
+    let remaining=total;
+    while(remaining>0.001){
+      let fit=pool.filter(p=>p[2]<=remaining+0.001);
+      if(fit.length===0){
+        // fall back to largest that fits
+        fit=[pool.slice().sort((a,b)=>b[2]-a[2]).find(p=>p[2]<=remaining+0.001)].filter(Boolean);
+        if(fit.length===0)break;
+      }
+      const pick=fit[Math.floor(Math.random()*fit.length)];
+      const isRest=Math.random()<0.18;
+      notes.push({p:isRest?'REST':'D4',d:pick[0],dot:pick[1],dur8:pick[2],rest:isRest,triplet:false,tripletPos:null,tied:false,current:false});
+      remaining=parseFloat((remaining-pick[2]).toFixed(6));
+    }
+    if(notes.length) notes[notes.length-1].current=true;
+    this.notes=notes;
+    this.totalMeasures=4;
+    Toast.show({ic:'🎲',title:'Surprise!',sub:'Random rhythm generated.'});
     this.render();
     document.getElementById('cmp-svg').parentElement.scrollLeft=0;
   },
@@ -935,13 +988,21 @@ const Cmp = {
 
   render(){
     const svg=document.getElementById('cmp-svg');if(!svg)return;
-    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures});
+    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure});
     if(!this._tapInstalled){
       this._tapInstalled=true;
       svg.addEventListener('click',e=>{
+        const mg=e.target.closest('[data-measure-idx]');
+        if(mg){
+          const mi=parseInt(mg.getAttribute('data-measure-idx'));
+          this.selectedMeasure=(this.selectedMeasure===mi)?null:mi;
+          this.deselectNote();
+          this.render();
+          return;
+        }
         const g=e.target.closest('[data-note-idx]');
-        if(g){this.selectNote(parseInt(g.getAttribute('data-note-idx')));}
-        else{this.deselectNote();}
+        if(g){this.selectedMeasure=null;this.selectNote(parseInt(g.getAttribute('data-note-idx')));}
+        else{this.selectedMeasure=null;this.deselectNote();}
       });
     }
   },
