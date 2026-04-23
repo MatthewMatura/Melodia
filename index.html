@@ -146,7 +146,7 @@ transform:scale(.96);
 .cmp-surprise-btn{padding:10px 14px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
 .cmp-surprise-btn:active{background:rgba(245,197,24,.18);border-color:#f5c518;border-color:var(–gold);}
 .cmp-playbar{display:flex;align-items:center;padding:6px 14px 2px;flex-shrink:0;justify-content:space-between;gap:10px;}
-.cmp-playbar-left,.cmp-playbar-right{display:flex;align-items:center;}
+.cmp-playbar-left,.cmp-playbar-right{display:flex;align-items:center;gap:10px;}
 .cmp-playbar-center{display:flex;gap:10px;align-items:center;}
 #cmp-svg{width:100%;display:block;}
 .cmp-play-btn{width:50px;height:50px;border-radius:50%;border:2px solid rgba(245,197,24,.22);border:2px solid var(–gold2);background:#10101e;background:var(–surf);color:#f5c518;color:var(–gold);font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;}
@@ -278,6 +278,7 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
     <button class="cmp-play-btn" onclick="Cmp.stop()" title="Stop">⏹</button>
   </div>
   <div class="cmp-playbar-right">
+    <button class="cmp-play-btn" id="cmp-metro-btn" onclick="Cmp.toggleMetronome()" title="Metronome during playback" aria-label="Metronome">⏱</button>
     <select class="cmp-tone-sel" id="cmp-tone" onchange="Cmp.setTone(this.value)" title="Tone" aria-label="Tone">
       <optgroup label="Instruments">
         <option value="piano" selected>Piano</option>
@@ -435,9 +436,8 @@ const CmpSheet = {
       if(selectedMeasure===mi){
         s+=`<rect x="${mx}" y="${ST-14}" width="${mW}" height="${SB-ST+18}" fill="rgba(245,197,24,.08)"/>`;
       }
-      // Measure number (tappable)
-      const numCx=mx+mW/2;
-      s+=`<g data-measure-idx="${mi}" style="cursor:pointer"><rect x="${mx}" y="0" width="${mW}" height="${ST-4}" fill="transparent" pointer-events="all"/><text x="${numCx}" y="${ST-8}" font-size="9" fill="rgba(245,197,24,.55)" text-anchor="middle" font-family="'Times New Roman',serif" font-weight="900">${mi+1}</text></g>`;
+      // Measure number (tappable, left-aligned at measure start)
+      s+=`<g data-measure-idx="${mi}" style="cursor:pointer"><rect x="${mx}" y="0" width="${mW}" height="${ST-4}" fill="transparent" pointer-events="all"/><text x="${mx+4}" y="${ST-8}" font-size="9" fill="rgba(245,197,24,.55)" text-anchor="start" font-family="'Times New Roman',serif" font-weight="900">${mi+1}</text></g>`;
       s+=`<line x1="${mx}" y1="${ST}" x2="${mx}" y2="${SB}" stroke="rgba(245,197,24,.35)" stroke-width="1"/>`;
       const mNotes=measures[mi]||[];
       const filled=mNotes.reduce((a,n)=>a+n.dur8,0);
@@ -641,7 +641,7 @@ const Cmp = {
   ts:null, tempo:60,
   notes:[], durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
-  totalMeasures:4, tone:'piano', selectedMeasure:null,
+  totalMeasures:4, tone:'piano', selectedMeasure:null, metronomeOn:false,
 
   TIME_SIGS:[
     {label:'Cut Time', sub:'2/2',  b:2,  v:2, cap:8,  beatUnit:2, bul:'𝅗𝅥'},
@@ -951,25 +951,27 @@ const Cmp = {
     this.tripletMode=false;
     document.getElementById('cmp-triplet-btn')?.classList.remove('on');
     const cap=this.ts.cap;
-    const total=4*cap;
     // Duration pool: [d, dot, dur8]
     const poolFull=[
       [1,false,8],[2,true,6],[2,false,4],[4,true,3],[4,false,2],[8,true,1.5],[8,false,1],[16,false,0.5]
     ];
     const pool=cap<4?poolFull.filter(p=>p[2]>=1):poolFull;
     const notes=[];
-    let remaining=total;
-    while(remaining>0.001){
-      let fit=pool.filter(p=>p[2]<=remaining+0.001);
-      if(fit.length===0){
-        // fall back to largest that fits
-        fit=[pool.slice().sort((a,b)=>b[2]-a[2]).find(p=>p[2]<=remaining+0.001)].filter(Boolean);
+    for(let m=0;m<4;m++){
+      let remaining=cap;
+      let guard=0;
+      while(remaining>0.001&&guard++<40){
+        let fit=pool.filter(p=>p[2]<=remaining+0.001);
         if(fit.length===0)break;
+        const pick=fit[Math.floor(Math.random()*fit.length)];
+        const isRest=Math.random()<0.18;
+        notes.push({p:isRest?'REST':'D4',d:pick[0],dot:pick[1],dur8:pick[2],rest:isRest,triplet:false,tripletPos:null,tied:false,current:false});
+        remaining=parseFloat((remaining-pick[2]).toFixed(6));
       }
-      const pick=fit[Math.floor(Math.random()*fit.length)];
-      const isRest=Math.random()<0.18;
-      notes.push({p:isRest?'REST':'D4',d:pick[0],dot:pick[1],dur8:pick[2],rest:isRest,triplet:false,tripletPos:null,tied:false,current:false});
-      remaining=parseFloat((remaining-pick[2]).toFixed(6));
+      // Safety: if guard tripped with leftover, fill with smallest rest
+      if(remaining>0.001){
+        notes.push({p:'REST',d:16,dot:false,dur8:remaining,rest:true,triplet:false,tripletPos:null,tied:false,current:false});
+      }
     }
     if(notes.length) notes[notes.length-1].current=true;
     this.notes=notes;
@@ -984,6 +986,12 @@ const Cmp = {
     if(!this.tripletMode) this._tg={base:0,count:0,accum:0};
     document.getElementById('cmp-triplet-btn')?.classList.toggle('on',this.tripletMode);
     if(this.tripletMode) Toast.show({ic:'³',title:'Triplet Mode',sub:'Tap a note or rest — auto-exits after 3.'});
+  },
+
+  toggleMetronome(){
+    this.metronomeOn=!this.metronomeOn;
+    document.getElementById('cmp-metro-btn')?.classList.toggle('on',this.metronomeOn);
+    Toast.show({ic:'⏱',title:this.metronomeOn?'Metronome on':'Metronome off',sub:this.metronomeOn?'Click runs through playback.':'Count-in only.'});
   },
 
   render(){
@@ -1199,6 +1207,21 @@ const Cmp = {
     return osc;
   },
 
+  _toneMetClick(ctx,t,accent){
+    // Metronome tick — square wave, short envelope; accent = downbeat
+    const freq=accent?1200:800;
+    const gain=accent?0.35:0.22;
+    const dur=0.04;
+    const osc=ctx.createOscillator();osc.type='square';osc.frequency.value=freq;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(gain,t+0.002);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    osc.connect(g);g.connect(ctx.destination);
+    osc.start(t);osc.stop(t+dur);
+    return osc;
+  },
+
   _playViolin(ctx,freq,startTime,durSec){
     // Clap sound — white-noise burst with sharp envelope (freq/durSec ignored; uniform clap per note)
     const bufLen=Math.floor(ctx.sampleRate*0.05);
@@ -1261,9 +1284,36 @@ const Cmp = {
     if(ctx.state==='suspended') ctx.resume();
     const spe=this._secPerEighth();
     const D4=293.66;
-    let t=ctx.currentTime+0.05;
-    this._wStart=t;
     this._wNodes=[];
+    const t0=ctx.currentTime+0.05;
+    // Metronome setup: 2-measure count-in, beat rate matches ts beat unit
+    const capForMet=this.ts.cap;
+    const isCompoundMet=(this.ts.v===8&&this.ts.b%3===0&&this.ts.b>3);
+    const beatsPerBar=isCompoundMet?(this.ts.b/3):this.ts.b;
+    const secPerBeat=(capForMet*spe)/beatsPerBar;
+    const countInBeats=2*beatsPerBar;
+    const countInDur=countInBeats*secPerBeat;
+    // Schedule count-in ticks + staff border pulse
+    const wrap0=document.querySelector('.cmp-staff-wrap');
+    this._wMetPulseTimers=[];
+    for(let i=0;i<countInBeats;i++){
+      const tt=t0+i*secPerBeat;
+      const accent=(i%beatsPerBar)===0;
+      const node=this._toneMetClick(ctx,tt,accent);
+      if(node)this._wNodes.push(node);
+      if(wrap0){
+        const delay=Math.max(0,(tt-ctx.currentTime)*1000);
+        const timer=setTimeout(()=>{
+          wrap0.style.transition='border-color 80ms ease-out';
+          wrap0.style.borderColor=accent?'#f5c518':'rgba(245,197,24,.55)';
+          setTimeout(()=>{wrap0.style.borderColor='';},accent?180:120);
+        },delay);
+        this._wMetPulseTimers.push(timer);
+      }
+    }
+    // Audio start point for notes = after count-in
+    let t=t0+countInDur;
+    this._wStart=t;
     // Playback-follow: reset staff scroll to beginning, schedule per-measure scrolls
     const wrap=document.querySelector('.cmp-staff-wrap');
     if(wrap) wrap.scrollLeft=0;
@@ -1300,6 +1350,16 @@ const Cmp = {
       });
     }
     this._phSchedule.push({t:this._phMeta.totalDur,x:68+this.totalMeasures*pMW});
+    // During-playback metronome ticks (if enabled)
+    if(this.metronomeOn){
+      const totalBeats=this.totalMeasures*beatsPerBar;
+      for(let i=0;i<totalBeats;i++){
+        const tt=t+i*secPerBeat;
+        const accent=(i%beatsPerBar)===0;
+        const node=this._toneMetClick(ctx,tt,accent);
+        if(node)this._wNodes.push(node);
+      }
+    }
     this._wScrollTimers=[];
     let beat8=0, lastMi=-1;
 
@@ -1346,6 +1406,8 @@ const Cmp = {
   stop(){
     clearTimeout(this._wTimer);
     this._wScrollTimers?.forEach(id=>clearTimeout(id));this._wScrollTimers=[];
+    this._wMetPulseTimers?.forEach(id=>clearTimeout(id));this._wMetPulseTimers=[];
+    const sw=document.querySelector('.cmp-staff-wrap');if(sw)sw.style.borderColor='';
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const ph=document.getElementById('cmp-playhead');if(ph){ph.setAttribute('transform','translate(68,0)');ph.removeAttribute('display');}
     if(this._wac&&this._wac.state!=='closed'){
