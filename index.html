@@ -511,7 +511,7 @@ const CmpSheet = {
     s+=`<line x1="${ex-4}" y1="${ST}" x2="${ex-4}" y2="${SB}" stroke="#f5c518" stroke-opacity=".85" stroke-width="1.5"/>`;
     s+=`<line x1="${ex}" y1="${ST}" x2="${ex}" y2="${SB}" stroke="#f5c518" stroke-opacity=".85" stroke-width="4.5"/>`;
     // Playhead (hidden until play)
-    s+=`<g id="cmp-playhead" transform="translate(68,0)"><polygon points="-5,12 5,12 0,22" fill="#f5c518" opacity="0.9"/><line x1="0" y1="22" x2="0" y2="58" stroke="#f5c518" stroke-width="1.5" opacity="0.9"/></g>`;
+    s+=`<g id="cmp-playhead" transform="translate(68,0)"><polygon points="-6,22 6,22 0,32" fill="#f5c518" opacity="0.95"/><line x1="0" y1="32" x2="0" y2="70" stroke="#f5c518" stroke-width="2" opacity="0.95"/></g>`;
     svgEl.setAttribute('viewBox',`0 0 ${W} ${H}`);
     svgEl.setAttribute('height',H);
     svgEl.innerHTML=s;
@@ -1349,12 +1349,12 @@ const Cmp = {
     const D4=293.66;
     this._wNodes=[];
     const t0=ctx.currentTime+0.05;
-    // Metronome setup: 1-measure count-in, beat rate matches ts beat unit
+    // Metronome setup: 2-measure count-in on play start, beat rate matches ts beat unit
     const capForMet=this.ts.cap;
     const isCompoundMet=(this.ts.v===8&&this.ts.b%3===0&&this.ts.b>3);
     const beatsPerBar=isCompoundMet?(this.ts.b/3):this.ts.b;
     const secPerBeat=(capForMet*spe)/beatsPerBar;
-    const countInBeats=beatsPerBar;
+    const countInBeats=2*beatsPerBar;
     const countInDur=countInBeats*secPerBeat;
     // Schedule count-in ticks + staff border pulse
     const wrap0=document.querySelector('.cmp-staff-wrap');
