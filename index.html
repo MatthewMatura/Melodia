@@ -566,8 +566,7 @@ const CmpSheet = {
         s+=`<path d="M${sx} ${sy2} C${sx+12} ${sy2-6} ${sx+14} ${sy2-13} ${sx+6} ${sy2-18}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
       }
       if(n.d>=16&&!beamed){
-        const fdir=up?1:-1;
-        s+=`<path d="M${sx} ${sy2+6*fdir} C${sx+12*fdir} ${sy2+12*fdir} ${sx+14*fdir} ${sy2+19*fdir} ${sx+6*fdir} ${sy2+24*fdir}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+        s+=`<path d="M${sx} ${sy2-6} C${sx+12} ${sy2-12} ${sx+14} ${sy2-19} ${sx+6} ${sy2-24}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
       }
     }
     if(n.dot) s+=`<circle cx="${nx+8}" cy="${ny-2}" r="2" fill="${fill}"/>`;
@@ -1275,10 +1274,10 @@ const Cmp = {
 
     // Playhead RAF tick — reads audio clock, positions #cmp-playhead
     this._phTick=()=>{
+      if(!this.playing){this._wRAF=null;return;}
       const ph=document.getElementById('cmp-playhead');
-      if(!ph||!this.playing||!this._wac)return;
       const sc=this._phSchedule;
-      if(sc&&sc.length&&this._wac.state==='running'){
+      if(ph&&sc&&sc.length&&this._wac&&this._wac.state==='running'){
         const last=sc[sc.length-1];
         const t=Math.max(0,Math.min(this._wac.currentTime-this._wStart,last.t));
         let i=0;while(i<sc.length-1&&sc[i+1].t<=t)i++;
