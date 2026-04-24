@@ -470,8 +470,8 @@ const CmpSheet = {
         const floor=beamed?prevNx+11:prevNx+18;
         let nx=i===0?Math.max(mx+15,baseNx):Math.max(floor,baseNx);
         if(mi===totalMeasures-1&&i===mNotes.length-1){
-          const hasFlag=!n.rest&&n.d>=16&&!(ng[i]>=0);
-          const rightClamp=hasFlag?(mx+mW-14):(mx+mW-8);
+          const is16=!n.rest&&n.d>=16;
+          const rightClamp=is16?(mx+mW-32):(mx+mW-22);
           nx=Math.min(nx,rightClamp);
         }
         prevNx=nx;pos[i]=nx;
@@ -581,14 +581,14 @@ const CmpSheet = {
 
   _drawRest(dur8,cap,cx,ST,SB,dot,isCur){
     const mid=ST+(SB-ST)/2, col=isCur?'#f5c518':'rgba(240,230,208,.85)';
-    let body=isCur?`<ellipse cx="${cx}" cy="${mid}" rx="15" ry="10" fill="rgba(245,197,24,.11)"/>`:'',dx=0,dy=0;
+    let body='',dx=0,dy=0;
     if(dur8>=cap){body=`<rect x="${cx-8}" y="${ST+8}" width="16" height="5" fill="${col}"/>`;dx=cx+11;dy=ST+6;}
     else if(dur8>=4){body=`<rect x="${cx-8}" y="${mid}" width="16" height="5" fill="${col}"/>`;dx=cx+11;dy=mid-3;}
     else if(dur8>=2){body=`<path d="M${cx-2} ${mid-8} Q${cx+5} ${mid-2} ${cx-1} ${mid+2} Q${cx+5} ${mid+6} ${cx-3} ${mid+10}" fill="${col}" stroke="${col}" stroke-width="1"/>`;dx=cx+9;dy=mid;}
     else if(dur8>=1){body=`<path d="M${cx-5} ${mid+8} L${cx+4} ${mid-8}" stroke="${col}" stroke-width="1.8" stroke-linecap="round" fill="none"/><circle cx="${cx-3}" cy="${mid-4}" r="2.2" fill="${col}"/><path d="M${cx-3} ${mid-4} Q${cx+2} ${mid-6} ${cx+4} ${mid-8}" stroke="${col}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;dx=cx+8;dy=mid-4;}
     else{body=`<path d="M${cx-5} ${mid+11} L${cx+5} ${mid-10}" stroke="${col}" stroke-width="1.8" stroke-linecap="round" fill="none"/><circle cx="${cx-2}" cy="${mid-6}" r="2.1" fill="${col}"/><path d="M${cx-2} ${mid-6} Q${cx+3} ${mid-8} ${cx+5} ${mid-10}" stroke="${col}" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="${cx-4}" cy="${mid+1}" r="2.1" fill="${col}"/><path d="M${cx-4} ${mid+1} Q${cx+1} ${mid-1} ${cx+3} ${mid-3}" stroke="${col}" stroke-width="1.3" fill="none" stroke-linecap="round"/>`;dx=cx+9;dy=mid-6;}
     if(dot) body+=`<circle cx="${dx}" cy="${dy}" r="1.7" fill="${col}"/>`;
-    return body;
+    return (isCur?`<ellipse cx="${cx}" cy="${mid}" rx="15" ry="10" fill="rgba(245,197,24,.11)"/>`:'')+body;
   },
 
   _drawTies(notes,measures,mLeft,mW,ts){
@@ -918,6 +918,20 @@ const Cmp = {
     this.notes[idx].current=true;
     this._selectedIdx=idx;
     this.render();
+    // Move playhead to selected symbol's logical x (only when not actively playing)
+    if(!this.playing&&this.ts){
+      const svgEl=document.getElementById('cmp-svg');
+      if(svgEl&&svgEl.parentElement){
+        const vp=svgEl.parentElement.clientWidth;
+        const mW=Math.max(80,(vp-68)/4);
+        let cum=0;for(let i=0;i<idx;i++)cum+=this.notes[i].dur8;
+        const mi=Math.floor(cum/this.ts.cap);
+        const b8=cum-mi*this.ts.cap;
+        const px=68+mi*mW+(b8/this.ts.cap)*mW+10;
+        const ph=document.getElementById('cmp-playhead');
+        if(ph)ph.setAttribute('transform',`translate(${px},0)`);
+      }
+    }
   },
 
   deselectNote(){
@@ -963,6 +977,7 @@ const Cmp = {
         if(nj.dur8<=remaining+0.001){remaining=parseFloat((remaining-nj.dur8).toFixed(6));this.notes.splice(idx+1,1);}
         else{nj.dur8=parseFloat((nj.dur8-remaining).toFixed(6));const r=this._closestDur(nj.dur8);nj.d=r.d;nj.dot=r.dot;remaining=0;break;}
       }
+      this._advanceSelection(idx);
       this.render();
       return;
     }
@@ -973,7 +988,19 @@ const Cmp = {
       const r=this._closestDur(gap);
       this.notes.splice(idx+1,0,{p:'REST',d:r.d,dot:r.dot,dur8:gap,rest:true,triplet:false,tripletPos:null,tied:false,current:false});
     }
+    this._advanceSelection(idx);
     this.render();
+  },
+
+  _advanceSelection(fromIdx){
+    const nextIdx=fromIdx+1;
+    if(nextIdx<this.notes.length){
+      this.selectNote(nextIdx);
+    } else {
+      // At tail — deselect so next addEntry appends rather than replaces
+      this.notes.forEach(n=>n.current=false);
+      this._selectedIdx=null;
+    }
   },
 
   // FEATURE 2 — nuke entire composition
