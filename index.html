@@ -144,7 +144,7 @@ transform:scale(.96);
 /* LAYOUT FIX 2: staff never overlaps adjacent elements */
 .cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;height:110px;display:flex;align-items:center;}
 .cmp-surprise-btn{padding:10px 14px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
-.cmp-surprise-btn:active{background:rgba(245,197,24,.18);border-color:#f5c518;border-color:var(–gold);}
+.cmp-surprise-btn:active,.cmp-surprise-btn.on{background:rgba(245,197,24,.18);border-color:#f5c518;border-color:var(–gold);}
 .cmp-playbar{display:flex;align-items:center;padding:6px 14px 2px;flex-shrink:0;justify-content:space-between;gap:10px;}
 .cmp-playbar-left,.cmp-playbar-right{display:flex;align-items:center;gap:10px;}
 .cmp-playbar-center{display:flex;gap:10px;align-items:center;}
@@ -255,7 +255,7 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
 <div class="cmp-tempo-row">
   <button class="cmp-tempo-btn" id="cmp-slower-btn"
     ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()">🐢 Slower</button>
-  <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 60</div>
+  <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 100</div>
   <button class="cmp-tempo-btn" id="cmp-faster-btn"
     ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()">⚡ Faster</button>
 </div>
@@ -271,6 +271,7 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
 <div class="cmp-playbar">
   <div class="cmp-playbar-left">
     <button class="cmp-surprise-btn" onclick="Cmp.surprise()">🎲 Surprise</button>
+    <button class="cmp-surprise-btn" id="cmp-loop-btn" onclick="Cmp.toggleLoop()">🔁 Loop</button>
   </div>
   <div class="cmp-playbar-center">
     <button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
@@ -406,7 +407,7 @@ const CmpSheet = {
   },
 
   render(svgEl, state){
-    const {notes,ts,totalMeasures,selectedMeasure}=state;
+    const {notes,ts,totalMeasures,selectedMeasure,selectedMeasureEnd}=state;
     if(!ts){svgEl.innerHTML='';return;}
     const mLeft=68,H=108,ST=this.ST,SB=this.SB;
     const vp=svgEl.parentElement?.clientWidth||600;
@@ -430,10 +431,14 @@ const CmpSheet = {
     const measures=this._getMeasures(notes,ts.cap,totalMeasures);
     const isCompound=(ts.v===8&&ts.b%3===0&&ts.b>3);
     const beatSize=isCompound?3:Math.max(1,ts.cap/ts.b);
+    // Range-highlight bounds (handles single-measure and range selection)
+    const selEnd=selectedMeasureEnd==null?selectedMeasure:selectedMeasureEnd;
+    const rS=selectedMeasure==null?null:Math.min(selectedMeasure,selEnd);
+    const rE=selectedMeasure==null?null:Math.max(selectedMeasure,selEnd);
     for(let mi=0;mi<totalMeasures;mi++){
       const mx=mLeft+mi*mW;
-      // Selection overlay behind staff/notes
-      if(selectedMeasure===mi){
+      // Selection overlay behind staff/notes (range-aware)
+      if(rS!==null&&mi>=rS&&mi<=rE){
         s+=`<rect x="${mx}" y="${ST-14}" width="${mW}" height="${SB-ST+18}" fill="rgba(245,197,24,.08)"/>`;
       }
       // Measure number (tappable, left-aligned at measure start)
@@ -468,25 +473,26 @@ const CmpSheet = {
         const gi=globalBase+i;
         s+=`<g data-note-idx="${gi}" style="cursor:pointer"><rect x="${nx-15}" y="${ST-6}" width="30" height="${SB-ST+18}" fill="transparent" pointer-events="all"/>${this._drawNote(n,nx,ST,SB,ng[i]>=0)}</g>`;
       });
-      // Beams: primary across stem tips; secondary under runs of ≥2 consecutive 16ths; partial stubs for isolated 16ths
-      const beamY=14;
+      // Beams: stems-down layout. Primary beam sits at stem tip (no gap).
+      // Secondary (for 16ths) sits ABOVE primary, between notehead and primary.
+      const beamY=71;
       groups.forEach(g=>{
         const bc=g.some(i=>mNotes[i].current)?'#f5c518':'rgba(240,230,208,.75)';
-        const x1=pos[g[0]]+5.4,xN=pos[g[g.length-1]]+5.4;
+        const x1=pos[g[0]]-5.4,xN=pos[g[g.length-1]]-5.4;
         s+=`<rect x="${x1}" y="${beamY}" width="${xN-x1}" height="3" fill="${bc}"/>`;
         const is16=g.map(i=>mNotes[i].d===16);const inRun=new Set();
         let rs=-1;
         for(let k=0;k<=g.length;k++){
           if(k<g.length&&is16[k]){if(rs<0)rs=k;}
-          else{if(rs>=0){if(k-rs>=2){const xa=pos[g[rs]]+5.4,xb=pos[g[k-1]]+5.4;s+=`<rect x="${xa}" y="${beamY+5}" width="${xb-xa}" height="3" fill="${bc}"/>`;for(let q=rs;q<k;q++)inRun.add(q);}rs=-1;}}
+          else{if(rs>=0){if(k-rs>=2){const xa=pos[g[rs]]-5.4,xb=pos[g[k-1]]-5.4;s+=`<rect x="${xa}" y="${beamY-5}" width="${xb-xa}" height="3" fill="${bc}"/>`;for(let q=rs;q<k;q++)inRun.add(q);}rs=-1;}}
         }
         for(let k=0;k<g.length;k++){
           if(is16[k]&&!inRun.has(k)){
-            const cx=pos[g[k]]+5.4,stubW=6;
+            const cx=pos[g[k]]-5.4,stubW=6;
             let nearest=-1,bestDist=Infinity;
             for(let q=0;q<g.length;q++){if(q!==k&&is16[q]){const dist=Math.abs(q-k);if(dist<bestDist){bestDist=dist;nearest=q;}}}
             const dir=nearest>=0?(nearest>k?1:-1):(k===g.length-1?-1:1);
-            s+=`<rect x="${dir>0?cx:cx-stubW}" y="${beamY+5}" width="${stubW}" height="3" fill="${bc}"/>`;
+            s+=`<rect x="${dir>0?cx:cx-stubW}" y="${beamY-5}" width="${stubW}" height="3" fill="${bc}"/>`;
           }
         }
       });
@@ -526,8 +532,11 @@ const CmpSheet = {
     const ms=Array.from({length:total},()=>[]);
     let cum=0;
     notes.forEach(n=>{
-      const mi=Math.min(Math.floor(cum/cap),total-1);
-      const sb=cum-mi*cap;
+      // Snap near-bar cum to exact bar boundary (kills triplet rounding drift)
+      const near=Math.round(cum/cap)*cap;
+      const cumS=Math.abs(cum-near)<0.01?near:cum;
+      const mi=Math.min(Math.floor(cumS/cap),total-1);
+      const sb=cumS-mi*cap;
       ms[mi].push({...n,startBeat8:sb});
       cum+=n.dur8;
     });
@@ -548,15 +557,13 @@ const CmpSheet = {
     // Notehead
     if(open) s+=`<ellipse cx="${nx}" cy="${ny}" rx="6" ry="4" fill="none" stroke="${fill}" stroke-width="1.7" transform="rotate(-15 ${nx} ${ny})"/>`;
     else s+=`<ellipse cx="${nx}" cy="${ny}" rx="6" ry="4" fill="${fill}" transform="rotate(-15 ${nx} ${ny})"/>`;
-    // Stem
+    // Stem — always down (notehead sits on middle line for rhythm notation)
     if(n.d!==1){
-      const up=beamed||ny>ST+16;
-      const sx=up?nx+5.4:nx-5.4;
-      const sy2=ny+(up?-24:24);
+      const sx=nx-5.4;
+      const sy2=ny+24;
       s+=`<line x1="${sx}" y1="${ny}" x2="${sx}" y2="${sy2}" stroke="${fill}" stroke-width="1.4"/>`;
       if(n.d>=8&&!beamed){
-        const fdir=up?1:-1;
-        s+=`<path d="M${sx} ${sy2} C${sx+12*fdir} ${sy2+6*fdir} ${sx+14*fdir} ${sy2+13*fdir} ${sx+6*fdir} ${sy2+18*fdir}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+        s+=`<path d="M${sx} ${sy2} C${sx+12} ${sy2-6} ${sx+14} ${sy2-13} ${sx+6} ${sy2-18}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
       }
       if(n.d>=16&&!beamed){
         const fdir=up?1:-1;
@@ -638,10 +645,10 @@ const CmpSheet = {
 
 const Cmp = {
   step:'entry', mode:null,
-  ts:null, tempo:60,
+  ts:null, tempo:100,
   notes:[], durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
-  totalMeasures:4, tone:'piano', selectedMeasure:null, metronomeOn:false,
+  totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, metronomeOn:false,
 
   TIME_SIGS:[
     {label:'Cut Time', sub:'2/2',  b:2,  v:2, cap:8,  beatUnit:2, bul:'𝅗𝅥'},
@@ -754,7 +761,7 @@ const Cmp = {
     const ts=this.TIME_SIGS[i];
     console.log('time sig selected:',ts);
     if(ts.placeholder){Toast.show({ic:'🔨',title:'Coming Soon!',sub:'Custom time sigs are in the works!',type:'e'});return;}
-    this.ts=ts;this.tempo=60;this.notes=[];
+    this.ts=ts;this.tempo=100;this.notes=[];
     document.getElementById('cmp-ts-label').textContent=ts.sub||ts.label;
     this._updTempoDisp();
     this._showStep('compose');
@@ -844,7 +851,10 @@ const Cmp = {
     }
 
     const curMi=Math.floor(filled/this.ts.cap);
-    const beatInMeasure=parseFloat((filled-curMi*this.ts.cap).toFixed(6));
+    // Snap near-bar filled to exact bar boundary (kills triplet rounding drift)
+    const nearBar=Math.round(filled/this.ts.cap)*this.ts.cap;
+    const filledS=Math.abs(filled-nearBar)<0.01?nearBar:filled;
+    const beatInMeasure=parseFloat((filledS-Math.floor(filledS/this.ts.cap)*this.ts.cap).toFixed(6));
     const remaining=parseFloat((this.ts.cap-beatInMeasure).toFixed(6));
 
     if(this.notes.length) this.notes[this.notes.length-1].current=false;
@@ -936,7 +946,7 @@ const Cmp = {
   // FEATURE 2 — nuke entire composition
   nuke(){
     this.stop();this.notes=[];this.totalMeasures=4;this._tg={base:0,count:0,accum:0};
-    this._selectedIdx=null;this.selectedMeasure=null;
+    this._selectedIdx=null;this.selectedMeasure=null;this.selectedMeasureEnd=null;
     this.tripletMode=false;
     document.getElementById('cmp-triplet-btn')?.classList.remove('on');
     Toast.show({ic:'💣',title:'Nuked.',sub:'Staff cleared. Start over, champion.'});
@@ -947,7 +957,7 @@ const Cmp = {
   surprise(){
     if(!this.ts)return;
     this.stop();
-    this._tg={base:0,count:0,accum:0};this._selectedIdx=null;this.selectedMeasure=null;
+    this._tg={base:0,count:0,accum:0};this._selectedIdx=null;this.selectedMeasure=null;this.selectedMeasureEnd=null;
     this.tripletMode=false;
     document.getElementById('cmp-triplet-btn')?.classList.remove('on');
     const cap=this.ts.cap;
@@ -988,6 +998,17 @@ const Cmp = {
     if(this.tripletMode) Toast.show({ic:'³',title:'Triplet Mode',sub:'Tap a note or rest — auto-exits after 3.'});
   },
 
+  toggleLoop(){
+    this.loopOn=!this.loopOn;
+    document.getElementById('cmp-loop-btn')?.classList.toggle('on',this.loopOn);
+    if(this.loopOn){
+      const hasSel=this.selectedMeasure!==null;
+      Toast.show({ic:'🔁',title:'Loop on',sub:hasSel?'Playback will loop the selected range.':'Tap measure(s) to set a range.'});
+    } else {
+      Toast.show({ic:'🔁',title:'Loop off'});
+    }
+  },
+
   toggleMetronome(){
     this.metronomeOn=!this.metronomeOn;
     document.getElementById('cmp-metro-btn')?.classList.toggle('on',this.metronomeOn);
@@ -996,21 +1017,29 @@ const Cmp = {
 
   render(){
     const svg=document.getElementById('cmp-svg');if(!svg)return;
-    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure});
+    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure,selectedMeasureEnd:this.selectedMeasureEnd});
     if(!this._tapInstalled){
       this._tapInstalled=true;
       svg.addEventListener('click',e=>{
         const mg=e.target.closest('[data-measure-idx]');
         if(mg){
           const mi=parseInt(mg.getAttribute('data-measure-idx'));
-          this.selectedMeasure=(this.selectedMeasure===mi)?null:mi;
+          // Range-select: 1st tap = start, 2nd (different) = end, 3rd = reset. Same-tap clears.
+          if(this.selectedMeasure===null){
+            this.selectedMeasure=mi;this.selectedMeasureEnd=null;
+          } else if(this.selectedMeasureEnd===null){
+            if(this.selectedMeasure===mi){this.selectedMeasure=null;}
+            else{this.selectedMeasureEnd=mi;}
+          } else {
+            this.selectedMeasure=mi;this.selectedMeasureEnd=null;
+          }
           this.deselectNote();
           this.render();
           return;
         }
         const g=e.target.closest('[data-note-idx]');
-        if(g){this.selectedMeasure=null;this.selectNote(parseInt(g.getAttribute('data-note-idx')));}
-        else{this.selectedMeasure=null;this.deselectNote();}
+        if(g){this.selectedMeasure=null;this.selectedMeasureEnd=null;this.selectNote(parseInt(g.getAttribute('data-note-idx')));}
+        else{this.selectedMeasure=null;this.selectedMeasureEnd=null;this.deselectNote();}
       });
     }
   },
@@ -1266,12 +1295,16 @@ const Cmp = {
       this._wac.resume();
       this.playing=true;
       document.getElementById('cmp-play-btn')?.classList.add('on');
-      // Restart completion timer for remaining duration
+      // Restart completion timer for remaining duration (range-aware)
       const elapsed=this._wPauseAt-this._wStart;
       const spe=this._secPerEighth();
-      const total=this.notes.reduce((a,n)=>a+n.dur8*spe,0);
+      const total=this._playRange?this._playRange.rangeDur:this.notes.reduce((a,n)=>a+n.dur8*spe,0);
       const left=Math.max(0,total-elapsed)*1000;
-      this._wTimer=setTimeout(()=>this._onPlayEnd(),left+200);
+      if(this.loopOn&&this._playRange){
+        this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},left+100);
+      } else {
+        this._wTimer=setTimeout(()=>this._onPlayEnd(),left+200);
+      }
       this._wPaused=false;
       this._phTick();
       return;
@@ -1280,6 +1313,30 @@ const Cmp = {
     if(this.notes.length===0){Toast.show({ic:'🎵',title:'Nothing to play',sub:'Add some notes first.',type:'e'});return;}
 
     this.stop();
+
+    // Determine play range from measure selection (full piece if nothing selected)
+    const capR=this.ts.cap;
+    let rStart=0, rEnd=this.totalMeasures-1;
+    if(this.selectedMeasure!==null){
+      const selE=this.selectedMeasureEnd==null?this.selectedMeasure:this.selectedMeasureEnd;
+      rStart=Math.min(this.selectedMeasure,selE);
+      rEnd=Math.max(this.selectedMeasure,selE);
+    }
+    // Locate note indices whose start-measure falls in [rStart, rEnd]
+    let _cum=0, firstIdx=-1, lastIdx=-1, cumBefore=0;
+    for(let i=0;i<this.notes.length;i++){
+      const mi=Math.floor((_cum+0.001)/capR);
+      if(mi>=rStart&&mi<=rEnd){
+        if(firstIdx<0){firstIdx=i;cumBefore=_cum;}
+        lastIdx=i;
+      }
+      _cum+=this.notes[i].dur8;
+    }
+    if(firstIdx<0){Toast.show({ic:'🎵',title:'Empty range',sub:'Selected measures have no notes.',type:'e'});return;}
+    const playNotes=this.notes.slice(firstIdx,lastIdx+1);
+    const rangeDur=playNotes.reduce((a,n)=>a+n.dur8,0)*this._secPerEighth();
+    this._playRange={playNotes,rStart,rEnd,cumBefore,rangeDur};
+
     const ctx=this._getWAC();
     if(ctx.state==='suspended') ctx.resume();
     const spe=this._secPerEighth();
@@ -1314,17 +1371,17 @@ const Cmp = {
     // Audio start point for notes = after count-in
     let t=t0+countInDur;
     this._wStart=t;
-    // Playback-follow: reset staff scroll to beginning, schedule per-measure scrolls
+    // Playback-follow: scroll to range start, schedule per-measure scrolls during play
     const wrap=document.querySelector('.cmp-staff-wrap');
-    if(wrap) wrap.scrollLeft=0;
     const cap=this.ts.cap, pMW=wrap?Math.max(80,(wrap.clientWidth-68)/4):140;
-    this._phMeta={mLeft:68,mW:pMW,cap,spe,totalDur:this.notes.reduce((a,n)=>a+n.dur8*spe,0)};
-    // Build playhead schedule: (time, drawn_x) per note, mirroring CmpSheet.render layout
+    if(wrap) wrap.scrollLeft=rStart*pMW;
+    this._phMeta={mLeft:68,mW:pMW,cap,spe,totalDur:rangeDur};
+    // Build playhead schedule for range notes only (t relative to range start)
     this._phSchedule=[];
     const pMs=CmpSheet._getMeasures(this.notes,cap,this.totalMeasures);
     const isCompound=(this.ts.v===8&&this.ts.b%3===0&&this.ts.b>3);
     const beatSize=isCompound?3:Math.max(1,cap/this.ts.b);
-    for(let mi=0;mi<this.totalMeasures;mi++){
+    for(let mi=rStart;mi<=rEnd;mi++){
       const mx=68+mi*pMW;const mNotes=pMs[mi]||[];
       const ng=new Array(mNotes.length).fill(-1);let cur=[],grp=0;
       const flush=()=>{if(cur.length>=2){cur.forEach(i=>ng[i]=grp);grp++;}cur=[];};
@@ -1346,13 +1403,13 @@ const Cmp = {
         const floor=beamed?prevNx+11:prevNx+18;
         const nx=i===0?Math.max(mx+15,baseNx):Math.max(floor,baseNx);
         prevNx=nx;
-        this._phSchedule.push({t:(mi*cap+n.startBeat8)*spe,x:nx});
+        this._phSchedule.push({t:(mi*cap+n.startBeat8-cumBefore)*spe,x:nx});
       });
     }
-    this._phSchedule.push({t:this._phMeta.totalDur,x:68+this.totalMeasures*pMW});
-    // During-playback metronome ticks (if enabled)
+    this._phSchedule.push({t:rangeDur,x:68+(rEnd+1)*pMW});
+    // During-playback metronome ticks (if enabled) — only across range
     if(this.metronomeOn){
-      const totalBeats=this.totalMeasures*beatsPerBar;
+      const totalBeats=(rEnd-rStart+1)*beatsPerBar;
       for(let i=0;i<totalBeats;i++){
         const tt=t+i*secPerBeat;
         const accent=(i%beatsPerBar)===0;
@@ -1363,14 +1420,14 @@ const Cmp = {
     this._wScrollTimers=[];
     let beat8=0, lastMi=-1;
 
-    this.notes.forEach(n=>{
+    playNotes.forEach(n=>{
       const dur=n.dur8*spe;
       if(!n.rest&&!n.tied){
         const node=this._playTone(ctx,D4,t,dur);
         if(node)this._wNodes.push(node);
       }
       if(wrap){
-        const mi=Math.floor(beat8/cap);
+        const mi=Math.floor((cumBefore+beat8+0.001)/cap);
         if(mi!==lastMi){
           lastMi=mi;
           const tid=setTimeout(()=>wrap.scrollTo({left:mi*pMW,behavior:'smooth'}),Math.max(0,(t-ctx.currentTime)*1000));
@@ -1381,11 +1438,69 @@ const Cmp = {
       t+=dur;
     });
 
-    const totalMs=this.notes.reduce((a,n)=>a+n.dur8*spe,0)*1000;
+    const totalMs=rangeDur*1000;
     this.playing=true;this._wPaused=false;
     document.getElementById('cmp-play-btn')?.classList.add('on');
-    this._wTimer=setTimeout(()=>this._onPlayEnd(),totalMs+300);
+    if(this.loopOn){
+      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},totalMs+200);
+    } else {
+      this._wTimer=setTimeout(()=>this._onPlayEnd(),totalMs+300);
+    }
     this._phTick();
+  },
+
+  // Loop restart — re-schedules the same range without count-in. Keeps existing audio ctx.
+  _loopRestart(){
+    if(!this.playing||!this._wac||this._wac.state==='closed')return;
+    const ctx=this._wac;
+    if(ctx.state==='suspended') ctx.resume();
+    const spe=this._secPerEighth();
+    const D4=293.66;
+    const cap=this.ts.cap;
+    const pMW=this._phMeta.mW;
+    const {playNotes,rStart,rEnd,cumBefore,rangeDur}=this._playRange;
+    const wrap=document.querySelector('.cmp-staff-wrap');
+    if(wrap) wrap.scrollLeft=rStart*pMW;
+    let t=ctx.currentTime+0.05;
+    this._wStart=t;
+    if(this.metronomeOn){
+      const isCompoundMet=(this.ts.v===8&&this.ts.b%3===0&&this.ts.b>3);
+      const beatsPerBar=isCompoundMet?(this.ts.b/3):this.ts.b;
+      const secPerBeat=(cap*spe)/beatsPerBar;
+      const totalBeats=(rEnd-rStart+1)*beatsPerBar;
+      for(let i=0;i<totalBeats;i++){
+        const tt=t+i*secPerBeat;
+        const accent=(i%beatsPerBar)===0;
+        const node=this._toneMetClick(ctx,tt,accent);
+        if(node)this._wNodes.push(node);
+      }
+    }
+    this._wScrollTimers?.forEach(id=>clearTimeout(id));
+    this._wScrollTimers=[];
+    let beat8=0,lastMi=-1;
+    playNotes.forEach(n=>{
+      const dur=n.dur8*spe;
+      if(!n.rest&&!n.tied){
+        const node=this._playTone(ctx,D4,t,dur);
+        if(node)this._wNodes.push(node);
+      }
+      if(wrap){
+        const mi=Math.floor((cumBefore+beat8+0.001)/cap);
+        if(mi!==lastMi){
+          lastMi=mi;
+          const tid=setTimeout(()=>wrap.scrollTo({left:mi*pMW,behavior:'smooth'}),Math.max(0,(t-ctx.currentTime)*1000));
+          this._wScrollTimers.push(tid);
+        }
+      }
+      beat8+=n.dur8;
+      t+=dur;
+    });
+    const totalMs=rangeDur*1000;
+    if(this.loopOn){
+      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},totalMs+200);
+    } else {
+      this._wTimer=setTimeout(()=>this._onPlayEnd(),totalMs+300);
+    }
   },
 
   _onPlayEnd(){
