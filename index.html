@@ -468,7 +468,12 @@ const CmpSheet = {
         const baseNx=mx+(n.startBeat8/ts.cap)*mW+10;
         const beamed=i>0&&ng[i]>=0&&ng[i]===ng[i-1];
         const floor=beamed?prevNx+11:prevNx+18;
-        const nx=i===0?Math.max(mx+15,baseNx):Math.max(floor,baseNx);
+        let nx=i===0?Math.max(mx+15,baseNx):Math.max(floor,baseNx);
+        if(mi===totalMeasures-1&&i===mNotes.length-1){
+          const hasFlag=!n.rest&&n.d>=16&&!(ng[i]>=0);
+          const rightClamp=hasFlag?(mx+mW-14):(mx+mW-8);
+          nx=Math.min(nx,rightClamp);
+        }
         prevNx=nx;pos[i]=nx;
         const gi=globalBase+i;
         s+=`<g data-note-idx="${gi}" style="cursor:pointer"><rect x="${nx-15}" y="${ST-6}" width="30" height="${SB-ST+18}" fill="transparent" pointer-events="all"/>${this._drawNote(n,nx,ST,SB,ng[i]>=0)}</g>`;
@@ -544,7 +549,7 @@ const CmpSheet = {
   },
 
   _drawNote(n,nx,ST,SB,beamed){
-    if(n.rest)return this._drawRest(n.dur8,999,nx,ST,SB,n.dot);
+    if(n.rest)return this._drawRest(n.dur8,999,nx,ST,SB,n.dot,n.current);
     const ny=ST+16;
     const isCur=n.current;
     const fill=isCur?'#f5c518':'rgba(240,230,208,.75)';
@@ -574,9 +579,9 @@ const CmpSheet = {
     return s;
   },
 
-  _drawRest(dur8,cap,cx,ST,SB,dot){
-    const mid=ST+(SB-ST)/2, col='rgba(240,230,208,.85)';
-    let body='',dx=0,dy=0;
+  _drawRest(dur8,cap,cx,ST,SB,dot,isCur){
+    const mid=ST+(SB-ST)/2, col=isCur?'#f5c518':'rgba(240,230,208,.85)';
+    let body=isCur?`<ellipse cx="${cx}" cy="${mid}" rx="15" ry="10" fill="rgba(245,197,24,.11)"/>`:'',dx=0,dy=0;
     if(dur8>=cap){body=`<rect x="${cx-8}" y="${ST+8}" width="16" height="5" fill="${col}"/>`;dx=cx+11;dy=ST+6;}
     else if(dur8>=4){body=`<rect x="${cx-8}" y="${mid}" width="16" height="5" fill="${col}"/>`;dx=cx+11;dy=mid-3;}
     else if(dur8>=2){body=`<path d="M${cx-2} ${mid-8} Q${cx+5} ${mid-2} ${cx-1} ${mid+2} Q${cx+5} ${mid+6} ${cx-3} ${mid+10}" fill="${col}" stroke="${col}" stroke-width="1"/>`;dx=cx+9;dy=mid;}
@@ -928,8 +933,37 @@ const Cmp = {
     if(idx===null||idx>=this.notes.length)return;
     const orig=this.notes[idx];
     const newDur8=this._dur8(d,dot);
-    if(newDur8>orig.dur8+0.001){
-      Toast.show({ic:'⚠',title:'Too long',sub:'Replacement won\u2019t fit. Pick a shorter value or deselect.',type:'e'});
+    const diff=parseFloat((newDur8-orig.dur8).toFixed(6));
+    if(diff>0.001){
+      // Upsize: walk forward absorbing rests until deficit met; blocked by any non-rest note
+      let need=diff;
+      for(let j=idx+1;j<this.notes.length&&need>0.001;j++){
+        const nj=this.notes[j];
+        if(!nj.rest){
+          Toast.show({ic:'⚠',title:'Too long',sub:'Following note blocks upsize. Pick a shorter value.',type:'e'});
+          return;
+        }
+        if(nj.dur8<=need+0.001){need=parseFloat((need-nj.dur8).toFixed(6));}
+        else{need=0;break;}
+      }
+      if(need>0.001){
+        // Insufficient rests — grow staff only if at tail
+        if(idx+1+this.notes.slice(idx+1).findIndex(n=>!n.rest)===idx+1&&this.notes.slice(idx+1).some(n=>!n.rest)){
+          Toast.show({ic:'⚠',title:'Too long',sub:'Replacement won\u2019t fit. Pick a shorter value or deselect.',type:'e'});
+          return;
+        }
+        while(this._filled()+diff>this._totalCap()+0.001){this.totalMeasures++;}
+      }
+      // Apply: mutate orig, then consume rests
+      orig.p=isRest?'REST':pitch;orig.d=d;orig.dot=dot;orig.rest=isRest;orig.tied=false;orig.dur8=newDur8;
+      let remaining=diff;
+      while(remaining>0.001&&idx+1<this.notes.length){
+        const nj=this.notes[idx+1];
+        if(!nj.rest)break;
+        if(nj.dur8<=remaining+0.001){remaining=parseFloat((remaining-nj.dur8).toFixed(6));this.notes.splice(idx+1,1);}
+        else{nj.dur8=parseFloat((nj.dur8-remaining).toFixed(6));const r=this._closestDur(nj.dur8);nj.d=r.d;nj.dot=r.dot;remaining=0;break;}
+      }
+      this.render();
       return;
     }
     orig.p=isRest?'REST':pitch;orig.d=d;orig.dot=dot;orig.rest=isRest;orig.tied=false;
@@ -1450,7 +1484,7 @@ const Cmp = {
     this.playing=true;this._wPaused=false;
     document.getElementById('cmp-play-btn')?.classList.add('on');
     if(this.loopOn){
-      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,countInMs+totalMs-50));
+      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,countInMs+totalMs+2000));
     } else {
       this._wTimer=setTimeout(()=>this._onPlayEnd(),countInMs+totalMs+300);
     }
@@ -1529,8 +1563,8 @@ const Cmp = {
     const totalMs=rangeDur*1000;
     const countInMs=countInDur*1000;
     if(this.loopOn){
-      // Fire restart slightly before audio ends so count-in click begins right at end of last note
-      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,countInMs+totalMs-50));
+      // 2s silence after audio ends, then count-in begins before next iteration
+      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,countInMs+totalMs+2000));
     } else {
       this._wTimer=setTimeout(()=>this._onPlayEnd(),countInMs+totalMs+300);
     }
