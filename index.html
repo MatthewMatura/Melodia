@@ -1446,12 +1446,13 @@ const Cmp = {
     });
 
     const totalMs=rangeDur*1000;
+    const countInMs=countInDur*1000;
     this.playing=true;this._wPaused=false;
     document.getElementById('cmp-play-btn')?.classList.add('on');
     if(this.loopOn){
-      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,totalMs-50));
+      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,countInMs+totalMs-50));
     } else {
-      this._wTimer=setTimeout(()=>this._onPlayEnd(),totalMs+300);
+      this._wTimer=setTimeout(()=>this._onPlayEnd(),countInMs+totalMs+300);
     }
     this._phTick();
   },
@@ -1526,16 +1527,25 @@ const Cmp = {
       t+=dur;
     });
     const totalMs=rangeDur*1000;
+    const countInMs=countInDur*1000;
     if(this.loopOn){
       // Fire restart slightly before audio ends so count-in click begins right at end of last note
-      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,totalMs-50));
+      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,countInMs+totalMs-50));
     } else {
-      this._wTimer=setTimeout(()=>this._onPlayEnd(),totalMs+300);
+      this._wTimer=setTimeout(()=>this._onPlayEnd(),countInMs+totalMs+300);
     }
   },
 
   _onPlayEnd(){
     this.playing=false;this._wPaused=false;
+    if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
+    // Park playhead at end-of-piece position so it doesn't look stuck mid-score
+    const sc=this._phSchedule;
+    if(sc&&sc.length){
+      const last=sc[sc.length-1];
+      const ph=document.getElementById('cmp-playhead');
+      if(ph) ph.setAttribute('transform',`translate(${last.x},0)`);
+    }
     document.getElementById('cmp-play-btn')?.classList.remove('on');
   },
 
