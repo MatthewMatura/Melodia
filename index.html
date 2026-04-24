@@ -1272,14 +1272,21 @@ const Cmp = {
     if(!this.ts)return;
     if(this._wac&&this._wac.state==='running'&&this.playing)return;
 
-    // Playhead RAF tick — reads audio clock, positions #cmp-playhead
+    // Playhead RAF tick — reads audio clock, falls back to wall clock if stale
     this._phTick=()=>{
       if(!this.playing){this._wRAF=null;return;}
       const ph=document.getElementById('cmp-playhead');
       const sc=this._phSchedule;
-      if(ph&&sc&&sc.length&&this._wac&&this._wac.state==='running'){
+      if(ph&&sc&&sc.length&&this._wac){
         const last=sc[sc.length-1];
-        const t=Math.max(0,Math.min(this._wac.currentTime-this._wStart,last.t));
+        // Audio-clock elapsed (preferred)
+        const audElapsed=this._wac.currentTime-this._wStart;
+        // Wall-clock elapsed (fallback)
+        const wallElapsed=this._wStartWall?((performance.now()-this._wStartWall)/1000):audElapsed;
+        // Use wall clock if audio clock isn't running or is stale by >0.3s
+        const useWall=this._wac.state!=='running'||Math.abs(audElapsed-wallElapsed)>0.3;
+        const elapsed=useWall?wallElapsed:audElapsed;
+        const t=Math.max(0,Math.min(elapsed,last.t));
         let i=0;while(i<sc.length-1&&sc[i+1].t<=t)i++;
         const a=sc[i],b=sc[i+1]||a;
         const frac=b.t>a.t?(t-a.t)/(b.t-a.t):0;
@@ -1342,12 +1349,12 @@ const Cmp = {
     const D4=293.66;
     this._wNodes=[];
     const t0=ctx.currentTime+0.05;
-    // Metronome setup: 2-measure count-in, beat rate matches ts beat unit
+    // Metronome setup: 1-measure count-in, beat rate matches ts beat unit
     const capForMet=this.ts.cap;
     const isCompoundMet=(this.ts.v===8&&this.ts.b%3===0&&this.ts.b>3);
     const beatsPerBar=isCompoundMet?(this.ts.b/3):this.ts.b;
     const secPerBeat=(capForMet*spe)/beatsPerBar;
-    const countInBeats=2*beatsPerBar;
+    const countInBeats=beatsPerBar;
     const countInDur=countInBeats*secPerBeat;
     // Schedule count-in ticks + staff border pulse
     const wrap0=document.querySelector('.cmp-staff-wrap');
@@ -1370,6 +1377,7 @@ const Cmp = {
     // Audio start point for notes = after count-in
     let t=t0+countInDur;
     this._wStart=t;
+    this._wStartWall=performance.now()+countInDur*1000;
     // Playback-follow: scroll to range start, schedule per-measure scrolls during play
     const wrap=document.querySelector('.cmp-staff-wrap');
     const cap=this.ts.cap, pMW=wrap?Math.max(80,(wrap.clientWidth-68)/4):140;
@@ -1441,14 +1449,14 @@ const Cmp = {
     this.playing=true;this._wPaused=false;
     document.getElementById('cmp-play-btn')?.classList.add('on');
     if(this.loopOn){
-      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},totalMs+200);
+      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,totalMs-50));
     } else {
       this._wTimer=setTimeout(()=>this._onPlayEnd(),totalMs+300);
     }
     this._phTick();
   },
 
-  // Loop restart — re-schedules the same range without count-in. Keeps existing audio ctx.
+  // Loop restart — schedules 1-measure count-in (click + gold pulse) then replays range. Keeps existing audio ctx.
   _loopRestart(){
     if(!this.playing||!this._wac||this._wac.state==='closed')return;
     const ctx=this._wac;
@@ -1460,12 +1468,35 @@ const Cmp = {
     const {playNotes,rStart,rEnd,cumBefore,rangeDur}=this._playRange;
     const wrap=document.querySelector('.cmp-staff-wrap');
     if(wrap) wrap.scrollLeft=rStart*pMW;
-    let t=ctx.currentTime+0.05;
+    const t0=ctx.currentTime+0.05;
+    // 1-measure count-in click + gold pulse (same as play startup)
+    const isCompoundMet=(this.ts.v===8&&this.ts.b%3===0&&this.ts.b>3);
+    const beatsPerBar=isCompoundMet?(this.ts.b/3):this.ts.b;
+    const secPerBeat=(cap*spe)/beatsPerBar;
+    const countInBeats=beatsPerBar;
+    const countInDur=countInBeats*secPerBeat;
+    const wrap0=document.querySelector('.cmp-staff-wrap');
+    this._wMetPulseTimers?.forEach(id=>clearTimeout(id));this._wMetPulseTimers=[];
+    for(let i=0;i<countInBeats;i++){
+      const tt=t0+i*secPerBeat;
+      const accent=(i%beatsPerBar)===0;
+      const node=this._toneMetClick(ctx,tt,accent);
+      if(node)this._wNodes.push(node);
+      if(wrap0){
+        const delay=Math.max(0,(tt-ctx.currentTime)*1000);
+        const timer=setTimeout(()=>{
+          wrap0.style.transition='border-color 80ms ease-out';
+          wrap0.style.borderColor=accent?'#f5c518':'rgba(245,197,24,.55)';
+          setTimeout(()=>{wrap0.style.borderColor='';},accent?180:120);
+        },delay);
+        this._wMetPulseTimers.push(timer);
+      }
+    }
+    // Audio start point for notes = after count-in
+    let t=t0+countInDur;
     this._wStart=t;
+    this._wStartWall=performance.now()+countInDur*1000;
     if(this.metronomeOn){
-      const isCompoundMet=(this.ts.v===8&&this.ts.b%3===0&&this.ts.b>3);
-      const beatsPerBar=isCompoundMet?(this.ts.b/3):this.ts.b;
-      const secPerBeat=(cap*spe)/beatsPerBar;
       const totalBeats=(rEnd-rStart+1)*beatsPerBar;
       for(let i=0;i<totalBeats;i++){
         const tt=t+i*secPerBeat;
@@ -1496,7 +1527,8 @@ const Cmp = {
     });
     const totalMs=rangeDur*1000;
     if(this.loopOn){
-      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},totalMs+200);
+      // Fire restart slightly before audio ends so count-in click begins right at end of last note
+      this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,totalMs-50));
     } else {
       this._wTimer=setTimeout(()=>this._onPlayEnd(),totalMs+300);
     }
