@@ -119,13 +119,15 @@ transform:scale(.96);
 .cmp-ts-name{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(240,230,208,.5);margin-top:6px;}
 .cmp-ts-btn-text{font-size:13px;font-weight:900;color:rgba(240,230,208,.55);}/* Make Your Own */
 /* — compose step (step 3) — */
-.cmp-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#10101e;background:var(–surf);border-bottom:1px solid rgba(245,197,24,.22);border-bottom:1px solid var(–gold2);flex-shrink:0;margin-bottom:16px;}
+.cmp-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#10101e;background:var(–surf);border-bottom:1px solid rgba(245,197,24,.22);border-bottom:1px solid var(–gold2);flex-shrink:0;margin-bottom:16px;position:relative;}
 .cmp-back-btn{padding:7px 10px;border-radius:8px;border:none;background:transparent;color:rgba(240,230,208,.55);color:var(–dim);font-family:inherit;font-weight:900;font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-submit-btn{padding:9px 16px;border-radius:9px;border:none;background:#f5c518;background:var(–gold);color:#111;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;}
+.cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
 .cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;}
 .cmp-input-left{flex:1;min-width:0;}
+.cmp-input-mid{flex-shrink:0;width:110px;display:flex;align-items:center;justify-content:center;padding-top:6px;}
+.cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));}
 .cmp-input-right{flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:6px;width:240px;padding-top:18px;align-content:center;}
 .cmp-stack-btn{width:100%;padding:11px 10px;font-size:11px;flex:none !important;}
 .cmp-ts-info{margin:8px 16px 24px;padding:14px 16px;background:#10101e;background:var(–surf);border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);border-radius:12px;}
@@ -239,17 +241,8 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
       <span class="cmp-ts-label">Rhythm</span>
       <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
     </div>
-    <div class="cmp-step-hdr" style="padding-top:24px">⏱ Pick Your Time Signature</div>
+    <div class="cmp-step-hdr" style="padding-top:24px;padding-bottom:28px">⏱ Pick Your Time Signature</div>
     <div class="cmp-ts-grid" id="cmp-ts-grid"></div>
-    <div class="cmp-ts-info">
-      <div class="cmp-ts-info-hdr">📖 Time Signature Cheat Sheet</div>
-      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">4/4</span><span class="cmp-ts-info-feel">Common time. Pop, rock, marches. Four steady beats.</span></div>
-      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">3/4</span><span class="cmp-ts-info-feel">Waltz. Three beats, lilting feel — strong/weak/weak.</span></div>
-      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">2/4</span><span class="cmp-ts-info-feel">Marches and polkas. Brisk two-beat pulse.</span></div>
-      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">6/8</span><span class="cmp-ts-info-feel">Compound. Two big beats divided in three. Jigs, ballads.</span></div>
-      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">5/4</span><span class="cmp-ts-info-feel">Asymmetric. "Take Five" — groups of 3+2 or 2+3.</span></div>
-      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">7/8</span><span class="cmp-ts-info-feel">Odd meter. Common in folk and prog rock.</span></div>
-    </div>
   </div>
 
   <!-- STEP 3: Composition -->
@@ -273,9 +266,46 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
     <div class="cmp-input-label" style="margin-top:7px">Rests</div>
     <div class="cmp-note-row" id="cmp-rest-row"></div>
   </div>
+  <div class="cmp-input-mid" aria-hidden="true">
+    <svg class="cmp-beaver" viewBox="0 0 100 130" width="100" height="130" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="65" r="55" fill="#f5c518" opacity="0.06"/>
+      <ellipse cx="22" cy="100" rx="9" ry="17" fill="#5a3a1f" transform="rotate(-25 22 100)"/>
+      <ellipse cx="22" cy="100" rx="6" ry="13" fill="#3d2410" opacity="0.4" transform="rotate(-25 22 100)"/>
+      <ellipse cx="62" cy="113" rx="9" ry="11" fill="#7a4a25"/>
+      <ellipse cx="38" cy="116" rx="11" ry="9" fill="#7a4a25"/>
+      <ellipse cx="50" cy="82" rx="22" ry="24" fill="#7a4a25"/>
+      <ellipse cx="50" cy="86" rx="13" ry="16" fill="#a86d3d"/>
+      <ellipse cx="68" cy="62" rx="6" ry="13" fill="#7a4a25" transform="rotate(40 68 62)"/>
+      <circle cx="80" cy="54" r="7" fill="#7a4a25"/>
+      <circle cx="80" cy="54" r="4" fill="#a86d3d"/>
+      <ellipse cx="32" cy="76" rx="5" ry="13" fill="#7a4a25" transform="rotate(-40 32 76)"/>
+      <circle cx="22" cy="68" r="6" fill="#7a4a25"/>
+      <circle cx="50" cy="40" r="22" fill="#7a4a25"/>
+      <ellipse cx="50" cy="49" rx="13" ry="10" fill="#d4a373"/>
+      <circle cx="35" cy="22" r="5" fill="#7a4a25"/>
+      <circle cx="65" cy="22" r="5" fill="#7a4a25"/>
+      <circle cx="35" cy="22" r="2.5" fill="#3d2410"/>
+      <circle cx="65" cy="22" r="2.5" fill="#3d2410"/>
+      <rect x="28" y="29" width="44" height="5" fill="#e8142a"/>
+      <path d="M 28 32 Q 18 30 14 38" stroke="#e8142a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M 28 33 Q 16 38 12 46" stroke="#e8142a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="50" cy="31.5" r="2" fill="#f5c518"/>
+      <ellipse cx="42" cy="42" rx="4.2" ry="5.2" fill="#fffbf0"/>
+      <ellipse cx="58" cy="42" rx="4.2" ry="5.2" fill="#fffbf0"/>
+      <circle cx="42" cy="43" r="2.7" fill="#1a1a2e"/>
+      <circle cx="58" cy="43" r="2.7" fill="#1a1a2e"/>
+      <circle cx="43.5" cy="41.5" r="0.9" fill="#fff"/>
+      <circle cx="59.5" cy="41.5" r="0.9" fill="#fff"/>
+      <path d="M 38 35 L 45 36.5" stroke="#3d2410" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M 55 36.5 L 62 35" stroke="#3d2410" stroke-width="1.6" stroke-linecap="round"/>
+      <ellipse cx="50" cy="47" rx="1.8" ry="1.3" fill="#1a1a2e"/>
+      <rect x="46" y="51" width="3" height="6" fill="#fffbf0" stroke="#a86d3d" stroke-width="0.3"/>
+      <rect x="51" y="51" width="3" height="6" fill="#fffbf0" stroke="#a86d3d" stroke-width="0.3"/>
+      <path d="M 44 57 Q 50 60 56 57" stroke="#3d2410" stroke-width="1" fill="none" stroke-linecap="round"/>
+    </svg>
+  </div>
   <div class="cmp-input-right">
     <button class="cmp-triplet-btn cmp-stack-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
-    <button class="cmp-edit-btn cmp-stack-btn" id="cmp-tap-btn" onclick="Cmp.tapTempo()">👆 Tap Tempo</button>
     <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.undo()">↩ Undo</button>
     <button class="cmp-edit-btn cmp-stack-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
     <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.save()">💾 Save</button>
@@ -286,11 +316,12 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
 <!-- Tempo controls below input, above staff -->
 
 <div class="cmp-tempo-row">
+  <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 100</div>
   <button class="cmp-tempo-btn" id="cmp-slower-btn"
     ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()">🐢 Slower</button>
-  <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 100</div>
   <button class="cmp-tempo-btn" id="cmp-faster-btn"
     ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()">⚡ Faster</button>
+  <button class="cmp-tempo-btn" id="cmp-tap-btn" onclick="Cmp.tapTempo()">👆 Tap Tempo</button>
 </div>
 
 <!-- Staff — nothing overlaps it -->
@@ -562,12 +593,12 @@ const CmpSheet = {
     s+=this._drawTriplets(notes,measures,mLeft,mW,ts,ST);
     // Final double barline (standard: thin + gap + thick)
     const ex=mLeft+totalMeasures*mW;
-    if(window.Cmp&&window.Cmp.repeatOn){
+    if(Cmp.repeatOn){
       // Repeat sign: two dots before the thin barline
       const dotX=ex-12;
       const midUp=ST+(SB-ST)/3, midLo=ST+(SB-ST)*2/3;
-      s+=`<circle cx="${dotX}" cy="${midUp}" r="2.2" fill="#f5c518"/>`;
-      s+=`<circle cx="${dotX}" cy="${midLo}" r="2.2" fill="#f5c518"/>`;
+      s+=`<circle cx="${dotX}" cy="${midUp}" r="3" fill="#f5c518"/>`;
+      s+=`<circle cx="${dotX}" cy="${midLo}" r="3" fill="#f5c518"/>`;
     }
     s+=`<line x1="${ex-4}" y1="${ST}" x2="${ex-4}" y2="${SB}" stroke="#f5c518" stroke-opacity=".85" stroke-width="1.5"/>`;
     s+=`<line x1="${ex}" y1="${ST}" x2="${ex}" y2="${SB}" stroke="#f5c518" stroke-opacity=".85" stroke-width="4.5"/>`;
@@ -1700,7 +1731,7 @@ const Cmp = {
       if(!n.rest){
         const semis=this._pitchSemis?this._pitchSemis(n.p):0;
         const f=D4*Math.pow(2,semis/12);
-        this._playToneAt(t,Math.max(0.05,dur-0.02),f);
+        this._playTone(ctx,f,t,Math.max(0.05,dur-0.02));
       }
       beat8+=n.dur8;
       const mi=Math.floor(beat8/this.ts.cap);
