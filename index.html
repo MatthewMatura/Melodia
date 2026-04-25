@@ -76,8 +76,8 @@ position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
 .cmp-entry-hero{padding:10px 20px 4px;text-align:center;}
 .cmp-entry-title{font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(135deg,#e8142a,#f5c518);background:linear-gradient(135deg,var(–red),var(–gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .cmp-entry-sub{font-size:12px;color:rgba(240,230,208,.55);color:var(–dim);margin-top:4px;font-style:italic;font-family:Georgia,serif;}
-.cmp-entry-btns{display:flex;flex-direction:column;gap:12px;padding:10px 20px 20px;}
-.cmp-mode-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px;border-radius:18px;border:none;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;width:100%;}
+.cmp-entry-btns{display:flex;flex-direction:row;gap:14px;padding:14px 20px 20px;justify-content:center;}
+.cmp-mode-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px;border-radius:18px;border:none;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;flex:1;max-width:280px;aspect-ratio:1/1;}
 .cmp-mode-btn:active{transform:scale(.96);}
 .cmb-ic{font-size:36px;line-height:1;}
 .cmb-label{font-size:20px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;}
@@ -126,7 +126,8 @@ transform:scale(.96);
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
 .cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;}
 .cmp-input-left{flex:1;min-width:0;}
-.cmp-input-right{flex-shrink:0;display:flex;flex-direction:column;justify-content:center;gap:7px;min-width:240px;padding-top:18px;}
+.cmp-input-right{flex-shrink:0;display:flex;flex-direction:column;gap:6px;width:200px;padding-top:18px;}
+.cmp-stack-btn{width:100%;padding:11px 14px;font-size:12px;flex:none !important;}
 .cmp-input-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#f5c518;color:var(–gold);margin-bottom:5px;margin-top:4px;}
 .cmp-note-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
 .cmp-note-row::-webkit-scrollbar{display:none;}
@@ -156,8 +157,7 @@ transform:scale(.96);
 .cmp-tone-sel{height:40px;align-self:center;padding:0 10px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none;padding-right:22px;background-image:linear-gradient(45deg,transparent 50%,#f0e6d0 50%),linear-gradient(135deg,#f0e6d0 50%,transparent 50%);background-position:calc(100% - 11px) 50%,calc(100% - 7px) 50%;background-size:4px 4px,4px 4px;background-repeat:no-repeat;}
 .cmp-tone-sel optgroup{background:#10101e;color:#f5c518;font-style:normal;font-weight:900;}
 .cmp-tone-sel option{background:#10101e;color:#f0e6d0;font-weight:600;}
-.cmp-title-row{padding:6px 14px 14px;flex-shrink:0;display:flex;gap:7px;align-items:center;}
-.cmp-save-btn{flex-shrink:0;padding:11px 14px;border-radius:7px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
+.cmp-title-row{padding:6px 14px 14px;flex-shrink:0;}
 .cmp-saves-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9000;align-items:center;justify-content:center;padding:20px;}
 .cmp-saves-modal.on{display:flex;}
 .cmp-saves-content{background:#10101e;background:var(–surf);border:1px solid rgba(245,197,24,.4);border-radius:14px;width:min(520px,100%);max-height:80vh;display:flex;flex-direction:column;overflow:hidden;}
@@ -219,13 +219,8 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
       </button>
       <button class="cmp-mode-btn cmp-pitch" onclick="Cmp.pickMode('pitch')">
         <span class="cmb-ic">🎵</span>
-        <span class="cmb-label">Pitch</span>
-        <span class="cmb-sub">Notes &amp; melody only</span>
-      </button>
-      <button class="cmp-mode-btn cmp-both" onclick="Cmp.pickMode('both')">
-        <span class="cmb-ic">🔥</span>
-        <span class="cmb-label">Both (If You Dare!)</span>
-        <span class="cmb-sub">Rhythm + pitch. The full challenge.</span>
+        <span class="cmb-label">Melody</span>
+        <span class="cmb-sub">Notes &amp; pitch only</span>
       </button>
     </div>
   </div>
@@ -248,7 +243,10 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
     <div class="cmp-topbar">
       <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
       <span class="cmp-ts-label" id="cmp-ts-label">4/4</span>
-      <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
+      <div style="display:flex;gap:7px">
+        <button class="cmp-submit-btn" onclick="Cmp.addMelody()" style="background:#10101e;color:#f5c518;border:2px solid #f5c518">🎹 Add Melody</button>
+        <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
+      </div>
     </div>
 
 <!-- LAYOUT FIX 1: note/rest buttons moved to header area, above staff -->
@@ -261,11 +259,11 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
     <div class="cmp-note-row" id="cmp-rest-row"></div>
   </div>
   <div class="cmp-input-right">
-    <div class="cmp-edit-row">
-      <button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
-      <button class="cmp-edit-btn" onclick="Cmp.undo()">↩ Undo</button>
-    </div>
-    <button class="cmp-edit-btn cmp-nuke-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4);flex:none" onclick="Cmp.nuke()">💣 Nuke</button>
+    <button class="cmp-triplet-btn cmp-stack-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
+    <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.undo()">↩ Undo</button>
+    <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.save()">💾 Save</button>
+    <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.openLoadModal()">📂 Load</button>
+    <button class="cmp-edit-btn cmp-stack-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
   </div>
 </div>
 
@@ -291,6 +289,7 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
   <div class="cmp-playbar-left">
     <button class="cmp-surprise-btn" onclick="Cmp.surprise()">🎲 Surprise</button>
     <button class="cmp-surprise-btn" id="cmp-loop-btn" onclick="Cmp.toggleLoop()">🔁 Loop</button>
+    <button class="cmp-surprise-btn" id="cmp-repeat-btn" onclick="Cmp.toggleRepeat()">𝄇 Repeat</button>
   </div>
   <div class="cmp-playbar-center">
     <button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
@@ -324,8 +323,6 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
 
 <div class="cmp-title-row">
   <input class="cinput" id="c-title" type="text" placeholder="Song title...">
-  <button class="cmp-save-btn" onclick="Cmp.save()">💾 Save</button>
-  <button class="cmp-save-btn" onclick="Cmp.openLoadModal()">📂 Load</button>
 </div>
 <div class="cmp-saves-modal" id="cmp-saves-modal" onclick="if(event.target===this)Cmp.closeLoadModal()">
   <div class="cmp-saves-content">
@@ -549,6 +546,13 @@ const CmpSheet = {
     s+=this._drawTriplets(notes,measures,mLeft,mW,ts,ST);
     // Final double barline (standard: thin + gap + thick)
     const ex=mLeft+totalMeasures*mW;
+    if(window.Cmp&&window.Cmp.repeatOn){
+      // Repeat sign: two dots before the thin barline
+      const dotX=ex-12;
+      const midUp=ST+(SB-ST)/3, midLo=ST+(SB-ST)*2/3;
+      s+=`<circle cx="${dotX}" cy="${midUp}" r="2.2" fill="#f5c518"/>`;
+      s+=`<circle cx="${dotX}" cy="${midLo}" r="2.2" fill="#f5c518"/>`;
+    }
     s+=`<line x1="${ex-4}" y1="${ST}" x2="${ex-4}" y2="${SB}" stroke="#f5c518" stroke-opacity=".85" stroke-width="1.5"/>`;
     s+=`<line x1="${ex}" y1="${ST}" x2="${ex}" y2="${SB}" stroke="#f5c518" stroke-opacity=".85" stroke-width="4.5"/>`;
     // Playhead (hidden until play)
@@ -688,7 +692,7 @@ const Cmp = {
   ts:null, tempo:100,
   notes:[], durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
-  totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, metronomeOn:false,
+  totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, repeatOn:false, metronomeOn:false,
 
   TIME_SIGS:[
     {label:'Cut Time', sub:'2/2',  b:2,  v:2, cap:8,  beatUnit:2, bul:'𝅗𝅥'},
@@ -1048,6 +1052,20 @@ const Cmp = {
     Toast.show({ic:'💣',title:'Nuked.',sub:'Staff cleared. Start over, champion.'});
     this.render();
     document.getElementById('cmp-svg').parentElement.scrollLeft=0;
+  },
+
+  addMelody(){
+    Toast.show({ic:'🎹',title:'Add Melody',sub:'Coming soon — pitch assignment.'});
+  },
+
+  toggleRepeat(){
+    this.repeatOn=!this.repeatOn;
+    document.getElementById('cmp-repeat-btn')?.classList.toggle('on',this.repeatOn);
+    if(this.repeatOn){
+      // Mutually exclusive with Loop (different semantics: repeat=play twice once, loop=infinite)
+      if(this.loopOn){this.loopOn=false;document.getElementById('cmp-loop-btn')?.classList.remove('on');}
+    }
+    this.render();
   },
 
   save(){
@@ -1617,10 +1635,51 @@ const Cmp = {
     document.getElementById('cmp-play-btn')?.classList.add('on');
     if(this.loopOn){
       this._wTimer=setTimeout(()=>{if(this.playing)this._loopRestart();},Math.max(0,countInMs+totalMs+2000));
+    } else if(this.repeatOn&&!this._repeatPass){
+      this._repeatPass=1;
+      // After first pass, restart from beginning once (no count-in second time)
+      this._wTimer=setTimeout(()=>{if(this.playing)this._repeatRestart();},Math.max(0,countInMs+totalMs+300));
     } else {
       this._wTimer=setTimeout(()=>this._onPlayEnd(),countInMs+totalMs+300);
     }
     this._phTick();
+  },
+
+  _repeatRestart(){
+    if(!this.playing)return;
+    this._repeatPass=2;
+    // Reset playhead to start visually, then play full piece again with no count-in
+    const ph=document.getElementById('cmp-playhead');
+    if(ph)ph.setAttribute('transform','translate(68,0)');
+    const ctx=this._getWAC();
+    if(ctx.state==='suspended')ctx.resume();
+    const spe=this._secPerEighth();
+    const D4=293.66;
+    const t0=ctx.currentTime+0.05;
+    let t=t0,beat8=0;
+    const sched=[{t:t-t0+0.05,x:68}];
+    this._wNodes=this._wNodes||[];
+    this.notes.forEach(n=>{
+      const dur=n.dur8*spe;
+      if(!n.rest){
+        const semis=this._pitchSemis?this._pitchSemis(n.p):0;
+        const f=D4*Math.pow(2,semis/12);
+        this._playToneAt(t,Math.max(0.05,dur-0.02),f);
+      }
+      beat8+=n.dur8;
+      const mi=Math.floor(beat8/this.ts.cap);
+      const b8=beat8-mi*this.ts.cap;
+      const vp=document.getElementById('cmp-svg').parentElement.clientWidth;
+      const mW=Math.max(80,(vp-68)/4);
+      const x=68+mi*mW+(b8/this.ts.cap)*mW+10;
+      sched.push({t:t-t0+dur,x});
+      t+=dur;
+    });
+    this._wStart=t0;
+    this._wStartWall=performance.now();
+    this._phSchedule=sched;
+    const totalMs=this.notes.reduce((a,n)=>a+n.dur8*spe,0)*1000;
+    this._wTimer=setTimeout(()=>this._onPlayEnd(),totalMs+300);
   },
 
   // Loop restart — schedules 1-measure count-in (click + gold pulse) then replays range. Keeps existing audio ctx.
@@ -1703,7 +1762,7 @@ const Cmp = {
   },
 
   _onPlayEnd(){
-    this.playing=false;this._wPaused=false;
+    this.playing=false;this._wPaused=false;this._repeatPass=0;
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     // Park playhead at end-of-piece position so it doesn't look stuck mid-score
     const sc=this._phSchedule;
@@ -1729,6 +1788,7 @@ const Cmp = {
     clearTimeout(this._wTimer);
     this._wScrollTimers?.forEach(id=>clearTimeout(id));this._wScrollTimers=[];
     this._wMetPulseTimers?.forEach(id=>clearTimeout(id));this._wMetPulseTimers=[];
+    this._repeatPass=0;
     const sw=document.querySelector('.cmp-staff-wrap');if(sw)sw.style.borderColor='';
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const ph=document.getElementById('cmp-playhead');if(ph){ph.setAttribute('transform','translate(68,0)');ph.removeAttribute('display');}
