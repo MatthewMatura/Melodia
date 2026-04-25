@@ -1626,7 +1626,7 @@ const Cmp = {
         // Beaver pose: pick most recent scheduled pose for current elapsed
         const bs=this._bvrSchedule;
         if(bs&&bs.length){
-          const bvr=document.querySelector('.cmp-beaver');
+          const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
           if(bvr){
             let bi=-1;
             for(let k=0;k<bs.length;k++){if(bs[k].t<=elapsed)bi=k;else break;}
@@ -1960,7 +1960,7 @@ const Cmp = {
   _onPlayEnd(){
     this.playing=false;this._wPaused=false;this._repeatPass=0;
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
-    const bvr=document.querySelector('.cmp-beaver');
+    const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
     // Park playhead at end-of-piece position so it doesn't look stuck mid-score
     const sc=this._phSchedule;
@@ -1987,7 +1987,7 @@ const Cmp = {
     this._wScrollTimers?.forEach(id=>clearTimeout(id));this._wScrollTimers=[];
     this._wMetPulseTimers?.forEach(id=>clearTimeout(id));this._wMetPulseTimers=[];
     this._repeatPass=0;
-    const bvr=document.querySelector('.cmp-beaver');
+    const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
     const sw=document.querySelector('.cmp-staff-wrap');if(sw)sw.style.borderColor='';
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
