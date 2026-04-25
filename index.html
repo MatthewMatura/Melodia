@@ -73,7 +73,7 @@ position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
 .cmp-dragon-bg svg{width:100%;height:100%;opacity:.055;}
 /* dragon bg sits behind all steps */
 /* — entry — */
-.cmp-entry-hero{padding:10px 20px 4px;text-align:center;}
+.cmp-entry-hero{padding:32px 20px 4px;text-align:center;}
 .cmp-entry-title{font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(135deg,#e8142a,#f5c518);background:linear-gradient(135deg,var(–red),var(–gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .cmp-entry-sub{font-size:12px;color:rgba(240,230,208,.55);color:var(–dim);margin-top:4px;font-style:italic;font-family:Georgia,serif;}
 .cmp-entry-btns{display:flex;flex-direction:row;gap:14px;padding:14px 20px 20px;justify-content:center;}
@@ -86,7 +86,7 @@ position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
 .cmp-pitch{background:linear-gradient(135deg,#005c3a,#00d97e);color:#fff;box-shadow:0 6px 28px rgba(0,217,126,.38);}
 .cmp-both{background:linear-gradient(135deg,#6e0000,#e8142a);color:#fff;box-shadow:0 6px 28px rgba(232,20,42,.45);}
 /* — time sig screen — */
-.cmp-step-hdr{padding:8px 16px 4px;text-align:center;font-size:11px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:#f5c518;color:var(–gold);}
+.cmp-step-hdr{padding:24px 16px 4px;text-align:center;font-size:11px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:#f5c518;color:var(–gold);}
 .cmp-ts-mascots{display:flex;justify-content:space-around;align-items:flex-end;padding:0 20px 2px;pointer-events:none;}
 .cmp-ts-mascots svg{opacity:.82;filter:drop-shadow(0 0 14px rgba(245,197,24,.25));width:54px !important;height:64px !important;}
 /* FEATURE 1+2: stacked numeral card buttons */
@@ -126,8 +126,14 @@ transform:scale(.96);
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
 .cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;}
 .cmp-input-left{flex:1;min-width:0;}
-.cmp-input-right{flex-shrink:0;display:flex;flex-direction:column;gap:6px;width:200px;padding-top:18px;}
-.cmp-stack-btn{width:100%;padding:11px 14px;font-size:12px;flex:none !important;}
+.cmp-input-right{flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:6px;width:240px;padding-top:18px;align-content:center;}
+.cmp-stack-btn{width:100%;padding:11px 10px;font-size:11px;flex:none !important;}
+.cmp-ts-info{margin:8px 16px 24px;padding:14px 16px;background:#10101e;background:var(–surf);border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);border-radius:12px;}
+.cmp-ts-info-hdr{font-size:10px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:#f5c518;color:var(–gold);margin-bottom:9px;}
+.cmp-ts-info-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-top:1px solid rgba(240,230,208,.08);font-size:12px;color:#f0e6d0;color:var(–ink);}
+.cmp-ts-info-row:first-of-type{border-top:none;}
+.cmp-ts-info-sig{font-weight:900;color:#f5c518;color:var(–gold);min-width:38px;font-family:Georgia,serif;}
+.cmp-ts-info-feel{flex:1;font-size:11px;color:rgba(240,230,208,.78);}
 .cmp-input-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#f5c518;color:var(–gold);margin-bottom:5px;margin-top:4px;}
 .cmp-note-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
 .cmp-note-row::-webkit-scrollbar{display:none;}
@@ -233,8 +239,17 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
       <span class="cmp-ts-label">Rhythm</span>
       <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
     </div>
-    <div class="cmp-step-hdr" style="padding:0 16px 6px">⏱ Pick Your Time Signature</div>
+    <div class="cmp-step-hdr" style="padding-top:24px">⏱ Pick Your Time Signature</div>
     <div class="cmp-ts-grid" id="cmp-ts-grid"></div>
+    <div class="cmp-ts-info">
+      <div class="cmp-ts-info-hdr">📖 Time Signature Cheat Sheet</div>
+      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">4/4</span><span class="cmp-ts-info-feel">Common time. Pop, rock, marches. Four steady beats.</span></div>
+      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">3/4</span><span class="cmp-ts-info-feel">Waltz. Three beats, lilting feel — strong/weak/weak.</span></div>
+      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">2/4</span><span class="cmp-ts-info-feel">Marches and polkas. Brisk two-beat pulse.</span></div>
+      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">6/8</span><span class="cmp-ts-info-feel">Compound. Two big beats divided in three. Jigs, ballads.</span></div>
+      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">5/4</span><span class="cmp-ts-info-feel">Asymmetric. "Take Five" — groups of 3+2 or 2+3.</span></div>
+      <div class="cmp-ts-info-row"><span class="cmp-ts-info-sig">7/8</span><span class="cmp-ts-info-feel">Odd meter. Common in folk and prog rock.</span></div>
+    </div>
   </div>
 
   <!-- STEP 3: Composition -->
@@ -260,10 +275,11 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
   </div>
   <div class="cmp-input-right">
     <button class="cmp-triplet-btn cmp-stack-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
+    <button class="cmp-edit-btn cmp-stack-btn" id="cmp-tap-btn" onclick="Cmp.tapTempo()">👆 Tap Tempo</button>
     <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.undo()">↩ Undo</button>
+    <button class="cmp-edit-btn cmp-stack-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
     <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.save()">💾 Save</button>
     <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.openLoadModal()">📂 Load</button>
-    <button class="cmp-edit-btn cmp-stack-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
   </div>
 </div>
 
@@ -1056,6 +1072,26 @@ const Cmp = {
 
   addMelody(){
     Toast.show({ic:'🎹',title:'Add Melody',sub:'Coming soon — pitch assignment.'});
+  },
+
+  tapTempo(){
+    const now=performance.now();
+    if(!this._tapTimes||now-this._tapTimes[this._tapTimes.length-1]>2000){this._tapTimes=[];}
+    this._tapTimes.push(now);
+    // Keep only last 6 taps for rolling average
+    if(this._tapTimes.length>6)this._tapTimes.shift();
+    if(this._tapTimes.length<2){
+      Toast.show({ic:'👆',title:'Keep tapping',sub:'Need at least 2 taps for a tempo.'});
+      return;
+    }
+    const intervals=[];
+    for(let i=1;i<this._tapTimes.length;i++)intervals.push(this._tapTimes[i]-this._tapTimes[i-1]);
+    const avgMs=intervals.reduce((a,b)=>a+b,0)/intervals.length;
+    const bpm=Math.round(60000/avgMs);
+    const clamped=Math.min(280,Math.max(40,bpm));
+    this.tempo=clamped;
+    this._updTempoDisp();
+    Toast.show({ic:'⏱',title:`♩ = ${clamped}`,sub:`From ${this._tapTimes.length} taps.`});
   },
 
   toggleRepeat(){
