@@ -128,12 +128,12 @@ transform:scale(.96);
 .cmp-input-left{flex:1;min-width:0;}
 .cmp-input-mid{flex:1;min-width:110px;display:flex;align-items:center;justify-content:center;padding-top:6px;}
 .cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));}
-.cmp-beaver g{transition:transform 90ms ease-out;}
-.cmp-beaver .bvr-arm-l{transform-origin:32px 70px;}
-.cmp-beaver .bvr-arm-r{transform-origin:68px 60px;}
-.cmp-beaver .bvr-leg-f{transform-origin:38px 110px;}
-.cmp-beaver .bvr-leg-b{transform-origin:62px 108px;}
-.cmp-beaver .bvr-body{transform-origin:50px 90px;}
+.cmp-beaver g{transition:transform 90ms ease-out;transform-box:fill-box;}
+.cmp-beaver .bvr-arm-l{transform-origin:50% 0%;}
+.cmp-beaver .bvr-arm-r{transform-origin:50% 0%;}
+.cmp-beaver .bvr-leg-f{transform-origin:50% 0%;}
+.cmp-beaver .bvr-leg-b{transform-origin:50% 0%;}
+.cmp-beaver .bvr-body{transform-origin:50% 100%;}
 .cmp-beaver.p-punch .bvr-arm-r{transform:translate(6px,-3px) rotate(15deg);}
 .cmp-beaver.p-punch .bvr-arm-l{transform:rotate(25deg) translate(-2px,2px);}
 .cmp-beaver.p-punch .bvr-body{transform:rotate(2deg);}
@@ -147,9 +147,9 @@ transform:scale(.96);
 .cmp-beaver.p-chamber .bvr-body{transform:translateY(2px);}
 .cmp-conductor{display:flex;justify-content:center;align-items:center;padding:24px 16px 32px;}
 .cmp-conductor svg{display:block;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5));}
-.cmp-conductor .bvr-arm-l{transform-origin:32px 70px;animation:bvrConductL 1.6s ease-in-out infinite;}
-.cmp-conductor .bvr-arm-r{transform-origin:68px 60px;animation:bvrConductR 1.6s ease-in-out infinite;}
-.cmp-conductor .bvr-body{transform-origin:50px 90px;animation:bvrConductBody 1.6s ease-in-out infinite;}
+.cmp-conductor .bvr-arm-l{animation:bvrConductL 1.6s ease-in-out infinite;}
+.cmp-conductor .bvr-arm-r{animation:bvrConductR 1.6s ease-in-out infinite;}
+.cmp-conductor .bvr-body{animation:bvrConductBody 1.6s ease-in-out infinite;}
 @keyframes bvrConductL{0%,100%{transform:rotate(-10deg) translate(0,-3px);}25%{transform:rotate(15deg) translate(-3px,2px);}50%{transform:rotate(-30deg) translate(2px,-6px);}75%{transform:rotate(20deg) translate(-2px,3px);}}
 @keyframes bvrConductR{0%,100%{transform:rotate(10deg) translate(0,-3px);}25%{transform:rotate(-15deg) translate(3px,-6px);}50%{transform:rotate(30deg) translate(-2px,2px);}75%{transform:rotate(-20deg) translate(2px,-4px);}}
 @keyframes bvrConductBody{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
