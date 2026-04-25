@@ -124,7 +124,9 @@ transform:scale(.96);
 .cmp-submit-btn{padding:9px 16px;border-radius:9px;border:none;background:#f5c518;background:var(–gold);color:#111;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;}
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
-.cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);}
+.cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;}
+.cmp-input-left{flex:1;min-width:0;}
+.cmp-input-right{flex-shrink:0;display:flex;flex-direction:column;justify-content:center;gap:7px;min-width:240px;padding-top:18px;}
 .cmp-input-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#f5c518;color:var(–gold);margin-bottom:5px;margin-top:4px;}
 .cmp-note-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
 .cmp-note-row::-webkit-scrollbar{display:none;}
@@ -132,7 +134,7 @@ transform:scale(.96);
 .cmp-nbtn:active,.cmp-nbtn.sel{border-color:#f5c518;border-color:var(–gold);background:rgba(245,197,24,.1);}
 .cmp-nbtn svg{display:block;}
 .cmp-nbtn-lbl{font-size:8px;color:#000;text-align:center;letter-spacing:.04em;text-transform:uppercase;line-height:1.3;}
-.cmp-edit-row{display:flex;gap:7px;padding:7px 0 4px;}
+.cmp-edit-row{display:flex;gap:7px;}
 .cmp-triplet-btn{padding:10px 12px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
 .cmp-triplet-btn.on{border-color:#e8142a;border-color:var(–red);background:rgba(232,20,42,.28);background:var(–red2);}
 .cmp-edit-btn{flex:1;padding:10px 6px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
@@ -154,7 +156,21 @@ transform:scale(.96);
 .cmp-tone-sel{height:40px;align-self:center;padding:0 10px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-appearance:none;appearance:none;padding-right:22px;background-image:linear-gradient(45deg,transparent 50%,#f0e6d0 50%),linear-gradient(135deg,#f0e6d0 50%,transparent 50%);background-position:calc(100% - 11px) 50%,calc(100% - 7px) 50%;background-size:4px 4px,4px 4px;background-repeat:no-repeat;}
 .cmp-tone-sel optgroup{background:#10101e;color:#f5c518;font-style:normal;font-weight:900;}
 .cmp-tone-sel option{background:#10101e;color:#f0e6d0;font-weight:600;}
-.cmp-title-row{padding:6px 14px 14px;flex-shrink:0;}
+.cmp-title-row{padding:6px 14px 14px;flex-shrink:0;display:flex;gap:7px;align-items:center;}
+.cmp-save-btn{flex-shrink:0;padding:11px 14px;border-radius:7px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
+.cmp-saves-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9000;align-items:center;justify-content:center;padding:20px;}
+.cmp-saves-modal.on{display:flex;}
+.cmp-saves-content{background:#10101e;background:var(–surf);border:1px solid rgba(245,197,24,.4);border-radius:14px;width:min(520px,100%);max-height:80vh;display:flex;flex-direction:column;overflow:hidden;}
+.cmp-saves-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(245,197,24,.2);font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;font-size:13px;}
+.cmp-saves-close{background:transparent;border:none;color:#f0e6d0;color:var(–ink);font-size:20px;cursor:pointer;padding:0 4px;}
+.cmp-saves-list{flex:1;overflow-y:auto;padding:8px;}
+.cmp-save-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;border:1px solid rgba(240,230,208,.14);margin-bottom:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.cmp-save-item:active{background:rgba(245,197,24,.08);border-color:#f5c518;border-color:var(–gold);}
+.cmp-save-meta{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
+.cmp-save-title{font-weight:900;color:#f0e6d0;color:var(–ink);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cmp-save-sub{font-size:10px;color:rgba(240,230,208,.55);color:var(–dim);}
+.cmp-save-del{background:transparent;border:1px solid rgba(232,20,42,.4);color:#e8142a;color:var(–red);border-radius:6px;padding:5px 9px;font-size:10px;cursor:pointer;font-weight:900;-webkit-tap-highlight-color:transparent;flex-shrink:0;margin-left:8px;}
+.cmp-saves-empty{padding:30px;text-align:center;color:rgba(240,230,208,.55);color:var(–dim);font-size:12px;}
 
 /* ===== TOAST ===== */
 #toasts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:min(360px,90vw);}
@@ -238,15 +254,18 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
 <!-- LAYOUT FIX 1: note/rest buttons moved to header area, above staff -->
 
 <div class="cmp-input-area">
-  <div class="cmp-input-label">Notes</div>
-  <div class="cmp-note-row" id="cmp-note-row"></div>
-  <div class="cmp-input-label" style="margin-top:7px">Rests</div>
-  <div class="cmp-note-row" id="cmp-rest-row"></div>
-  <div class="cmp-edit-row">
-    <button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
-    <button class="cmp-edit-btn" onclick="Cmp.undo()">↩ Undo</button>
-    <button class="cmp-edit-btn" onclick="Cmp.trash()">🗑 Rest</button>
-    <button class="cmp-edit-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
+  <div class="cmp-input-left">
+    <div class="cmp-input-label">Notes</div>
+    <div class="cmp-note-row" id="cmp-note-row"></div>
+    <div class="cmp-input-label" style="margin-top:7px">Rests</div>
+    <div class="cmp-note-row" id="cmp-rest-row"></div>
+  </div>
+  <div class="cmp-input-right">
+    <div class="cmp-edit-row">
+      <button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
+      <button class="cmp-edit-btn" onclick="Cmp.undo()">↩ Undo</button>
+    </div>
+    <button class="cmp-edit-btn cmp-nuke-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4);flex:none" onclick="Cmp.nuke()">💣 Nuke</button>
   </div>
 </div>
 
@@ -305,6 +324,17 @@ box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
 
 <div class="cmp-title-row">
   <input class="cinput" id="c-title" type="text" placeholder="Song title...">
+  <button class="cmp-save-btn" onclick="Cmp.save()">💾 Save</button>
+  <button class="cmp-save-btn" onclick="Cmp.openLoadModal()">📂 Load</button>
+</div>
+<div class="cmp-saves-modal" id="cmp-saves-modal" onclick="if(event.target===this)Cmp.closeLoadModal()">
+  <div class="cmp-saves-content">
+    <div class="cmp-saves-hdr">
+      <span>📂 Saved Compositions</span>
+      <button class="cmp-saves-close" onclick="Cmp.closeLoadModal()">✕</button>
+    </div>
+    <div class="cmp-saves-list" id="cmp-saves-list"></div>
+  </div>
 </div>
 
   </div>
@@ -469,10 +499,16 @@ const CmpSheet = {
         const beamed=i>0&&ng[i]>=0&&ng[i]===ng[i-1];
         const floor=beamed?prevNx+11:prevNx+18;
         let nx=i===0?Math.max(mx+15,baseNx):Math.max(floor,baseNx);
-        if(mi===totalMeasures-1&&i===mNotes.length-1){
-          const is16=!n.rest&&n.d>=16;
-          const rightClamp=is16?(mx+mW-32):(mx+mW-22);
-          nx=Math.min(nx,rightClamp);
+        if(i===mNotes.length-1){
+          const isLastM=mi===totalMeasures-1;
+          const barX=isLastM?(mx+mW-4):(mx+mW); // thin final barline vs interior barline
+          const beamed=ng[i]>=0;
+          let glyphR;
+          if(n.rest) glyphR=8;
+          else if(!beamed&&n.d>=8) glyphR=9; // unbeamed flagged notes (8th/16th flag extends ~+8.6)
+          else if(n.dot) glyphR=10;
+          else glyphR=7;
+          nx=Math.min(nx,barX-glyphR-8);
         }
         prevNx=nx;pos[i]=nx;
         const gi=globalBase+i;
@@ -1012,6 +1048,75 @@ const Cmp = {
     Toast.show({ic:'💣',title:'Nuked.',sub:'Staff cleared. Start over, champion.'});
     this.render();
     document.getElementById('cmp-svg').parentElement.scrollLeft=0;
+  },
+
+  save(){
+    if(!this.notes.length){Toast.show({ic:'⚠',title:'Nothing to save',sub:'Compose something first.',type:'e'});return;}
+    const titleEl=document.getElementById('c-title');
+    let title=(titleEl?.value||'').trim();
+    if(!title){title=`Untitled ${new Date().toLocaleDateString()}`;}
+    let saves={};
+    try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){saves={};}
+    const id=Date.now().toString(36);
+    saves[id]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,notes:this.notes.map(n=>({...n,current:false})),savedAt:Date.now()};
+    try{localStorage.setItem('melodia:saves',JSON.stringify(saves));}
+    catch(e){Toast.show({ic:'⚠',title:'Save failed',sub:'Browser storage may be full.',type:'e'});return;}
+    Toast.show({ic:'💾',title:'Saved',sub:`"${title}" stored on this device.`});
+  },
+
+  openLoadModal(){
+    this._renderSaves();
+    document.getElementById('cmp-saves-modal')?.classList.add('on');
+  },
+
+  closeLoadModal(){
+    document.getElementById('cmp-saves-modal')?.classList.remove('on');
+  },
+
+  _renderSaves(){
+    const listEl=document.getElementById('cmp-saves-list');
+    if(!listEl)return;
+    let saves={};
+    try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){saves={};}
+    const ids=Object.keys(saves).sort((a,b)=>(saves[b].savedAt||0)-(saves[a].savedAt||0));
+    if(!ids.length){listEl.innerHTML='<div class="cmp-saves-empty">No saved compositions yet. Save one to see it here.</div>';return;}
+    const esc=s=>String(s||'').replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+    listEl.innerHTML=ids.map(id=>{
+      const s=saves[id];
+      const date=s.savedAt?new Date(s.savedAt).toLocaleString():'';
+      const ts=s.ts?`${s.ts.b}/${s.ts.v}`:'';
+      return `<div class="cmp-save-item" onclick="Cmp._loadSavedComp('${id}')"><div class="cmp-save-meta"><div class="cmp-save-title">${esc(s.title||'Untitled')}</div><div class="cmp-save-sub">${ts} · ♩=${s.tempo||100} · ${esc(date)}</div></div><button class="cmp-save-del" onclick="event.stopPropagation();Cmp._deleteSave('${id}')">Delete</button></div>`;
+    }).join('');
+  },
+
+  _loadSavedComp(id){
+    let saves={};
+    try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){return;}
+    const s=saves[id];if(!s)return;
+    this.stop();
+    this.ts=s.ts;
+    this.totalMeasures=s.totalMeasures||4;
+    this.tempo=s.tempo||100;
+    if(s.tone){this.tone=s.tone;const sel=document.getElementById('cmp-tone');if(sel)sel.value=s.tone;}
+    this.notes=(s.notes||[]).map(n=>({...n,current:false}));
+    if(this.notes.length)this.notes[this.notes.length-1].current=true;
+    this._selectedIdx=null;this.selectedMeasure=null;this.selectedMeasureEnd=null;
+    this._tg={base:0,count:0,accum:0};this.tripletMode=false;
+    document.getElementById('cmp-triplet-btn')?.classList.remove('on');
+    const titleEl=document.getElementById('c-title');if(titleEl)titleEl.value=s.title||'';
+    if(typeof this._updTempoDisp==='function')this._updTempoDisp();
+    this.render();
+    this.closeLoadModal();
+    Toast.show({ic:'📂',title:'Loaded',sub:`"${s.title||'Untitled'}"`});
+  },
+
+  _deleteSave(id){
+    let saves={};
+    try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){return;}
+    if(!saves[id])return;
+    delete saves[id];
+    try{localStorage.setItem('melodia:saves',JSON.stringify(saves));}catch(e){}
+    this._renderSaves();
   },
 
   surprise(){
