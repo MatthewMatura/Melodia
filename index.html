@@ -984,13 +984,12 @@ const Cmp = {
     const grid=document.getElementById('cmp-ts-grid');if(!grid)return;
     // FIX 4: use data-idx, no onclick attribute — addEventListener wired in init()
     grid.innerHTML=this.TIME_SIGS.map((ts,i)=>{
-      const dim=ts.placeholder?'style="opacity:.42"':'';
       if(ts.placeholder){
-        return `<button class="cmp-ts-btn" data-idx="${i}" ${dim}>
+        return `<button class="cmp-ts-btn" data-idx="${i}">
           <span class="cmp-ts-btn-text">Make Your Own</span>
         </button>`;
       }
-      return `<button class="cmp-ts-btn" data-idx="${i}" ${dim}>
+      return `<button class="cmp-ts-btn" data-idx="${i}">
         <div class="cmp-tsn-wrap">
           <span class="cmp-tsn-top">${ts.b}</span>
           <span class="cmp-tsn-bot">${ts.v}</span>
