@@ -126,7 +126,7 @@ transform:scale(.96);
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
 .cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;}
 .cmp-input-left{flex:1;min-width:0;}
-.cmp-input-mid{flex:1;min-width:110px;display:flex;align-items:center;justify-content:center;padding-top:6px;}
+.cmp-input-mid{flex:0 0 100px;display:flex;align-items:center;justify-content:center;padding-top:6px;}
 .cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));}
 .cmp-beaver g{transition:transform 90ms ease-out;transform-box:fill-box;}
 .cmp-beaver .bvr-arm-l{transform-origin:50% 0%;}
@@ -162,9 +162,9 @@ transform:scale(.96);
 .cmp-ts-info-sig{font-weight:900;color:#f5c518;color:var(–gold);min-width:38px;font-family:Georgia,serif;}
 .cmp-ts-info-feel{flex:1;font-size:11px;color:rgba(240,230,208,.78);}
 .cmp-input-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#f5c518;color:var(–gold);margin-bottom:5px;margin-top:4px;}
-.cmp-note-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
+.cmp-note-row{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;}
 .cmp-note-row::-webkit-scrollbar{display:none;}
-.cmp-nbtn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 7px 6px;border-radius:11px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:52px;}
+.cmp-nbtn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 5px 5px;border-radius:11px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:42px;}
 .cmp-nbtn:active,.cmp-nbtn.sel{border-color:#f5c518;border-color:var(–gold);background:rgba(245,197,24,.1);}
 .cmp-nbtn svg{display:block;}
 .cmp-nbtn-lbl{font-size:8px;color:#000;text-align:center;letter-spacing:.04em;text-transform:uppercase;line-height:1.3;}
@@ -204,6 +204,23 @@ transform:scale(.96);
 .cmp-save-sub{font-size:10px;color:rgba(240,230,208,.55);color:var(–dim);}
 .cmp-save-del{background:transparent;border:1px solid rgba(232,20,42,.4);color:#e8142a;color:var(–red);border-radius:6px;padding:5px 9px;font-size:10px;cursor:pointer;font-weight:900;-webkit-tap-highlight-color:transparent;flex-shrink:0;margin-left:8px;}
 .cmp-saves-empty{padding:30px;text-align:center;color:rgba(240,230,208,.55);color:var(–dim);font-size:12px;}
+
+.cmp-customts-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9000;align-items:center;justify-content:center;padding:20px;}
+.cmp-customts-modal.on{display:flex;}
+.cmp-customts-content{background:#10101e;background:var(–surf);border:1px solid rgba(245,197,24,.4);border-radius:14px;width:min(380px,100%);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
+.cmp-customts-body{padding:16px 20px;color:#f0e6d0;color:var(–ink);font-size:13px;line-height:1.5;}
+.cmp-customts-explain{font-size:12px;color:rgba(240,230,208,.78);margin:4px 0 8px;line-height:1.45;}
+.cmp-customts-stack{display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0 8px;}
+.cmp-customts-divider{width:90px;height:3px;background:#f5c518;background:var(–gold);border-radius:2px;margin:4px 0;}
+.cmp-customts-stepper{display:flex;flex-direction:column;align-items:center;gap:5px;}
+.cmp-customts-num{font-family:‘Times New Roman’,serif;font-size:48px;font-weight:900;color:#f5c518;color:var(–gold);line-height:1;min-width:72px;text-align:center;}
+.cmp-customts-arrow{background:#10101e;background:var(–surf);border:2px solid rgba(245,197,24,.4);color:#f5c518;color:var(–gold);font-size:18px;font-weight:900;width:60px;height:32px;border-radius:8px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+.cmp-customts-arrow:active{background:rgba(245,197,24,.18);}
+.cmp-customts-arrow:disabled{opacity:.3;cursor:not-allowed;}
+.cmp-customts-actions{display:flex;gap:10px;padding:12px 20px 16px;border-top:1px solid rgba(245,197,24,.2);}
+.cmp-customts-actions button{flex:1;padding:11px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.cmp-customts-ok{border-color:#f5c518 !important;color:#f5c518 !important;}
+.cmp-customts-ok:active{background:rgba(245,197,24,.18);}
 
 /* ===== TOAST ===== */
 #toasts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:min(360px,90vw);}
@@ -393,6 +410,10 @@ transform-origin:center bottom;font-family:inherit;
     </svg>
   </div>
   <div class="cmp-input-right">
+    <button class="cmp-edit-btn cmp-stack-btn" id="cmp-slower-btn"
+      ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.slower()">🐢 Slower</button>
+    <button class="cmp-edit-btn cmp-stack-btn" id="cmp-faster-btn"
+      ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.faster()">⚡ Faster</button>
     <button class="cmp-triplet-btn cmp-stack-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
     <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.undo()">↩ Undo</button>
     <button class="cmp-edit-btn cmp-stack-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
@@ -405,11 +426,6 @@ transform-origin:center bottom;font-family:inherit;
 
 <div class="cmp-tempo-row">
   <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 100</div>
-  <button class="cmp-tempo-btn" id="cmp-slower-btn"
-    ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()">🐢 Slower</button>
-  <button class="cmp-tempo-btn" id="cmp-faster-btn"
-    ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()">⚡ Faster</button>
-  <button class="cmp-tempo-btn" id="cmp-tap-btn" onclick="Cmp.tapTempo()">👆 Tap Tempo</button>
 </div>
 
 <!-- Staff — nothing overlaps it -->
@@ -466,6 +482,36 @@ transform-origin:center bottom;font-family:inherit;
       <button class="cmp-saves-close" onclick="Cmp.closeLoadModal()">✕</button>
     </div>
     <div class="cmp-saves-list" id="cmp-saves-list"></div>
+  </div>
+</div>
+
+<div class="cmp-customts-modal" id="cmp-customts-modal" onclick="if(event.target===this)Cmp.closeCustomTs()">
+  <div class="cmp-customts-content">
+    <div class="cmp-saves-hdr">
+      <span>🎼 Custom Time Signature</span>
+      <button class="cmp-saves-close" onclick="Cmp.closeCustomTs()">✕</button>
+    </div>
+    <div class="cmp-customts-body">
+      <div class="cmp-customts-explain"><b style="color:#f5c518">Top number</b> — how many beats are in one measure.</div>
+      <div class="cmp-customts-stack">
+        <div class="cmp-customts-stepper">
+          <button class="cmp-customts-arrow" id="cmp-cts-top-up" onclick="Cmp.customTsStep('top',1)">▲</button>
+          <div class="cmp-customts-num" id="cmp-cts-top">4</div>
+          <button class="cmp-customts-arrow" id="cmp-cts-top-dn" onclick="Cmp.customTsStep('top',-1)">▼</button>
+        </div>
+        <div class="cmp-customts-divider"></div>
+        <div class="cmp-customts-stepper">
+          <button class="cmp-customts-arrow" id="cmp-cts-bot-up" onclick="Cmp.customTsStep('bot',1)">▲</button>
+          <div class="cmp-customts-num" id="cmp-cts-bot">4</div>
+          <button class="cmp-customts-arrow" id="cmp-cts-bot-dn" onclick="Cmp.customTsStep('bot',-1)">▼</button>
+        </div>
+      </div>
+      <div class="cmp-customts-explain"><b style="color:#f5c518">Bottom number</b> — which kind of note gets one beat. 1=whole, 2=half, 4=quarter, 8=eighth, 16=sixteenth, 32=thirty-second.</div>
+    </div>
+    <div class="cmp-customts-actions">
+      <button onclick="Cmp.closeCustomTs()">Cancel</button>
+      <button class="cmp-customts-ok" id="cmp-cts-ok" onclick="Cmp.customTsConfirm()">✓ Use 4/4</button>
+    </div>
   </div>
 </div>
 
@@ -980,9 +1026,54 @@ const Cmp = {
   pickTs(i){
     const ts=this.TIME_SIGS[i];
     console.log('time sig selected:',ts);
-    if(ts.placeholder){Toast.show({ic:'🔨',title:'Coming Soon!',sub:'Custom time sigs are in the works!',type:'e'});return;}
+    if(ts.placeholder){this.openCustomTs();return;}
     this.ts=ts;this.tempo=100;this.notes=[];
     document.getElementById('cmp-ts-label').textContent=ts.sub||ts.label;
+    this._updTempoDisp();
+    this._showStep('compose');
+    this.render();
+  },
+
+  // CUSTOM TIME SIGNATURE MODAL
+  _customTs:{top:4,bot:4},
+  _CTS_BOTS:[1,2,4,8,16,32],
+  openCustomTs(){
+    this._customTs={top:4,bot:4};
+    this._updCustomTsUI();
+    document.getElementById('cmp-customts-modal')?.classList.add('on');
+  },
+  closeCustomTs(){
+    document.getElementById('cmp-customts-modal')?.classList.remove('on');
+  },
+  customTsStep(which,dir){
+    if(which==='top'){
+      this._customTs.top=Math.max(1,Math.min(32,this._customTs.top+dir));
+    } else {
+      const arr=this._CTS_BOTS;
+      let idx=arr.indexOf(this._customTs.bot);
+      idx=Math.max(0,Math.min(arr.length-1,idx+dir));
+      this._customTs.bot=arr[idx];
+    }
+    this._updCustomTsUI();
+  },
+  _updCustomTsUI(){
+    const {top,bot}=this._customTs;
+    const tEl=document.getElementById('cmp-cts-top'); if(tEl)tEl.textContent=top;
+    const bEl=document.getElementById('cmp-cts-bot'); if(bEl)bEl.textContent=bot;
+    const ok=document.getElementById('cmp-cts-ok'); if(ok)ok.textContent=`✓ Use ${top}/${bot}`;
+    const tu=document.getElementById('cmp-cts-top-up'); if(tu)tu.disabled=top>=32;
+    const td=document.getElementById('cmp-cts-top-dn'); if(td)td.disabled=top<=1;
+    const arr=this._CTS_BOTS, bIdx=arr.indexOf(bot);
+    const bu=document.getElementById('cmp-cts-bot-up'); if(bu)bu.disabled=bIdx>=arr.length-1;
+    const bd=document.getElementById('cmp-cts-bot-dn'); if(bd)bd.disabled=bIdx<=0;
+  },
+  customTsConfirm(){
+    const {top,bot}=this._customTs;
+    const cap=top*8/bot;
+    const ts={label:'Custom',sub:`${top}/${bot}`,b:top,v:bot,cap,beatUnit:bot,bul:'♩'};
+    this.closeCustomTs();
+    this.ts=ts;this.tempo=100;this.notes=[];
+    document.getElementById('cmp-ts-label').textContent=ts.sub;
     this._updTempoDisp();
     this._showStep('compose');
     this.render();
@@ -1375,7 +1466,7 @@ const Cmp = {
     this.tripletMode=!this.tripletMode;
     if(!this.tripletMode) this._tg={base:0,count:0,accum:0};
     document.getElementById('cmp-triplet-btn')?.classList.toggle('on',this.tripletMode);
-    if(this.tripletMode) Toast.show({ic:'³',title:'Triplet Mode',sub:'Tap a note or rest — auto-exits after 3.'});
+    if(this.tripletMode) Toast.show({ic:'³',title:'Triplet Mode',sub:'Tap 3 notes or rests.'});
   },
 
   toggleLoop(){
@@ -1835,14 +1926,7 @@ const Cmp = {
       } else {
         this._bvrSchedule.push({t:t-this._wStart,pose:''});
       }
-      if(wrap){
-        const mi=Math.floor((cumBefore+beat8+0.001)/cap);
-        if(mi!==lastMi){
-          lastMi=mi;
-          const tid=setTimeout(()=>wrap.scrollTo({left:mi*pMW,behavior:'smooth'}),Math.max(0,(t-ctx.currentTime)*1000));
-          this._wScrollTimers.push(tid);
-        }
-      }
+      // Auto-scroll-to-measure removed so user can scroll freely during play
       beat8+=n.dur8;
       t+=dur;
     });
@@ -1865,14 +1949,7 @@ const Cmp = {
         } else {
           this._bvrSchedule.push({t:t2-this._wStart,pose:''});
         }
-        if(wrap){
-          const mi=Math.floor((cumBefore+beat82+0.001)/cap);
-          if(mi!==lastMi2){
-            lastMi2=mi;
-            const tid=setTimeout(()=>wrap.scrollTo({left:mi*pMW,behavior:'smooth'}),Math.max(0,(t2-ctx.currentTime)*1000));
-            this._wScrollTimers.push(tid);
-          }
-        }
+        // Auto-scroll-to-measure removed so user can scroll freely during play
         beat82+=n.dur8;
         t2+=dur;
       });
@@ -1986,14 +2063,7 @@ const Cmp = {
         const node=this._playTone(ctx,D4,t,dur);
         if(node)this._wNodes.push(node);
       }
-      if(wrap){
-        const mi=Math.floor((cumBefore+beat8+0.001)/cap);
-        if(mi!==lastMi){
-          lastMi=mi;
-          const tid=setTimeout(()=>wrap.scrollTo({left:mi*pMW,behavior:'smooth'}),Math.max(0,(t-ctx.currentTime)*1000));
-          this._wScrollTimers.push(tid);
-        }
-      }
+      // Auto-scroll-to-measure removed so user can scroll freely during play
       beat8+=n.dur8;
       t+=dur;
     });
