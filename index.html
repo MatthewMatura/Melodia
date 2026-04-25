@@ -518,15 +518,19 @@ const Toast = {
     const el=document.createElement('div');
     el.className=`toast${type==='e'?' e':type==='s'?' s':''}`;
     el.innerHTML=`<span class="t-ic">${ic}</span><div class="t-body"><div class="t-title">${title}</div><div class="t-sub">${sub}</div></div>`;
-    const a=this._anchor;
-    if(a&&a.isConnected){
+    // Prefer placing toast near a visible beaver so it looks like he's saying it.
+    let beaver=document.querySelector('.cmp-input-mid .cmp-beaver');
+    if(!beaver||beaver.offsetParent===null) beaver=document.querySelector('.cmp-conductor .cmp-beaver');
+    if(beaver&&beaver.offsetParent===null) beaver=null;
+    const target=beaver||(this._anchor&&this._anchor.isConnected?this._anchor:null);
+    if(target){
       el.style.position='fixed';
       el.style.maxWidth='280px';
       el.style.zIndex='9999';
       el.style.pointerEvents='none';
       document.body.appendChild(el);
       const tr=el.getBoundingClientRect();
-      const r=a.getBoundingClientRect();
+      const r=target.getBoundingClientRect();
       const cx=r.left+r.width/2;
       let L=cx-tr.width/2;
       L=Math.max(8,Math.min(window.innerWidth-tr.width-8,L));
@@ -646,6 +650,7 @@ const CmpSheet = {
       // Beam-aware spacing: tighter floor (+11) for consecutive notes within a group, else +18
       let prevNx=mx;const pos=[];
       let globalBase=0;for(let j=0;j<mi;j++)globalBase+=(measures[j]||[]).length;
+      // Phase 1: compute natural positions left-to-right
       mNotes.forEach((n,i)=>{
         const baseNx=mx+(n.startBeat8/ts.cap)*mW+10;
         const beamed=i>0&&ng[i]>=0&&ng[i]===ng[i-1];
@@ -656,16 +661,29 @@ const CmpSheet = {
         if(i===mNotes.length-1){
           const isLastM=mi===totalMeasures-1;
           const barX=isLastM?(mx+mW-4):(mx+mW); // thin final barline vs interior barline
-          const beamed=ng[i]>=0;
+          const beamedL=ng[i]>=0;
           let glyphR;
           if(n.rest) glyphR=8;
-          else if(!beamed&&n.d>=8) glyphR=9; // unbeamed flagged notes (8th/16th flag extends ~+8.6)
+          else if(!beamedL&&n.d>=8) glyphR=9; // unbeamed flagged notes (8th/16th flag extends ~+8.6)
           else if(n.dot) glyphR=10;
           else glyphR=7;
           const repeatPad=(typeof Cmp!=='undefined'&&Cmp.repeatOn&&isLastM)?14:0;
           nx=Math.min(nx,barX-glyphR-8-repeatPad);
         }
         prevNx=nx;pos[i]=nx;
+      });
+      // Phase 2: backward-pass collision resolution. If last-note clamp pushed it
+      // behind prev, cascade leftward shifts to maintain min spacing.
+      for(let i=pos.length-1;i>0;i--){
+        const beamedB=ng[i]>=0&&ng[i]===ng[i-1];
+        const dotPadB=mNotes[i-1].dot?5:0;
+        const minSp=(beamedB?11:18)+dotPadB;
+        if(pos[i]-pos[i-1]<minSp){pos[i-1]=pos[i]-minSp;}
+      }
+      if(pos.length>0&&pos[0]<mx+15)pos[0]=mx+15;
+      // Phase 3: render notes using final positions
+      mNotes.forEach((n,i)=>{
+        const nx=pos[i];
         const gi=globalBase+i;
         s+=`<g data-note-idx="${gi}" style="cursor:pointer"><rect x="${nx-15}" y="${ST-6}" width="30" height="${SB-ST+18}" fill="transparent" pointer-events="all"/>${this._drawNote(n,nx,ST,SB,ng[i]>=0)}</g>`;
       });
