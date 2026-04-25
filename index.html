@@ -505,14 +505,35 @@ const U = {
 // ─────────────────────────────────────────
 
 const Toast = {
+  _anchor: null,
   show({ic='🎵',title='',sub='',type=''}){
     const el=document.createElement('div');
     el.className=`toast${type==='e'?' e':type==='s'?' s':''}`;
     el.innerHTML=`<span class="t-ic">${ic}</span><div class="t-body"><div class="t-title">${title}</div><div class="t-sub">${sub}</div></div>`;
-    document.getElementById('toasts').appendChild(el);
+    const a=this._anchor;
+    if(a&&a.isConnected){
+      el.style.position='fixed';
+      el.style.maxWidth='280px';
+      el.style.zIndex='9999';
+      el.style.pointerEvents='none';
+      document.body.appendChild(el);
+      const tr=el.getBoundingClientRect();
+      const r=a.getBoundingClientRect();
+      const cx=r.left+r.width/2;
+      let L=cx-tr.width/2;
+      L=Math.max(8,Math.min(window.innerWidth-tr.width-8,L));
+      let T;
+      if(r.bottom+10+tr.height<window.innerHeight-8) T=r.bottom+10;
+      else T=Math.max(8,r.top-10-tr.height);
+      el.style.left=L+'px';
+      el.style.top=T+'px';
+    } else {
+      document.getElementById('toasts').appendChild(el);
+    }
     setTimeout(()=>{el.style.animation='t-out .28s ease-in forwards';setTimeout(()=>el.remove(),280);},3200);
   },
 };
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('button,[role="button"]');if(b)Toast._anchor=b;},true);
 
 // ─────────────────────────────────────────
 // COMPOSE SHEET RENDERER
@@ -632,7 +653,8 @@ const CmpSheet = {
           else if(!beamed&&n.d>=8) glyphR=9; // unbeamed flagged notes (8th/16th flag extends ~+8.6)
           else if(n.dot) glyphR=10;
           else glyphR=7;
-          nx=Math.min(nx,barX-glyphR-8);
+          const repeatPad=(typeof Cmp!=='undefined'&&Cmp.repeatOn&&isLastM)?14:0;
+          nx=Math.min(nx,barX-glyphR-8-repeatPad);
         }
         prevNx=nx;pos[i]=nx;
         const gi=globalBase+i;
@@ -1175,6 +1197,7 @@ const Cmp = {
     this.stop();this.notes=[];this.totalMeasures=4;this._tg={base:0,count:0,accum:0};
     this._selectedIdx=null;this.selectedMeasure=null;this.selectedMeasureEnd=null;
     this.tripletMode=false;
+    this.tempo=100;this._updTempoDisp();
     document.getElementById('cmp-triplet-btn')?.classList.remove('on');
     Toast.show({ic:'💣',title:'Nuked.',sub:'Staff cleared. Start over, champion.'});
     this.render();
