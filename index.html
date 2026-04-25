@@ -76,7 +76,7 @@ position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;
 .cmp-entry-hero{padding:32px 20px 4px;text-align:center;}
 .cmp-entry-title{font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(135deg,#e8142a,#f5c518);background:linear-gradient(135deg,var(–red),var(–gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .cmp-entry-sub{font-size:12px;color:rgba(240,230,208,.55);color:var(–dim);margin-top:4px;font-style:italic;font-family:Georgia,serif;}
-.cmp-entry-btns{display:flex;flex-direction:row;gap:14px;padding:14px 20px 20px;justify-content:center;}
+.cmp-entry-btns{display:flex;flex-direction:row;gap:14px;padding:48px 20px 20px;justify-content:center;}
 .cmp-mode-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:18px;border-radius:18px;border:none;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;flex:1;max-width:280px;aspect-ratio:1/1;}
 .cmp-mode-btn:active{transform:scale(.96);}
 .cmb-ic{font-size:36px;line-height:1;}
@@ -208,14 +208,22 @@ transform:scale(.96);
 /* ===== TOAST ===== */
 #toasts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:min(360px,90vw);}
 .toast{
-background:var(–surf);border:1px solid var(–gold);border-radius:10px;
-padding:11px 15px;display:flex;align-items:center;gap:10px;
-box-shadow:0 4px 30px rgba(0,0,0,.5),var(–gG);
-
+background:linear-gradient(135deg,#fef3c7,#fde68a);
+border:3px solid #f5c518;border-radius:20px;
+padding:14px 18px;display:flex;align-items:center;gap:14px;
+box-shadow:0 10px 28px rgba(0,0,0,.55),0 0 0 4px rgba(245,197,24,.2);
+color:#1a1a2e;
+animation:t-in .42s cubic-bezier(.5,1.7,.4,1);
+transform-origin:center bottom;font-family:inherit;
 }
-.toast.e{border-color:var(–red);}
-.toast.s{border-color:var(–jade);}
-.t-ic{font-size:26px;} .t-body{flex:1;} .t-title{font-size:13px;font-weight:900;} .t-sub{font-size:11px;color:var(–dim);}
+.toast.e{background:linear-gradient(135deg,#fecaca,#fca5a5);border-color:#dc2626;}
+.toast.s{background:linear-gradient(135deg,#bbf7d0,#86efac);border-color:#16a34a;}
+.t-ic{font-size:38px;line-height:1;flex-shrink:0;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));}
+.t-body{flex:1;min-width:0;}
+.t-title{font-size:16px;font-weight:900;color:#1a1a2e;line-height:1.15;}
+.t-sub{font-size:12px;color:#3f3f46;margin-top:3px;line-height:1.25;font-weight:600;}
+@keyframes t-in{0%{transform:scale(.4) rotate(-10deg);opacity:0;}55%{transform:scale(1.1) rotate(3deg);opacity:1;}80%{transform:scale(.95) rotate(-1deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
+@keyframes t-out{0%{transform:scale(1) rotate(0);opacity:1;}100%{transform:scale(.6) translateY(8px) rotate(6deg);opacity:0;}}
 /* score floats */
 .sf{position:fixed;font-size:22px;font-weight:900;color:var(–jade);pointer-events:none;z-index:500;}
 .sf.w{color:var(–red);}
@@ -522,9 +530,8 @@ const Toast = {
       const cx=r.left+r.width/2;
       let L=cx-tr.width/2;
       L=Math.max(8,Math.min(window.innerWidth-tr.width-8,L));
-      let T;
-      if(r.bottom+10+tr.height<window.innerHeight-8) T=r.bottom+10;
-      else T=Math.max(8,r.top-10-tr.height);
+      let T=r.top-10-tr.height;
+      if(T<8) T=8;
       el.style.left=L+'px';
       el.style.top=T+'px';
     } else {
@@ -642,7 +649,9 @@ const CmpSheet = {
       mNotes.forEach((n,i)=>{
         const baseNx=mx+(n.startBeat8/ts.cap)*mW+10;
         const beamed=i>0&&ng[i]>=0&&ng[i]===ng[i-1];
-        const floor=beamed?prevNx+11:prevNx+18;
+        const prevDot=i>0&&mNotes[i-1].dot;
+        const dotPad=prevDot?5:0;
+        const floor=beamed?prevNx+11+dotPad:prevNx+18+dotPad;
         let nx=i===0?Math.max(mx+15,baseNx):Math.max(floor,baseNx);
         if(i===mNotes.length-1){
           const isLastM=mi===totalMeasures-1;
