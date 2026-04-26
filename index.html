@@ -571,15 +571,15 @@ const Toast = {
   _anchor: null,
   _active: [],
   show({ic='🎵',title='',sub='',type='',cat=''}){
-    // Categorized replacement: a new toast in the same category removes any
-    // existing toast in that category. Toasts in different categories coexist.
+    // Replacement rule: a new toast removes ALL existing toasts EXCEPT in the
+    // special beat↔counting pair, which is allowed to coexist side-by-side.
     this._active=this._active.filter(x=>x.el.isConnected);
-    if(cat){
-      this._active=this._active.filter(x=>{
-        if(x.cat===cat){try{x.el.remove();}catch(e){}return false;}
-        return true;
-      });
-    }
+    this._active=this._active.filter(x=>{
+      const pair=(cat==='beat'&&x.cat==='counting')||(cat==='counting'&&x.cat==='beat');
+      if(pair)return true;
+      try{x.el.remove();}catch(e){}
+      return false;
+    });
     const el=document.createElement('div');
     el.className=`toast${type==='e'?' e':type==='s'?' s':''}`;
     el.innerHTML=`<span class="t-ic">${ic}</span><div class="t-body"><div class="t-title">${title}</div><div class="t-sub">${sub}</div></div>`;
@@ -1392,9 +1392,20 @@ const Cmp = {
   toggleRepeat(){
     this.repeatOn=!this.repeatOn;
     document.getElementById('cmp-repeat-btn')?.classList.toggle('on',this.repeatOn);
+    let loopWasOn=false;
     if(this.repeatOn){
       // Mutually exclusive with Loop (different semantics: repeat=play twice once, loop=infinite)
-      if(this.loopOn){this.loopOn=false;document.getElementById('cmp-loop-btn')?.classList.remove('on');}
+      if(this.loopOn){
+        this.loopOn=false;
+        loopWasOn=true;
+        document.getElementById('cmp-loop-btn')?.classList.remove('on');
+        this.selectedMeasure=null;this.selectedMeasureEnd=null;
+      }
+    }
+    if(this.repeatOn){
+      Toast.show({ic:'𝄇',title:loopWasOn?'Repeat On<br>Loop Off':'Repeat On',sub:''});
+    } else {
+      Toast.show({ic:'𝄇',title:'Repeat Off',sub:''});
     }
     this.render();
   },
@@ -1515,25 +1526,32 @@ const Cmp = {
   toggleLoop(){
     this.loopOn=!this.loopOn;
     document.getElementById('cmp-loop-btn')?.classList.toggle('on',this.loopOn);
+    let repeatWasOn=false;
+    if(this.loopOn&&this.repeatOn){
+      this.repeatOn=false;
+      repeatWasOn=true;
+      document.getElementById('cmp-repeat-btn')?.classList.remove('on');
+    }
     if(this.loopOn){
-      const hasSel=this.selectedMeasure!==null;
-      Toast.show({ic:'🔁',title:'Loop on',sub:hasSel?'Playback will loop the selected range.':'Tap measure(s) to set a range.'});
+      Toast.show({ic:'🔁',title:repeatWasOn?'Loop On<br>Repeat Off':'Loop On',sub:''});
     } else {
       this.selectedMeasure=null;this.selectedMeasureEnd=null;
-      this.render();
-      Toast.show({ic:'🔁',title:'Loop off'});
+      Toast.show({ic:'🔁',title:'Loop Off',sub:''});
     }
+    this.render();
   },
 
   toggleMetronome(){
     this.metronomeOn=!this.metronomeOn;
+    let drumWasOn=false;
+    if(this.metronomeOn&&this.drumOn){
+      this.drumOn=false;
+      drumWasOn=true;
+      document.getElementById('cmp-drum-btn')?.classList.remove('on');
+    }
     document.getElementById('cmp-metro-btn')?.classList.toggle('on',this.metronomeOn);
     if(this.metronomeOn){
-      if(this.drumOn){
-        Toast.show({ic:'⏱',title:'Metronome On<br>Drums On',sub:'',cat:'beat'});
-      } else {
-        Toast.show({ic:'⏱',title:'Metronome On',sub:'',cat:'beat'});
-      }
+      Toast.show({ic:'⏱',title:drumWasOn?'Metronome On<br>Drums Off':'Metronome On',sub:'',cat:'beat'});
     } else {
       Toast.show({ic:'⏱',title:'Metronome Off',sub:'',cat:'beat'});
     }
@@ -1541,13 +1559,15 @@ const Cmp = {
 
   toggleDrum(){
     this.drumOn=!this.drumOn;
+    let metWasOn=false;
+    if(this.drumOn&&this.metronomeOn){
+      this.metronomeOn=false;
+      metWasOn=true;
+      document.getElementById('cmp-metro-btn')?.classList.remove('on');
+    }
     document.getElementById('cmp-drum-btn')?.classList.toggle('on',this.drumOn);
     if(this.drumOn){
-      if(this.metronomeOn){
-        Toast.show({ic:'🥁',title:'Drums On<br>Metronome On',sub:'',cat:'beat'});
-      } else {
-        Toast.show({ic:'🥁',title:'Drums On',sub:'',cat:'beat'});
-      }
+      Toast.show({ic:'🥁',title:metWasOn?'Drums On<br>Metronome Off':'Drums On',sub:'',cat:'beat'});
     } else {
       Toast.show({ic:'🥁',title:'Drums Off',sub:'',cat:'beat'});
     }
