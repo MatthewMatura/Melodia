@@ -649,7 +649,18 @@ const CmpSheet = {
     if(!ts){svgEl.innerHTML='';return;}
     const mLeft=68,H=108,ST=this.ST,SB=this.SB;
     const vp=svgEl.parentElement?.clientWidth||600;
-    const mW=Math.max(80,(vp-mLeft)/4);
+    // Pre-compute measures so mW can adapt to the densest one — otherwise dense
+    // 16th runs in tight meters (e.g. 20 16ths in 10/8) can't fit at min spacing.
+    const measures=this._getMeasures(notes,ts.cap,totalMeasures);
+    let maxNotes=0;
+    for(let mi=0;mi<totalMeasures;mi++){
+      const c=(measures[mi]||[]).length;
+      if(c>maxNotes)maxNotes=c;
+    }
+    // 18px/note is the safe upper-bound (unbeamed worst case); +30 for start/end padding.
+    // Beamed runs are tighter so this overshoots slightly but never crowds.
+    const minDenseMW=maxNotes*18+30;
+    const mW=Math.max(80,(vp-mLeft)/4,minDenseMW);
     const W=mLeft+totalMeasures*mW;
     svgEl.style.width=W+'px';
     svgEl.style.flexShrink='0';
@@ -665,8 +676,7 @@ const CmpSheet = {
     // Time sig
     s+=`<text x="52" y="${ST+14}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.b}</text>`;
     s+=`<text x="52" y="${ST+27}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.v}</text>`;
-    // Measures
-    const measures=this._getMeasures(notes,ts.cap,totalMeasures);
+    // Measures already computed above for mW sizing
     const isCompound=(ts.v===8&&ts.b%3===0&&ts.b>3);
     const beatSize=isCompound?3:Math.max(1,ts.cap/ts.b);
     // Range-highlight bounds (handles single-measure and range selection)
