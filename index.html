@@ -1920,6 +1920,19 @@ const Cmp = {
         const frac=b.t>a.t?(t-a.t)/(b.t-a.t):0;
         const x=a.x+(b.x-a.x)*frac;
         ph.setAttribute('transform',`translate(${x},0)`);
+        // Auto-scroll only when playhead leaves the viewport — uses smooth scroll-by
+        // so it doesn't snap-fight a user mid-scroll. Triggers ~40px before right edge
+        // and 60px before left edge (in case user scrolled past).
+        const wrap=document.querySelector('.cmp-staff-wrap');
+        if(wrap){
+          const sl=wrap.scrollLeft, vw=wrap.clientWidth;
+          const margin=40;
+          if(x>sl+vw-margin){
+            wrap.scrollLeft=Math.max(0,x-vw+margin*2);
+          } else if(x<sl-10){
+            wrap.scrollLeft=Math.max(0,x-margin);
+          }
+        }
         // Beaver pose: pick most recent scheduled pose for current elapsed
         const bs=this._bvrSchedule;
         if(bs&&bs.length){
