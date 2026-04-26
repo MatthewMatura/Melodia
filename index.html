@@ -451,6 +451,7 @@ transform-origin:center bottom;font-family:inherit;
     <button class="cmp-play-btn" onclick="Cmp.stop()" title="Stop">⏹</button>
   </div>
   <div class="cmp-playbar-right">
+    <button class="cmp-play-btn" id="cmp-counting-btn" onclick="Cmp.toggleCounting()" title="Counting" aria-label="Counting">123</button>
     <button class="cmp-play-btn" id="cmp-metro-btn" onclick="Cmp.toggleMetronome()" title="Metronome during playback" aria-label="Metronome">⏱</button>
     <button class="cmp-play-btn" id="cmp-drum-btn" onclick="Cmp.toggleDrum()" title="Drum beat during playback" aria-label="Drum beat">🥁</button>
     <select class="cmp-tone-sel" id="cmp-tone" onchange="Cmp.setTone(this.value)" title="Tone" aria-label="Tone">
@@ -932,7 +933,7 @@ const Cmp = {
   ts:null, tempo:100,
   notes:[], durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
-  totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, repeatOn:false, metronomeOn:false, drumOn:false,
+  totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, repeatOn:false, metronomeOn:false, drumOn:false, countingOn:false,
 
   TIME_SIGS:[
     {label:'Cut Time', sub:'2/2',  b:2,  v:2, cap:8,  beatUnit:2, bul:'𝅗𝅥'},
@@ -1519,6 +1520,12 @@ const Cmp = {
     Toast.show({ic:'🥁',title:this.drumOn?'Drum beat on':'Drum beat off',sub:this.drumOn?'Drums replace metronome through playback.':'Count-in only.'});
   },
 
+  toggleCounting(){
+    this.countingOn=!this.countingOn;
+    document.getElementById('cmp-counting-btn')?.classList.toggle('on',this.countingOn);
+    Toast.show({ic:'🔢',title:this.countingOn?'Counting on':'Counting off'});
+  },
+
   render(){
     const svg=document.getElementById('cmp-svg');if(!svg)return;
     CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure,selectedMeasureEnd:this.selectedMeasureEnd});
@@ -1933,15 +1940,13 @@ const Cmp = {
         if(wrap){
           wrap.classList.add('locked');
           const vw=wrap.clientWidth;
-          const targetLeft=Math.max(0,x-vw*0.30);
+          // Keep playhead near left edge (~60px of left margin past time sig) so the
+          // user has maximum look-ahead and a loop's first measure sits at the left.
+          const targetLeft=Math.max(0,x-60);
           const prevX=this._phLastX;
           this._phLastX=x;
-          // Detect backward jump (repeat restart) — scrollLeft snaps instantly
-          if(prevX!=null && x<prevX-vw*0.5){
-            wrap.scrollLeft=targetLeft;
-          } else {
-            wrap.scrollLeft=targetLeft;
-          }
+          // Backward jump (repeat-back-to-start) — instant snap so scroll keeps up
+          wrap.scrollLeft=targetLeft;
         }
         // Beaver pose: pick most recent scheduled pose for current elapsed
         const bs=this._bvrSchedule;
@@ -2336,7 +2341,7 @@ const Cmp = {
     this._repeatPass=0;
     const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
-    const sw=document.querySelector('.cmp-staff-wrap');if(sw){sw.style.borderColor='';sw.classList.remove('locked');}
+    const sw=document.querySelector('.cmp-staff-wrap');if(sw){sw.style.borderColor='';sw.classList.remove('locked');sw.scrollLeft=0;}
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const ph=document.getElementById('cmp-playhead');if(ph){ph.setAttribute('transform','translate(68,0)');ph.removeAttribute('display');}
     if(this._wac&&this._wac.state!=='closed'){
