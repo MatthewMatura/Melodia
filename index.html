@@ -1492,6 +1492,8 @@ const Cmp = {
       const hasSel=this.selectedMeasure!==null;
       Toast.show({ic:'🔁',title:'Loop on',sub:hasSel?'Playback will loop the selected range.':'Tap measure(s) to set a range.'});
     } else {
+      this.selectedMeasure=null;this.selectedMeasureEnd=null;
+      this.render();
       Toast.show({ic:'🔁',title:'Loop off'});
     }
   },
@@ -1524,15 +1526,23 @@ const Cmp = {
       svg.addEventListener('click',e=>{
         const mg=e.target.closest('[data-measure-idx]');
         if(mg){
+          // Measure selection only works when loop is on
+          if(!this.loopOn)return;
           const mi=parseInt(mg.getAttribute('data-measure-idx'));
-          // Range-select: 1st tap = start, 2nd (different) = end, 3rd = reset. Same-tap clears.
+          // Range-select:
+          //  - No selection → tapped measure becomes start
+          //  - Single measure selected, tap same → clear
+          //  - Single or range selected, tap different → extend range to span [min, max] of all
           if(this.selectedMeasure===null){
             this.selectedMeasure=mi;this.selectedMeasureEnd=null;
           } else if(this.selectedMeasureEnd===null){
             if(this.selectedMeasure===mi){this.selectedMeasure=null;}
             else{this.selectedMeasureEnd=mi;}
           } else {
-            this.selectedMeasure=mi;this.selectedMeasureEnd=null;
+            // Already a range — extend to encompass the new tap
+            const lo=Math.min(this.selectedMeasure,this.selectedMeasureEnd,mi);
+            const hi=Math.max(this.selectedMeasure,this.selectedMeasureEnd,mi);
+            this.selectedMeasure=lo;this.selectedMeasureEnd=hi;
           }
           this.deselectNote();
           this.render();
