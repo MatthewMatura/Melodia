@@ -570,7 +570,16 @@ const U = {
 const Toast = {
   _anchor: null,
   _active: [],
-  show({ic='🎵',title='',sub='',type=''}){
+  show({ic='🎵',title='',sub='',type='',cat=''}){
+    // Categorized replacement: a new toast in the same category removes any
+    // existing toast in that category. Toasts in different categories coexist.
+    this._active=this._active.filter(x=>x.el.isConnected);
+    if(cat){
+      this._active=this._active.filter(x=>{
+        if(x.cat===cat){try{x.el.remove();}catch(e){}return false;}
+        return true;
+      });
+    }
     const el=document.createElement('div');
     el.className=`toast${type==='e'?' e':type==='s'?' s':''}`;
     el.innerHTML=`<span class="t-ic">${ic}</span><div class="t-body"><div class="t-title">${title}</div><div class="t-sub">${sub}</div></div>`;
@@ -588,21 +597,18 @@ const Toast = {
       const tr=el.getBoundingClientRect();
       const r=target.getBoundingClientRect();
       const cx=r.left+r.width/2;
-      // Compose with already-visible toasts: alternate left / right of beaver
-      this._active=this._active.filter(x=>x.el.isConnected);
+      // Place beside any other still-visible toasts (other categories)
       const slot=this._active.length;
       let L;
       if(slot===0){
         L=cx-tr.width/2;
       } else if(slot===1){
-        // Push existing toast to the left, new toast to the right
         const existing=this._active[0];
         if(existing && existing.el.isConnected){
           existing.el.style.left=Math.max(8,cx-existing.el.getBoundingClientRect().width-12)+'px';
         }
         L=cx+12;
       } else {
-        // 3+ toasts: stack vertically above existing
         L=cx-tr.width/2;
       }
       L=Math.max(8,Math.min(window.innerWidth-tr.width-8,L));
@@ -611,7 +617,7 @@ const Toast = {
       if(T<8) T=8;
       el.style.left=L+'px';
       el.style.top=T+'px';
-      this._active.push({el});
+      this._active.push({el,cat});
     } else {
       document.getElementById('toasts').appendChild(el);
     }
@@ -1524,12 +1530,12 @@ const Cmp = {
     document.getElementById('cmp-metro-btn')?.classList.toggle('on',this.metronomeOn);
     if(this.metronomeOn){
       if(this.drumOn){
-        Toast.show({ic:'⏱',title:'Metronome On<br>Drums On',sub:''});
+        Toast.show({ic:'⏱',title:'Metronome On<br>Drums On',sub:'',cat:'beat'});
       } else {
-        Toast.show({ic:'⏱',title:'Metronome On',sub:''});
+        Toast.show({ic:'⏱',title:'Metronome On',sub:'',cat:'beat'});
       }
     } else {
-      Toast.show({ic:'⏱',title:'Metronome Off',sub:''});
+      Toast.show({ic:'⏱',title:'Metronome Off',sub:'',cat:'beat'});
     }
   },
 
@@ -1538,12 +1544,12 @@ const Cmp = {
     document.getElementById('cmp-drum-btn')?.classList.toggle('on',this.drumOn);
     if(this.drumOn){
       if(this.metronomeOn){
-        Toast.show({ic:'🥁',title:'Drums On<br>Metronome On',sub:''});
+        Toast.show({ic:'🥁',title:'Drums On<br>Metronome On',sub:'',cat:'beat'});
       } else {
-        Toast.show({ic:'🥁',title:'Drums On',sub:''});
+        Toast.show({ic:'🥁',title:'Drums On',sub:'',cat:'beat'});
       }
     } else {
-      Toast.show({ic:'🥁',title:'Drums Off',sub:''});
+      Toast.show({ic:'🥁',title:'Drums Off',sub:'',cat:'beat'});
     }
   },
 
@@ -1556,17 +1562,17 @@ const Cmp = {
       this.countingOn=true;
       this.countingOutLoud=false;
       if(btn){btn.textContent='🔢';btn.classList.add('on');}
-      Toast.show({ic:'🔢',title:'Counting On',sub:''});
+      Toast.show({ic:'🔢',title:'Counting On',sub:'',cat:'counting'});
     } else if(this._countState===2){
       this.countingOn=true;
       this.countingOutLoud=true;
       if(btn){btn.textContent='🗣️';btn.classList.add('on');}
-      Toast.show({ic:'🗣️',title:'Count Out Loud On',sub:''});
+      Toast.show({ic:'🗣️',title:'Count Out Loud On',sub:'',cat:'counting'});
     } else {
       this.countingOn=false;
       this.countingOutLoud=false;
       if(btn){btn.textContent='🔢';btn.classList.remove('on');}
-      Toast.show({ic:'🔢',title:'Counting Off',sub:''});
+      Toast.show({ic:'🔢',title:'Counting Off',sub:'',cat:'counting'});
     }
   },
 
