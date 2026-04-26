@@ -179,6 +179,7 @@ transform:scale(.96);
 .cmp-tempo-disp{flex:1.6;text-align:center;font-size:17px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.06em;}
 /* LAYOUT FIX 2: staff never overlaps adjacent elements */
 .cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;height:110px;display:flex;align-items:center;}
+.cmp-staff-wrap.locked{overflow-x:hidden;touch-action:none;}
 .cmp-surprise-btn{padding:10px 14px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
 .cmp-surprise-btn:active,.cmp-surprise-btn.on{background:rgba(245,197,24,.18);border-color:#f5c518;border-color:var(–gold);}
 .cmp-playbar{display:flex;align-items:center;padding:6px 14px 2px;flex-shrink:0;justify-content:space-between;gap:10px;}
@@ -1902,7 +1903,11 @@ const Cmp = {
 
     // Playhead RAF tick — reads audio clock, falls back to wall clock if stale
     this._phTick=()=>{
-      if(!this.playing){this._wRAF=null;return;}
+      if(!this.playing){
+        const w=document.querySelector('.cmp-staff-wrap');
+        if(w)w.classList.remove('locked');
+        this._wRAF=null;return;
+      }
       const ph=document.getElementById('cmp-playhead');
       const sc=this._phSchedule;
       if(ph&&sc&&sc.length&&this._wac){
@@ -1920,17 +1925,22 @@ const Cmp = {
         const frac=b.t>a.t?(t-a.t)/(b.t-a.t):0;
         const x=a.x+(b.x-a.x)*frac;
         ph.setAttribute('transform',`translate(${x},0)`);
-        // Auto-scroll only when playhead leaves the viewport — uses smooth scroll-by
-        // so it doesn't snap-fight a user mid-scroll. Triggers ~40px before right edge
-        // and 60px before left edge (in case user scrolled past).
+        // Continuous follow: viewport tracks playhead so it sits ~30% from the left edge.
+        // This gives the user 70% of the viewport width as look-ahead and is inherently
+        // smooth (no threshold-snap). On a backward jump (repeat-back-to-start), detect
+        // the jump and snap instantly so scroll keeps up.
         const wrap=document.querySelector('.cmp-staff-wrap');
         if(wrap){
-          const sl=wrap.scrollLeft, vw=wrap.clientWidth;
-          const margin=40;
-          if(x>sl+vw-margin){
-            wrap.scrollLeft=Math.max(0,x-vw+margin*2);
-          } else if(x<sl-10){
-            wrap.scrollLeft=Math.max(0,x-margin);
+          wrap.classList.add('locked');
+          const vw=wrap.clientWidth;
+          const targetLeft=Math.max(0,x-vw*0.30);
+          const prevX=this._phLastX;
+          this._phLastX=x;
+          // Detect backward jump (repeat restart) — scrollLeft snaps instantly
+          if(prevX!=null && x<prevX-vw*0.5){
+            wrap.scrollLeft=targetLeft;
+          } else {
+            wrap.scrollLeft=targetLeft;
           }
         }
         // Beaver pose: pick most recent scheduled pose for current elapsed
@@ -2326,7 +2336,7 @@ const Cmp = {
     this._repeatPass=0;
     const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
-    const sw=document.querySelector('.cmp-staff-wrap');if(sw)sw.style.borderColor='';
+    const sw=document.querySelector('.cmp-staff-wrap');if(sw){sw.style.borderColor='';sw.classList.remove('locked');}
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const ph=document.getElementById('cmp-playhead');if(ph){ph.setAttribute('transform','translate(68,0)');ph.removeAttribute('display');}
     if(this._wac&&this._wac.state!=='closed'){
