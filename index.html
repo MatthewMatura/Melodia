@@ -451,7 +451,7 @@ transform-origin:center bottom;font-family:inherit;
     <button class="cmp-play-btn" onclick="Cmp.stop()" title="Stop">⏹</button>
   </div>
   <div class="cmp-playbar-right">
-    <button class="cmp-play-btn" id="cmp-counting-btn" onclick="Cmp.toggleCounting()" title="Counting" aria-label="Counting">123</button>
+    <button class="cmp-play-btn" id="cmp-counting-btn" onclick="Cmp.toggleCounting()" title="Counting" aria-label="Counting">🔢</button>
     <button class="cmp-play-btn" id="cmp-metro-btn" onclick="Cmp.toggleMetronome()" title="Metronome during playback" aria-label="Metronome">⏱</button>
     <button class="cmp-play-btn" id="cmp-drum-btn" onclick="Cmp.toggleDrum()" title="Drum beat during playback" aria-label="Drum beat">🥁</button>
     <select class="cmp-tone-sel" id="cmp-tone" onchange="Cmp.setTone(this.value)" title="Tone" aria-label="Tone">
@@ -569,6 +569,7 @@ const U = {
 
 const Toast = {
   _anchor: null,
+  _active: [],
   show({ic='🎵',title='',sub='',type=''}){
     const el=document.createElement('div');
     el.className=`toast${type==='e'?' e':type==='s'?' s':''}`;
@@ -587,12 +588,30 @@ const Toast = {
       const tr=el.getBoundingClientRect();
       const r=target.getBoundingClientRect();
       const cx=r.left+r.width/2;
-      let L=cx-tr.width/2;
+      // Compose with already-visible toasts: alternate left / right of beaver
+      this._active=this._active.filter(x=>x.el.isConnected);
+      const slot=this._active.length;
+      let L;
+      if(slot===0){
+        L=cx-tr.width/2;
+      } else if(slot===1){
+        // Push existing toast to the left, new toast to the right
+        const existing=this._active[0];
+        if(existing && existing.el.isConnected){
+          existing.el.style.left=Math.max(8,cx-existing.el.getBoundingClientRect().width-12)+'px';
+        }
+        L=cx+12;
+      } else {
+        // 3+ toasts: stack vertically above existing
+        L=cx-tr.width/2;
+      }
       L=Math.max(8,Math.min(window.innerWidth-tr.width-8,L));
       let T=r.top-10-tr.height;
+      if(slot>=2) T-=(slot-1)*(tr.height+6);
       if(T<8) T=8;
       el.style.left=L+'px';
       el.style.top=T+'px';
+      this._active.push({el});
     } else {
       document.getElementById('toasts').appendChild(el);
     }
@@ -1502,28 +1521,53 @@ const Cmp = {
 
   toggleMetronome(){
     this.metronomeOn=!this.metronomeOn;
-    if(this.metronomeOn&&this.drumOn){
-      this.drumOn=false;
-      document.getElementById('cmp-drum-btn')?.classList.remove('on');
-    }
     document.getElementById('cmp-metro-btn')?.classList.toggle('on',this.metronomeOn);
-    Toast.show({ic:'⏱',title:this.metronomeOn?'Metronome on':'Metronome off',sub:this.metronomeOn?'Click runs through playback.':'Count-in only.'});
+    if(this.metronomeOn){
+      if(this.drumOn){
+        Toast.show({ic:'⏱',title:'Metronome On<br>Drums On',sub:''});
+      } else {
+        Toast.show({ic:'⏱',title:'Metronome On',sub:''});
+      }
+    } else {
+      Toast.show({ic:'⏱',title:'Metronome Off',sub:''});
+    }
   },
 
   toggleDrum(){
     this.drumOn=!this.drumOn;
-    if(this.drumOn&&this.metronomeOn){
-      this.metronomeOn=false;
-      document.getElementById('cmp-metro-btn')?.classList.remove('on');
-    }
     document.getElementById('cmp-drum-btn')?.classList.toggle('on',this.drumOn);
-    Toast.show({ic:'🥁',title:this.drumOn?'Drum beat on':'Drum beat off',sub:this.drumOn?'Drums replace metronome through playback.':'Count-in only.'});
+    if(this.drumOn){
+      if(this.metronomeOn){
+        Toast.show({ic:'🥁',title:'Drums On<br>Metronome On',sub:''});
+      } else {
+        Toast.show({ic:'🥁',title:'Drums On',sub:''});
+      }
+    } else {
+      Toast.show({ic:'🥁',title:'Drums Off',sub:''});
+    }
   },
 
   toggleCounting(){
-    this.countingOn=!this.countingOn;
-    document.getElementById('cmp-counting-btn')?.classList.toggle('on',this.countingOn);
-    Toast.show({ic:'🔢',title:this.countingOn?'Counting on':'Counting off'});
+    // 3-state cycle: off → counting → out-loud → off
+    this._countState=(this._countState||0);
+    this._countState=(this._countState+1)%3;
+    const btn=document.getElementById('cmp-counting-btn');
+    if(this._countState===1){
+      this.countingOn=true;
+      this.countingOutLoud=false;
+      if(btn){btn.textContent='🔢';btn.classList.add('on');}
+      Toast.show({ic:'🔢',title:'Counting On',sub:''});
+    } else if(this._countState===2){
+      this.countingOn=true;
+      this.countingOutLoud=true;
+      if(btn){btn.textContent='🗣️';btn.classList.add('on');}
+      Toast.show({ic:'🗣️',title:'Count Out Loud On',sub:''});
+    } else {
+      this.countingOn=false;
+      this.countingOutLoud=false;
+      if(btn){btn.textContent='🔢';btn.classList.remove('on');}
+      Toast.show({ic:'🔢',title:'Counting Off',sub:''});
+    }
   },
 
   render(){
@@ -2041,7 +2085,7 @@ const Cmp = {
     for(let i=0;i<countInBeats;i++){
       const tt=t0+i*secPerBeat;
       const accent=(i%beatsPerBar)===0;
-      if(!this.drumOn){
+      if(this.metronomeOn){
         const node=this._toneMetClick(ctx,tt,accent);
         if(node)this._wNodes.push(node);
       }
@@ -2095,7 +2139,7 @@ const Cmp = {
       });
     }
     this._phSchedule.push({t:rangeDur,x:68+(rEnd+1)*pMW});
-    // During-playback metronome ticks or drum beat (if enabled) — only across range
+    // During-playback metronome ticks and/or drum beat (if enabled) — only across range
     if(this.metronomeOn){
       const totalBeats=(rEnd-rStart+1)*beatsPerBar;
       for(let i=0;i<totalBeats;i++){
@@ -2104,7 +2148,8 @@ const Cmp = {
         const node=this._toneMetClick(ctx,tt,accent);
         if(node)this._wNodes.push(node);
       }
-    } else if(this.drumOn){
+    }
+    if(this.drumOn){
       const totalBars=(rEnd-rStart+1);
       for(let b=0;b<totalBars;b++){
         const barT=t+b*beatsPerBar*secPerBeat;
@@ -2149,7 +2194,8 @@ const Cmp = {
           const node=this._toneMetClick(ctx,tt,accent);
           if(node)this._wNodes.push(node);
         }
-      } else if(this.drumOn){
+      }
+      if(this.drumOn){
         const totalBars=(rEnd-rStart+1);
         for(let b=0;b<totalBars;b++){
           const barT=t2+b*beatsPerBar*secPerBeat;
@@ -2252,7 +2298,7 @@ const Cmp = {
     for(let i=0;i<countInBeats;i++){
       const tt=t0+i*secPerBeat;
       const accent=(i%beatsPerBar)===0;
-      if(!this.drumOn){
+      if(this.metronomeOn){
         const node=this._toneMetClick(ctx,tt,accent);
         if(node)this._wNodes.push(node);
       }
@@ -2278,7 +2324,8 @@ const Cmp = {
         const node=this._toneMetClick(ctx,tt,accent);
         if(node)this._wNodes.push(node);
       }
-    } else if(this.drumOn){
+    }
+    if(this.drumOn){
       const totalBars=(rEnd-rStart+1);
       for(let b=0;b<totalBars;b++){
         const barT=t+b*beatsPerBar*secPerBeat;
@@ -2341,7 +2388,7 @@ const Cmp = {
     this._repeatPass=0;
     const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
-    const sw=document.querySelector('.cmp-staff-wrap');if(sw){sw.style.borderColor='';sw.classList.remove('locked');sw.scrollLeft=0;}
+    const sw=document.querySelector('.cmp-staff-wrap');if(sw){sw.style.borderColor='';sw.classList.remove('locked');sw.scrollTo({left:0,behavior:'smooth'});}
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const ph=document.getElementById('cmp-playhead');if(ph){ph.setAttribute('transform','translate(68,0)');ph.removeAttribute('display');}
     if(this._wac&&this._wac.state!=='closed'){
