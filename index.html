@@ -451,6 +451,7 @@ transform-origin:center bottom;font-family:inherit;
   </div>
   <div class="cmp-playbar-right">
     <button class="cmp-play-btn" id="cmp-metro-btn" onclick="Cmp.toggleMetronome()" title="Metronome during playback" aria-label="Metronome">⏱</button>
+    <button class="cmp-play-btn" id="cmp-drum-btn" onclick="Cmp.toggleDrum()" title="Drum beat during playback" aria-label="Drum beat">🥁</button>
     <select class="cmp-tone-sel" id="cmp-tone" onchange="Cmp.setTone(this.value)" title="Tone" aria-label="Tone">
       <optgroup label="Instruments">
         <option value="piano" selected>Piano</option>
@@ -930,7 +931,7 @@ const Cmp = {
   ts:null, tempo:100,
   notes:[], durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
-  totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, repeatOn:false, metronomeOn:false,
+  totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, repeatOn:false, metronomeOn:false, drumOn:false,
 
   TIME_SIGS:[
     {label:'Cut Time', sub:'2/2',  b:2,  v:2, cap:8,  beatUnit:2, bul:'𝅗𝅥'},
@@ -1497,8 +1498,22 @@ const Cmp = {
 
   toggleMetronome(){
     this.metronomeOn=!this.metronomeOn;
+    if(this.metronomeOn&&this.drumOn){
+      this.drumOn=false;
+      document.getElementById('cmp-drum-btn')?.classList.remove('on');
+    }
     document.getElementById('cmp-metro-btn')?.classList.toggle('on',this.metronomeOn);
     Toast.show({ic:'⏱',title:this.metronomeOn?'Metronome on':'Metronome off',sub:this.metronomeOn?'Click runs through playback.':'Count-in only.'});
+  },
+
+  toggleDrum(){
+    this.drumOn=!this.drumOn;
+    if(this.drumOn&&this.metronomeOn){
+      this.metronomeOn=false;
+      document.getElementById('cmp-metro-btn')?.classList.remove('on');
+    }
+    document.getElementById('cmp-drum-btn')?.classList.toggle('on',this.drumOn);
+    Toast.show({ic:'🥁',title:this.drumOn?'Drum beat on':'Drum beat off',sub:this.drumOn?'Drums replace metronome through playback.':'Count-in only.'});
   },
 
   render(){
@@ -1737,6 +1752,122 @@ const Cmp = {
     return osc;
   },
 
+  _drumKick(ctx,t){
+    // Sine 80Hz with fast pitch drop and exponential decay
+    const osc=ctx.createOscillator();osc.type='sine';
+    osc.frequency.setValueAtTime(120,t);
+    osc.frequency.exponentialRampToValueAtTime(45,t+0.10);
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(0.55,t+0.003);
+    g.gain.exponentialRampToValueAtTime(0.001,t+0.16);
+    osc.connect(g);g.connect(ctx.destination);
+    osc.start(t);osc.stop(t+0.18);
+    return osc;
+  },
+  _drumSnare(ctx,t){
+    // White noise band-passed + sine 200Hz body
+    const bufLen=Math.floor(ctx.sampleRate*0.12);
+    const buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufLen;i++)data[i]=Math.random()*2-1;
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const filt=ctx.createBiquadFilter();
+    filt.type='bandpass';filt.frequency.value=1700;filt.Q.value=0.9;
+    const gN=ctx.createGain();
+    gN.gain.setValueAtTime(0,t);
+    gN.gain.linearRampToValueAtTime(0.42,t+0.002);
+    gN.gain.exponentialRampToValueAtTime(0.001,t+0.10);
+    src.connect(filt);filt.connect(gN);gN.connect(ctx.destination);
+    src.start(t);src.stop(t+0.12);
+    // Body sine
+    const osc=ctx.createOscillator();osc.type='triangle';osc.frequency.value=210;
+    const gB=ctx.createGain();
+    gB.gain.setValueAtTime(0,t);
+    gB.gain.linearRampToValueAtTime(0.18,t+0.003);
+    gB.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+    osc.connect(gB);gB.connect(ctx.destination);
+    osc.start(t);osc.stop(t+0.10);
+    return src;
+  },
+  _drumHat(ctx,t,open){
+    // White noise high-passed
+    const dur=open?0.18:0.045;
+    const bufLen=Math.floor(ctx.sampleRate*dur);
+    const buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufLen;i++)data[i]=Math.random()*2-1;
+    const src=ctx.createBufferSource();src.buffer=buf;
+    const filt=ctx.createBiquadFilter();
+    filt.type='highpass';filt.frequency.value=7000;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(open?0.18:0.13,t+0.001);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    src.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    src.start(t);src.stop(t+dur+0.005);
+    return src;
+  },
+  _drumPattern(beatsPerBar,isCompound){
+    // Returns array of length=beatsPerBar (compound) or beatsPerBar (simple), each entry =
+    // {sub: array of subdivision-step hit objects} where hit ∈ {k,s,h} (kick/snare/hat).
+    // Simple meters: each beat is a single step. Compound: each beat = 3 sub-steps (eighths).
+    const beats=[];
+    if(isCompound){
+      // Compound: kick on beat 1, snare on the "snare beat" (beat (b/2+1) rounded), hi-hat on every eighth.
+      const snareBeat=Math.floor(beatsPerBar/2); // 0-indexed
+      for(let b=0;b<beatsPerBar;b++){
+        const sub=[];
+        for(let s=0;s<3;s++){
+          const hits={h:true};
+          if(s===0){
+            if(b===0||b===snareBeat){hits[b===snareBeat?'s':'k']=true;}
+            else hits.k=true;
+          }
+          sub.push(hits);
+        }
+        beats.push({sub});
+      }
+      return beats;
+    }
+    // Simple meters: built-in patterns by beatsPerBar
+    const P={
+      2:[['k'],['s']],
+      3:[['k'],['s'],['s']],
+      4:[['k'],['s'],['k'],['s']],
+      5:[['k'],['s'],['s'],['k'],['s']],
+      6:[['k'],['s'],['k'],['s'],['s'],['s']],
+      7:[['k'],['s'],['k'],['s'],['k'],['s'],['s']]
+    };
+    let pat=P[beatsPerBar];
+    if(!pat){
+      // Fallback for unusual meters: K on 1 and odd, S on even
+      pat=[];
+      for(let i=0;i<beatsPerBar;i++)pat.push([i%2===0?'k':'s']);
+    }
+    return pat.map(hits=>{
+      const m={h:true};
+      hits.forEach(h=>m[h]=true);
+      return {sub:[m]};
+    });
+  },
+  _drumScheduleBar(ctx,t0,secPerBeat,beatsPerBar,isCompound){
+    // Schedule one bar of the pattern starting at t0
+    const pat=this._drumPattern(beatsPerBar,isCompound);
+    const subDur=isCompound?(secPerBeat/3):secPerBeat;
+    const nodes=[];
+    for(let b=0;b<pat.length;b++){
+      const bt=t0+b*secPerBeat;
+      pat[b].sub.forEach((hits,si)=>{
+        const t=bt+si*subDur;
+        if(hits.k)nodes.push(this._drumKick(ctx,t));
+        if(hits.s)nodes.push(this._drumSnare(ctx,t));
+        if(hits.h)nodes.push(this._drumHat(ctx,t,false));
+      });
+    }
+    return nodes;
+  },
+
   _playViolin(ctx,freq,startTime,durSec){
     // Clap sound — white-noise burst with sharp envelope (freq/durSec ignored; uniform clap per note)
     const bufLen=Math.floor(ctx.sampleRate*0.05);
@@ -1861,11 +1992,21 @@ const Cmp = {
     // Schedule count-in ticks + staff border pulse
     const wrap0=document.querySelector('.cmp-staff-wrap');
     this._wMetPulseTimers=[];
+    // Drum bars during count-in if drumOn (2 bars), else metronome click per beat
+    if(this.drumOn){
+      for(let bar=0;bar<2;bar++){
+        const barT=t0+bar*beatsPerBar*secPerBeat;
+        const nodes=this._drumScheduleBar(ctx,barT,secPerBeat,beatsPerBar,isCompoundMet);
+        nodes.forEach(n=>{if(n)this._wNodes.push(n);});
+      }
+    }
     for(let i=0;i<countInBeats;i++){
       const tt=t0+i*secPerBeat;
       const accent=(i%beatsPerBar)===0;
-      const node=this._toneMetClick(ctx,tt,accent);
-      if(node)this._wNodes.push(node);
+      if(!this.drumOn){
+        const node=this._toneMetClick(ctx,tt,accent);
+        if(node)this._wNodes.push(node);
+      }
       if(wrap0){
         const delay=Math.max(0,(tt-ctx.currentTime)*1000);
         const timer=setTimeout(()=>{
@@ -1916,7 +2057,7 @@ const Cmp = {
       });
     }
     this._phSchedule.push({t:rangeDur,x:68+(rEnd+1)*pMW});
-    // During-playback metronome ticks (if enabled) — only across range
+    // During-playback metronome ticks or drum beat (if enabled) — only across range
     if(this.metronomeOn){
       const totalBeats=(rEnd-rStart+1)*beatsPerBar;
       for(let i=0;i<totalBeats;i++){
@@ -1924,6 +2065,13 @@ const Cmp = {
         const accent=(i%beatsPerBar)===0;
         const node=this._toneMetClick(ctx,tt,accent);
         if(node)this._wNodes.push(node);
+      }
+    } else if(this.drumOn){
+      const totalBars=(rEnd-rStart+1);
+      for(let b=0;b<totalBars;b++){
+        const barT=t+b*beatsPerBar*secPerBeat;
+        const nodes=this._drumScheduleBar(ctx,barT,secPerBeat,beatsPerBar,isCompoundMet);
+        nodes.forEach(n=>{if(n)this._wNodes.push(n);});
       }
     }
     this._wScrollTimers=[];
@@ -2041,11 +2189,18 @@ const Cmp = {
     const countInDur=countInBeats*secPerBeat;
     const wrap0=document.querySelector('.cmp-staff-wrap');
     this._wMetPulseTimers?.forEach(id=>clearTimeout(id));this._wMetPulseTimers=[];
+    // Drum bar during count-in if drumOn (1 bar), else metronome click per beat
+    if(this.drumOn){
+      const nodes=this._drumScheduleBar(ctx,t0,secPerBeat,beatsPerBar,isCompoundMet);
+      nodes.forEach(n=>{if(n)this._wNodes.push(n);});
+    }
     for(let i=0;i<countInBeats;i++){
       const tt=t0+i*secPerBeat;
       const accent=(i%beatsPerBar)===0;
-      const node=this._toneMetClick(ctx,tt,accent);
-      if(node)this._wNodes.push(node);
+      if(!this.drumOn){
+        const node=this._toneMetClick(ctx,tt,accent);
+        if(node)this._wNodes.push(node);
+      }
       if(wrap0){
         const delay=Math.max(0,(tt-ctx.currentTime)*1000);
         const timer=setTimeout(()=>{
@@ -2067,6 +2222,13 @@ const Cmp = {
         const accent=(i%beatsPerBar)===0;
         const node=this._toneMetClick(ctx,tt,accent);
         if(node)this._wNodes.push(node);
+      }
+    } else if(this.drumOn){
+      const totalBars=(rEnd-rStart+1);
+      for(let b=0;b<totalBars;b++){
+        const barT=t+b*beatsPerBar*secPerBeat;
+        const nodes=this._drumScheduleBar(ctx,barT,secPerBeat,beatsPerBar,isCompoundMet);
+        nodes.forEach(n=>{if(n)this._wNodes.push(n);});
       }
     }
     this._wScrollTimers?.forEach(id=>clearTimeout(id));
