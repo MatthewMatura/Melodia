@@ -247,6 +247,19 @@ transform-origin:center bottom;font-family:inherit;
 /* score floats */
 .sf{position:fixed;font-size:22px;font-weight:900;color:var(–jade);pointer-events:none;z-index:500;}
 .sf.w{color:var(–red);}
+/* Phase 1: Clef + Key pickers + Melody page shell */
+.cmp-clef-grid{display:flex;flex-wrap:wrap;gap:14px;padding:8px 16px 24px;justify-content:center;}
+.cmp-clef-btn{background:#10101e;border:2px solid rgba(245,197,24,.4);border-radius:14px;width:130px;height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;color:#f5c518;font-family:inherit;font-weight:900;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:10px;}
+.cmp-clef-btn:active{transform:scale(.96);background:rgba(245,197,24,.18);}
+.cmp-clef-glyph{font-size:64px;line-height:1;color:#f5c518;font-family:‘Apple Symbols’,‘Bravura’,‘Times New Roman’,serif;}
+.cmp-cof-wrap{display:flex;justify-content:center;align-items:center;padding:8px 16px 8px;}
+.cmp-cof{cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.cmp-cof .cof-wedge{fill:#10101e;stroke:rgba(245,197,24,.35);stroke-width:1.5;transition:fill 120ms;}
+.cmp-cof .cof-wedge.inner{fill:#0b0b18;}
+.cmp-cof .cof-wedge:active{fill:#f5c518;}
+.cmp-cof text{fill:#f0e6d0;font-weight:900;font-family:inherit;text-anchor:middle;dominant-baseline:central;pointer-events:none;}
+.cmp-cof .cof-acc{fill:#f5c518;font-size:9px;}
+.cmp-mel-placeholder{padding:60px 30px;text-align:center;color:#f0e6d0;font-size:18px;line-height:1.6;letter-spacing:.1em;}
 </style>
 
 </head>
@@ -490,6 +503,58 @@ transform-origin:center bottom;font-family:inherit;
   </div>
 </div>
 
+  </div>
+
+  <!-- STEP 4: Clef Picker -->
+
+  <div id="cmp-s4" class="cmp-step">
+    <div class="cmp-topbar">
+      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
+      <span class="cmp-ts-label">&nbsp;</span>
+      <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
+    </div>
+    <div class="cmp-step-hdr" style="padding-top:24px;padding-bottom:28px">𝄞 Pick Your Clef</div>
+    <div class="cmp-clef-grid">
+      <button class="cmp-clef-btn" onclick="Cmp.pickClef('treble')">
+        <div class="cmp-clef-glyph">𝄞</div>
+        <div>Treble</div>
+      </button>
+      <button class="cmp-clef-btn" onclick="Cmp.pickClef('bass')">
+        <div class="cmp-clef-glyph">𝄢</div>
+        <div>Bass</div>
+      </button>
+      <button class="cmp-clef-btn" onclick="Cmp.pickClef('alto')">
+        <div class="cmp-clef-glyph">𝄡</div>
+        <div>Alto</div>
+      </button>
+      <button class="cmp-clef-btn" onclick="Cmp.pickClef('tenor')">
+        <div class="cmp-clef-glyph">𝄡</div>
+        <div>Tenor</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 5: Key Signature (Circle of Fifths) -->
+
+  <div id="cmp-s5" class="cmp-step">
+    <div class="cmp-topbar">
+      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
+      <span class="cmp-ts-label">&nbsp;</span>
+      <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
+    </div>
+    <div class="cmp-step-hdr" style="padding-top:24px;padding-bottom:18px">🎼 Pick Your Key Signature</div>
+    <div class="cmp-cof-wrap" id="cmp-cof-wrap"></div>
+  </div>
+
+  <!-- STEP 6: Melody Composition (Phase 1 placeholder) -->
+
+  <div id="cmp-s6" class="cmp-step">
+    <div class="cmp-topbar">
+      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
+      <span class="cmp-ts-label" id="cmp-mel-hdr">&nbsp;</span>
+      <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
+    </div>
+    <div class="cmp-mel-placeholder">🎵 Melody Page<br><span id="cmp-mel-info" style="font-size:13px;color:#f5c518;letter-spacing:.18em;">—</span><br><br>Coming in Phase 2.</div>
   </div>
 
 </div>
@@ -989,6 +1054,7 @@ const Cmp = {
   init(){
     this._buildTimeSigs();
     this._buildNoteButtons();
+    this._buildCircle();
     // iOS Safari doesn't re-layout SVG text on font-swap — rebuild buttons once Bravura loads
     if(document.fonts?.ready) document.fonts.ready.then(()=>this._buildNoteButtons());
 
@@ -1010,9 +1076,9 @@ const Cmp = {
   },
 
   _showStep(s){
-    const map={entry:'cmp-s1',timesig:'cmp-s2',compose:'cmp-s3'};
+    const map={entry:'cmp-s1',timesig:'cmp-s2',compose:'cmp-s3',clef:'cmp-s4',key:'cmp-s5',melody:'cmp-s6'};
     // Remove all active states first
-    ['cmp-s1','cmp-s2','cmp-s3'].forEach(id=>{
+    ['cmp-s1','cmp-s2','cmp-s3','cmp-s4','cmp-s5','cmp-s6'].forEach(id=>{
       document.getElementById(id)?.classList.remove('cmp-active');
     });
     // Add active state in next animation frame — iOS Safari requires this
@@ -1060,10 +1126,97 @@ const Cmp = {
 
   pickMode(mode){
     this.mode=mode;
-    if(mode!=='rhythm'){
-      Toast.show({ic:'🔨',title:'Coming Soon!',sub:'Pitch & Both modes are under construction. Proceeding with Rhythm.',type:'e'});
+    if(mode==='rhythm'){
+      this._melodyFlow=false;
+      this._showStep('timesig');
+    } else if(mode==='pitch'){
+      this._melodyFlow=true;
+      this._showStep('clef');
     }
-    this._showStep('timesig');
+  },
+
+  KEYS:[
+    {name:'C',     rel:'Am',     acc:0, type:'#'},
+    {name:'G',     rel:'Em',     acc:1, type:'#'},
+    {name:'D',     rel:'Bm',     acc:2, type:'#'},
+    {name:'A',     rel:'F♯m',    acc:3, type:'#'},
+    {name:'E',     rel:'C♯m',    acc:4, type:'#'},
+    {name:'B',     rel:'G♯m',    acc:5, type:'#'},
+    {name:'F♯/G♭', rel:'D♯m/E♭m',acc:6, type:'#'},
+    {name:'D♭',    rel:'B♭m',    acc:5, type:'b'},
+    {name:'A♭',    rel:'Fm',     acc:4, type:'b'},
+    {name:'E♭',    rel:'Cm',     acc:3, type:'b'},
+    {name:'B♭',    rel:'Gm',     acc:2, type:'b'},
+    {name:'F',     rel:'Dm',     acc:1, type:'b'},
+  ],
+
+  _buildCircle(){
+    const wrap=document.getElementById('cmp-cof-wrap');if(!wrap)return;
+    const cx=160,cy=160,rOut=150,rMid=95,rIn=50;
+    const D2R=Math.PI/180;
+    const pt=(a,r)=>{const ar=a*D2R;return [cx+r*Math.sin(ar),cy-r*Math.cos(ar)];};
+    const wedge=(i,r1,r2,inner)=>{
+      const aS=i*30-15,aE=i*30+15;
+      const [x1,y1]=pt(aS,r2);
+      const [x2,y2]=pt(aE,r2);
+      const [x3,y3]=pt(aE,r1);
+      const [x4,y4]=pt(aS,r1);
+      return `<path class="cof-wedge${inner?' inner':''}" data-key="${i}" data-ring="${inner?'minor':'major'}" d="M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r2} ${r2} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)} L ${x3.toFixed(2)} ${y3.toFixed(2)} A ${r1} ${r1} 0 0 0 ${x4.toFixed(2)} ${y4.toFixed(2)} Z"/>`;
+    };
+    let svg=`<svg class="cmp-cof" viewBox="0 0 320 320" width="300" height="300">`;
+    for(let i=0;i<12;i++) svg+=wedge(i,rMid,rOut,false);
+    for(let i=0;i<12;i++) svg+=wedge(i,rIn,rMid,true);
+    const labelROut=(rMid+rOut)/2,labelRIn=(rIn+rMid)/2;
+    for(let i=0;i<12;i++){
+      const a=i*30;
+      const [lx,ly]=pt(a,labelROut);
+      const [lxi,lyi]=pt(a,labelRIn);
+      const k=this.KEYS[i];
+      const fM=k.name.length>3?9:14;
+      const fm=k.rel.length>4?8:11;
+      svg+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="${fM}">${k.name}</text>`;
+      svg+=`<text x="${lxi.toFixed(1)}" y="${lyi.toFixed(1)}" font-size="${fm}">${k.rel}</text>`;
+      if(k.acc>0){
+        const [ax,ay]=pt(a,rOut-9);
+        const sym=k.type==='#'?'♯':'♭';
+        svg+=`<text class="cof-acc" x="${ax.toFixed(1)}" y="${ay.toFixed(1)}">${k.acc}${sym}</text>`;
+      }
+    }
+    svg+=`<circle cx="${cx}" cy="${cy}" r="${rIn}" fill="#10101e" stroke="rgba(245,197,24,.4)" stroke-width="1.5"/>`;
+    svg+=`<text x="${cx}" y="${cy-7}" font-size="10" fill="#f5c518">CIRCLE</text>`;
+    svg+=`<text x="${cx}" y="${cy+7}" font-size="10" fill="#f5c518">OF 5THS</text>`;
+    svg+=`</svg>`;
+    wrap.innerHTML=svg;
+    wrap.querySelectorAll('.cof-wedge').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const i=parseInt(el.dataset.key);
+        const ring=el.dataset.ring;
+        Cmp.pickKey(i,ring);
+      });
+    });
+  },
+
+  pickClef(c){
+    this._clef=c;
+    const lbl=c.charAt(0).toUpperCase()+c.slice(1);
+    Toast.show({ic:'🎼',title:`${lbl} Clef`,sub:'Now pick a key signature.'});
+    this._showStep('key');
+  },
+
+  pickKey(i,ring){
+    const k=this.KEYS[i];
+    const name=ring==='minor'?k.rel:k.name;
+    this._keysig={idx:i,name:name,major:ring==='major',acc:k.acc,type:k.type};
+    Toast.show({ic:'🎼',title:`Key: ${name}`,sub:`${this._clef} clef · ${k.acc} ${k.type==='#'?'sharp':'flat'}${k.acc===1?'':'s'}`});
+    const hdr=document.getElementById('cmp-mel-hdr');
+    if(hdr) hdr.textContent=`${this._clef} • ${name}`;
+    const info=document.getElementById('cmp-mel-info');
+    if(info) info.textContent=`${this._clef.toUpperCase()} CLEF · ${name}`;
+    if(this._melodyFlow){
+      this._showStep('timesig');
+    } else {
+      this._showStep('melody');
+    }
   },
 
   pickTs(i){
@@ -1125,7 +1278,10 @@ const Cmp = {
   goBack(){
     this.stop();
     if(this.step==='compose') this._showStep('timesig');
-    else if(this.step==='timesig') this._showStep('entry');
+    else if(this.step==='timesig') this._showStep(this._melodyFlow?'key':'entry');
+    else if(this.step==='clef') this._showStep('entry');
+    else if(this.step==='key') this._showStep('clef');
+    else if(this.step==='melody') this._showStep('compose');
   },
 
   // FEATURE 1 — hold-to-accelerate tempo
@@ -1366,7 +1522,14 @@ const Cmp = {
   },
 
   addMelody(){
-    Toast.show({ic:'🎹',title:'Add Melody',sub:'Coming soon — pitch assignment.'});
+    this._melodyFlow=false;
+    if(!this._clef){
+      this._showStep('clef');
+    } else if(!this._keysig){
+      this._showStep('key');
+    } else {
+      this._showStep('melody');
+    }
   },
 
   tapTempo(){
