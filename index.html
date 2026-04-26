@@ -210,11 +210,13 @@ transform:scale(.96);
 .cmp-customts-content{background:#10101e;background:var(–surf);border:1px solid rgba(245,197,24,.4);border-radius:14px;width:min(380px,100%);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
 .cmp-customts-body{padding:16px 20px;color:#f0e6d0;color:var(–ink);font-size:13px;line-height:1.5;}
 .cmp-customts-explain{font-size:12px;color:rgba(240,230,208,.78);margin:4px 0 8px;line-height:1.45;}
-.cmp-customts-stack{display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0 8px;}
-.cmp-customts-divider{width:90px;height:3px;background:#f5c518;background:var(–gold);border-radius:2px;margin:4px 0;}
-.cmp-customts-stepper{display:flex;flex-direction:column;align-items:center;gap:5px;}
+.cmp-customts-stack{display:flex;flex-direction:column;align-items:center;gap:6px;margin:8px 0 10px;}
+.cmp-customts-divider{width:120px;height:3px;background:#f5c518;background:var(–gold);border-radius:2px;margin:6px 0;}
+.cmp-customts-lbl{font-size:11px;color:rgba(240,230,208,.78);letter-spacing:.05em;margin-top:4px;margin-bottom:2px;text-align:center;font-weight:600;}
+.cmp-customts-stepper{display:flex;flex-direction:row;align-items:center;gap:14px;justify-content:center;}
 .cmp-customts-num{font-family:‘Times New Roman’,serif;font-size:48px;font-weight:900;color:#f5c518;color:var(–gold);line-height:1;min-width:72px;text-align:center;}
-.cmp-customts-arrow{background:#10101e;background:var(–surf);border:2px solid rgba(245,197,24,.4);color:#f5c518;color:var(–gold);font-size:18px;font-weight:900;width:60px;height:32px;border-radius:8px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;font-family:inherit;}
+.cmp-customts-arrows{display:flex;flex-direction:column;gap:4px;}
+.cmp-customts-arrow{background:#10101e;background:var(–surf);border:2px solid rgba(245,197,24,.4);color:#f5c518;color:var(–gold);font-size:14px;font-weight:900;width:50px;height:26px;border-radius:6px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;font-family:inherit;}
 .cmp-customts-arrow:active{background:rgba(245,197,24,.18);}
 .cmp-customts-arrow:disabled{opacity:.3;cursor:not-allowed;}
 .cmp-customts-actions{display:flex;gap:10px;padding:12px 20px 16px;border-top:1px solid rgba(245,197,24,.2);}
@@ -496,21 +498,25 @@ transform-origin:center bottom;font-family:inherit;
       <button class="cmp-saves-close" onclick="Cmp.closeCustomTs()">✕</button>
     </div>
     <div class="cmp-customts-body">
-      <div class="cmp-customts-explain"><b style="color:#f5c518">Top number</b> — how many beats are in one measure.</div>
       <div class="cmp-customts-stack">
+        <div class="cmp-customts-lbl">Beats per measure</div>
         <div class="cmp-customts-stepper">
-          <button class="cmp-customts-arrow" id="cmp-cts-top-up" onclick="Cmp.customTsStep('top',1)">▲</button>
           <div class="cmp-customts-num" id="cmp-cts-top">4</div>
-          <button class="cmp-customts-arrow" id="cmp-cts-top-dn" onclick="Cmp.customTsStep('top',-1)">▼</button>
+          <div class="cmp-customts-arrows">
+            <button class="cmp-customts-arrow" id="cmp-cts-top-up" onclick="Cmp.customTsStep('top',1)">▲</button>
+            <button class="cmp-customts-arrow" id="cmp-cts-top-dn" onclick="Cmp.customTsStep('top',-1)">▼</button>
+          </div>
         </div>
         <div class="cmp-customts-divider"></div>
+        <div class="cmp-customts-lbl">Note that gets the beat</div>
         <div class="cmp-customts-stepper">
-          <button class="cmp-customts-arrow" id="cmp-cts-bot-up" onclick="Cmp.customTsStep('bot',1)">▲</button>
           <div class="cmp-customts-num" id="cmp-cts-bot">4</div>
-          <button class="cmp-customts-arrow" id="cmp-cts-bot-dn" onclick="Cmp.customTsStep('bot',-1)">▼</button>
+          <div class="cmp-customts-arrows">
+            <button class="cmp-customts-arrow" id="cmp-cts-bot-up" onclick="Cmp.customTsStep('bot',1)">▲</button>
+            <button class="cmp-customts-arrow" id="cmp-cts-bot-dn" onclick="Cmp.customTsStep('bot',-1)">▼</button>
+          </div>
         </div>
       </div>
-      <div class="cmp-customts-explain"><b style="color:#f5c518">Bottom number</b> — which kind of note gets one beat. 1=whole, 2=half, 4=quarter, 8=eighth, 16=sixteenth, 32=thirty-second.</div>
     </div>
     <div class="cmp-customts-actions">
       <button onclick="Cmp.closeCustomTs()">Cancel</button>
