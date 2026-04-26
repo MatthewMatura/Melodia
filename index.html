@@ -2102,6 +2102,23 @@ const Cmp = {
         this._phSchedule.push({t:e.t+rangeDur,x:e.x});
       }
       let t2=t, beat82=0, lastMi2=-1;
+      // Extend drum or metronome through second pass
+      if(this.metronomeOn){
+        const totalBeats=(rEnd-rStart+1)*beatsPerBar;
+        for(let i=0;i<totalBeats;i++){
+          const tt=t2+i*secPerBeat;
+          const accent=(i%beatsPerBar)===0;
+          const node=this._toneMetClick(ctx,tt,accent);
+          if(node)this._wNodes.push(node);
+        }
+      } else if(this.drumOn){
+        const totalBars=(rEnd-rStart+1);
+        for(let b=0;b<totalBars;b++){
+          const barT=t2+b*beatsPerBar*secPerBeat;
+          const nodes=this._drumScheduleBar(ctx,barT,secPerBeat,beatsPerBar,isCompoundMet);
+          nodes.forEach(n=>{if(n)this._wNodes.push(n);});
+        }
+      }
       playNotes.forEach(n=>{
         const dur=n.dur8*spe;
         if(!n.rest&&!n.tied){
