@@ -2641,6 +2641,20 @@ const Cmp = {
             }
           }
         }
+        // Phase 4: Giraffe neck scaleY — pick most-recent scheduled scale for current elapsed
+        const gs=this._girSchedule;
+        if(gs&&gs.length){
+          const neck=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-neck');
+          if(neck){
+            let gi=-1;
+            for(let k=0;k<gs.length;k++){if(gs[k].t<=elapsed)gi=k;else break;}
+            const targetSY=gi>=0?gs[gi].scaleY:1;
+            if(this._girLastSY!==targetSY){
+              neck.style.transform=`scaleY(${targetSY})`;
+              this._girLastSY=targetSY;
+            }
+          }
+        }
       }
       this._wRAF=requestAnimationFrame(this._phTick);
     };
@@ -2793,7 +2807,11 @@ const Cmp = {
     }
     this._wScrollTimers=[];
     this._bvrSchedule=[];
+    this._girSchedule=[];
     const _BVR_POSES=['p-punch','p-kick','p-block','p-chamber'];
+    // Phase 4: giraffe neck scaleY mapping. Middle line (sp=0) → 1.0. Range clamped to [0.5, 2.0].
+    // Coefficient 0.06 means ~10 staffPos units (octave-and-a-third diatonic) covers a ~0.6 swing.
+    const _girScale=(sp)=>Math.max(0.5,Math.min(2.0,0.6+(sp||0)*0.06));
     let beat8=0, lastMi=-1, poseIdx=0;
 
     playNotes.forEach(n=>{
@@ -2802,9 +2820,11 @@ const Cmp = {
         const node=this._playTone(ctx,D4,t,dur);
         if(node)this._wNodes.push(node);
         this._bvrSchedule.push({t:t-this._wStart,pose:_BVR_POSES[poseIdx%4]});
+        this._girSchedule.push({t:t-this._wStart,scaleY:_girScale(n.staffPos)});
         poseIdx++;
       } else {
         this._bvrSchedule.push({t:t-this._wStart,pose:''});
+        this._girSchedule.push({t:t-this._wStart,scaleY:1});
       }
       // Auto-scroll-to-measure removed so user can scroll freely during play
       beat8+=n.dur8;
@@ -2843,9 +2863,11 @@ const Cmp = {
           const node=this._playTone(ctx,D4,t2,dur);
           if(node)this._wNodes.push(node);
           this._bvrSchedule.push({t:t2-this._wStart,pose:_BVR_POSES[poseIdx%4]});
+          this._girSchedule.push({t:t2-this._wStart,scaleY:_girScale(n.staffPos)});
           poseIdx++;
         } else {
           this._bvrSchedule.push({t:t2-this._wStart,pose:''});
+          this._girSchedule.push({t:t2-this._wStart,scaleY:1});
         }
         // Auto-scroll-to-measure removed so user can scroll freely during play
         beat82+=n.dur8;
@@ -2995,6 +3017,8 @@ const Cmp = {
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
+    const neck=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-neck');
+    if(neck){neck.style.transform='';this._girLastSY=null;}
     // Park playhead at end-of-piece position so it doesn't look stuck mid-score
     const sc=this._phSchedule;
     if(sc&&sc.length){
@@ -3022,6 +3046,8 @@ const Cmp = {
     this._repeatPass=0;
     const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
+    const neck=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-neck');
+    if(neck){neck.style.transform='';this._girLastSY=null;}
     const sw=document.querySelector('.cmp-staff-wrap');if(sw){sw.style.borderColor='';sw.classList.remove('locked');sw.scrollTo({left:0,behavior:'smooth'});}
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const ph=document.getElementById('cmp-playhead');if(ph){ph.setAttribute('transform','translate(68,0)');ph.removeAttribute('display');}
