@@ -809,6 +809,23 @@ const CmpSheet = {
     return diff;
   },
 
+  // Inverse of _staffPosForLetter: given a staffPos and clef, return the letter at that position.
+  // Used by smart-accidental walk to map a note's staffPos back to a letter (for key-sig lookup).
+  _letterForStaffPos(sp, clef){
+    const c = this.CLEF_CENTER[clef];
+    const cs = this.LETTER_STEP[c];
+    const idx = ((cs + sp) % 7 + 7) % 7; // positive modulo
+    return ['C','D','E','F','G','A','B'][idx];
+  },
+
+  // For a given letter and key signature, return the alteration the key applies: +1 (sharp), -1 (flat), 0 (none).
+  _keyAccForLetter(letter, keysig){
+    if(!keysig || !keysig.acc) return 0;
+    const order = keysig.type === '#' ? this.SHARP_ORDER : this.FLAT_ORDER;
+    const inKey = order.slice(0, keysig.acc).indexOf(letter) >= 0;
+    return inKey ? (keysig.type === '#' ? 1 : -1) : 0;
+  },
+
   noteIcon(d,dot,rest){
     let body='';
     if(rest){
@@ -921,6 +938,36 @@ const CmpSheet = {
       const mNotes=measures[mi]||[];
       const filled=mNotes.reduce((a,n)=>a+n.dur8,0);
       const remaining=ts.cap-filled;
+      // Phase 3: smart accidentals — walk notes in measure order, assign n._drawAcc
+      // (the symbol to draw, or null). Considers key signature defaults + within-measure persistence.
+      // Each non-rest note's pitch = (n.acc !== null) ? n.acc : currentAccState[staffPos].
+      // Symbol drawn only when this differs from current state.
+      // Reset: at measure boundary (each measure has fresh accState).
+      // Only relevant when clef is set (pitch mode); rhythm mode notes default to staffPos=0 with no accidentals.
+      if(clef){
+        const accState={}; // staffPos → current alteration (-1/0/+1)
+        for(let i=0;i<mNotes.length;i++){
+          const n=mNotes[i];
+          if(n.rest){n._drawAcc=null;continue;}
+          const sp=n.staffPos||0;
+          const letter=this._letterForStaffPos(sp,clef);
+          const keyAcc=this._keyAccForLetter(letter,keysig);
+          if(accState[sp]===undefined) accState[sp]=keyAcc;
+          const explicit=(typeof n.acc==='number');
+          const effectiveAcc=explicit?n.acc:accState[sp];
+          if(effectiveAcc!==accState[sp]){
+            n._drawAcc=effectiveAcc; // symbol needed (the value tells which: -1=♭, 0=♮, +1=♯)
+          } else if(explicit && accState[sp]!==keyAcc){
+            // Explicit acc that matches current measure-state but state already differs from key — no redraw needed
+            n._drawAcc=null;
+          } else {
+            n._drawAcc=null;
+          }
+          accState[sp]=effectiveAcc;
+        }
+      } else {
+        for(let i=0;i<mNotes.length;i++) mNotes[i]._drawAcc=null;
+      }
       // Beam groups: runs of ≥2 consecutive 8ths/16ths within one beat (no rests/dots; triplets beam with triplets)
       const ng=new Array(mNotes.length).fill(-1);const groups=[];let cur=[];
       const flush=()=>{if(cur.length>=2){groups.push(cur);cur.forEach(i=>ng[i]=groups.length-1);}cur=[];};
@@ -935,6 +982,43 @@ const CmpSheet = {
         if(fb===tb&&!mixTr){cur.push(i);}else{flush();cur=[i];}
       }
       flush();
+      // Phase 3: stem direction + beam Y pre-pass (only flips in pitch mode; rhythm mode keeps all stems-down).
+      // Beamed group: avg staffPos < 0 → stems UP (and beam above noteheads); else DOWN (beam below).
+      // Unbeamed note: own staffPos < 0 → stem UP; else DOWN.
+      // Stash n._stemUp on every note. For beamed notes, also stash n._beamY so _drawNote can extend stems to the beam.
+      const groupStemUp=[]; // gIdx → boolean
+      const groupBeamY=[];  // gIdx → Y position
+      if(clef){
+        groups.forEach((g,gIdx)=>{
+          let sumSp=0;
+          g.forEach(i=>{sumSp+=(mNotes[i].staffPos||0);});
+          const avgSp=sumSp/g.length;
+          const stemUp=avgSp<0;
+          groupStemUp[gIdx]=stemUp;
+          // Beam Y: stems-down → max notehead Y + 24 (beam below all). Stems-up → min notehead Y - 24 (beam above all).
+          if(stemUp){
+            let minNy=Infinity;
+            g.forEach(i=>{const ny=ST+16-(mNotes[i].staffPos||0)*4;if(ny<minNy)minNy=ny;});
+            groupBeamY[gIdx]=minNy-24;
+          } else {
+            let maxNy=-Infinity;
+            g.forEach(i=>{const ny=ST+16-(mNotes[i].staffPos||0)*4;if(ny>maxNy)maxNy=ny;});
+            groupBeamY[gIdx]=maxNy+24;
+          }
+          g.forEach(i=>{mNotes[i]._stemUp=stemUp;mNotes[i]._beamY=groupBeamY[gIdx];});
+        });
+        // Unbeamed: per-note
+        for(let i=0;i<mNotes.length;i++){
+          if(ng[i]<0 && !mNotes[i].rest){
+            mNotes[i]._stemUp=(mNotes[i].staffPos||0)<0;
+            mNotes[i]._beamY=undefined;
+          }
+        }
+      } else {
+        // Rhythm mode: all stems down, no beam Y override
+        for(let i=0;i<mNotes.length;i++){mNotes[i]._stemUp=false;mNotes[i]._beamY=undefined;}
+        groups.forEach((g,gIdx)=>{groupStemUp[gIdx]=false;groupBeamY[gIdx]=71;});
+      }
       // Beam-aware spacing: tighter floor (+11) for consecutive notes within a group, else +18
       let prevNx=mx;const pos=[];
       let globalBase=0;for(let j=0;j<mi;j++)globalBase+=(measures[j]||[]).length;
@@ -975,26 +1059,29 @@ const CmpSheet = {
         const gi=globalBase+i;
         s+=`<g data-note-idx="${gi}" style="cursor:pointer"><rect x="${nx-15}" y="${ST-6}" width="30" height="${SB-ST+18}" fill="transparent" pointer-events="all"/>${this._drawNote(n,nx,ST,SB,ng[i]>=0)}</g>`;
       });
-      // Beams: stems-down layout. Primary beam sits at stem tip (no gap).
-      // Secondary (for 16ths) sits ABOVE primary, between notehead and primary.
-      const beamY=71;
-      groups.forEach(g=>{
+      // Beams: per-group beamY (stems-down → below noteheads; stems-up → above). Stem side flips with direction.
+      // Secondary (for 16ths): for stems-down → ABOVE primary (closer to noteheads); for stems-up → BELOW primary.
+      groups.forEach((g,gIdx)=>{
+        const stemUp=!!groupStemUp[gIdx];
+        const beamY=(typeof groupBeamY[gIdx]==='number')?groupBeamY[gIdx]:71;
+        const stemSide=stemUp?+5.4:-5.4;
+        const secondaryOffset=stemUp?+5:-5; // direction toward noteheads
         const bc=g.some(i=>mNotes[i].current)?'#f5c518':'rgba(240,230,208,.75)';
-        const x1=pos[g[0]]-5.4,xN=pos[g[g.length-1]]-5.4;
+        const x1=pos[g[0]]+stemSide,xN=pos[g[g.length-1]]+stemSide;
         s+=`<rect x="${x1}" y="${beamY}" width="${xN-x1}" height="3" fill="${bc}"/>`;
         const is16=g.map(i=>mNotes[i].d===16);const inRun=new Set();
         let rs=-1;
         for(let k=0;k<=g.length;k++){
           if(k<g.length&&is16[k]){if(rs<0)rs=k;}
-          else{if(rs>=0){if(k-rs>=2){const xa=pos[g[rs]]-5.4,xb=pos[g[k-1]]-5.4;s+=`<rect x="${xa}" y="${beamY-5}" width="${xb-xa}" height="3" fill="${bc}"/>`;for(let q=rs;q<k;q++)inRun.add(q);}rs=-1;}}
+          else{if(rs>=0){if(k-rs>=2){const xa=pos[g[rs]]+stemSide,xb=pos[g[k-1]]+stemSide;s+=`<rect x="${xa}" y="${beamY+secondaryOffset}" width="${xb-xa}" height="3" fill="${bc}"/>`;for(let q=rs;q<k;q++)inRun.add(q);}rs=-1;}}
         }
         for(let k=0;k<g.length;k++){
           if(is16[k]&&!inRun.has(k)){
-            const cx=pos[g[k]]-5.4,stubW=6;
+            const cx=pos[g[k]]+stemSide,stubW=6;
             let nearest=-1,bestDist=Infinity;
             for(let q=0;q<g.length;q++){if(q!==k&&is16[q]){const dist=Math.abs(q-k);if(dist<bestDist){bestDist=dist;nearest=q;}}}
             const dir=nearest>=0?(nearest>k?1:-1):(k===g.length-1?-1:1);
-            s+=`<rect x="${dir>0?cx:cx-stubW}" y="${beamY-5}" width="${stubW}" height="3" fill="${bc}"/>`;
+            s+=`<rect x="${dir>0?cx:cx-stubW}" y="${beamY+secondaryOffset}" width="${stubW}" height="3" fill="${bc}"/>`;
           }
         }
       });
@@ -1059,18 +1146,16 @@ const CmpSheet = {
     const isCur=n.current;
     const fill=isCur?'#f5c518':'rgba(240,230,208,.75)';
     const open=n.d<=2;
+    const stemUp=!!n._stemUp;
     let s='';
     if(isCur) s+=`<ellipse cx="${nx}" cy="${ny}" rx="15" ry="10" fill="rgba(245,197,24,.11)"/>`;
-    // Ledger lines — drawn at every other staffPos when notehead is outside the staff (|sp| > 4)
-    // Staff spans staffPos -4 (bottom line, ST+32=64=SB) to +4 (top line, ST=32). Ledger lines extend beyond.
+    // Ledger lines — drawn at every other staffPos when notehead is outside the staff (|sp| > 4).
     if(sp>4){
-      // Above staff: ledger lines at staffPos +6, +8, +10, ...
       for(let lp=6;lp<=sp;lp+=2){
         const ly=ST+16-lp*4;
         s+=`<line x1="${nx-9}" y1="${ly}" x2="${nx+9}" y2="${ly}" stroke="${fill}" stroke-width="1.2" opacity=".8"/>`;
       }
     } else if(sp<-4){
-      // Below staff: ledger lines at staffPos -6, -8, -10, ...
       for(let lp=-6;lp>=sp;lp-=2){
         const ly=ST+16-lp*4;
         s+=`<line x1="${nx-9}" y1="${ly}" x2="${nx+9}" y2="${ly}" stroke="${fill}" stroke-width="1.2" opacity=".8"/>`;
@@ -1079,26 +1164,41 @@ const CmpSheet = {
     // Notehead
     if(open) s+=`<ellipse cx="${nx}" cy="${ny}" rx="6" ry="4" fill="none" stroke="${fill}" stroke-width="1.7" transform="rotate(-15 ${nx} ${ny})"/>`;
     else s+=`<ellipse cx="${nx}" cy="${ny}" rx="6" ry="4" fill="${fill}" transform="rotate(-15 ${nx} ${ny})"/>`;
-    // Stem — Phase 2: still always down (notehead may be off-center but stem direction logic deferred to Phase 3)
+    // Stem — Phase 3: direction from n._stemUp; beamed notes extend to n._beamY.
     if(n.d!==1){
-      const sx=nx-5.4;
-      const sy2=ny+24;
+      // Stem side: down → left of notehead (sx=nx-5.4); up → right of notehead (sx=nx+5.4).
+      const sx=stemUp?(nx+5.4):(nx-5.4);
+      // Endpoint: if beamed and beamY known, extend to beamY. Else fixed length 24px in stem direction.
+      const sy2=(beamed&&typeof n._beamY==='number')?n._beamY:(stemUp?(ny-24):(ny+24));
       s+=`<line x1="${sx}" y1="${ny}" x2="${sx}" y2="${sy2}" stroke="${fill}" stroke-width="1.4"/>`;
+      // Flag (only when not beamed). Curve direction follows stem direction.
       if(n.d>=8&&!beamed){
-        s+=`<path d="M${sx} ${sy2} C${sx+12} ${sy2-6} ${sx+14} ${sy2-13} ${sx+6} ${sy2-18}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+        if(stemUp){
+          // Stem-up flag: curve going down-right from top of stem
+          s+=`<path d="M${sx} ${sy2} C${sx+12} ${sy2+6} ${sx+14} ${sy2+13} ${sx+6} ${sy2+18}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+        } else {
+          s+=`<path d="M${sx} ${sy2} C${sx+12} ${sy2-6} ${sx+14} ${sy2-13} ${sx+6} ${sy2-18}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+        }
       }
       if(n.d>=16&&!beamed){
-        s+=`<path d="M${sx} ${sy2-6} C${sx+12} ${sy2-12} ${sx+14} ${sy2-19} ${sx+6} ${sy2-24}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+        if(stemUp){
+          s+=`<path d="M${sx} ${sy2+6} C${sx+12} ${sy2+12} ${sx+14} ${sy2+19} ${sx+6} ${sy2+24}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+        } else {
+          s+=`<path d="M${sx} ${sy2-6} C${sx+12} ${sy2-12} ${sx+14} ${sy2-19} ${sx+6} ${sy2-24}" stroke="${fill}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`;
+        }
       }
     }
     if(n.dot) s+=`<circle cx="${nx+8}" cy="${ny-2}" r="2" fill="${fill}"/>`;
-    // Accidental from n.acc field: -1=flat, 0=natural, +1=sharp (drawn explicitly).
-    // Falls back to legacy n.p sharp parsing for backward compat with rhythm-page notes.
-    if(typeof n.acc==='number'){
-      const sym=n.acc===1?'♯':n.acc===-1?'♭':'♮';
+    // Phase 3: smart accidental — only draw symbol if pre-pass marked it (n._drawAcc).
+    // For backward compat with rhythm-flow notes (no _drawAcc set), fall back to legacy n.acc / n.p sharp parsing.
+    let drawAcc=null;
+    if(typeof n._drawAcc==='number') drawAcc=n._drawAcc;
+    else if(n._drawAcc===null) drawAcc=null; // explicitly suppressed by pre-pass
+    else if(typeof n.acc==='number') drawAcc=n.acc; // legacy path (no pre-pass run)
+    else if(n.p&&n.p.includes('#')) drawAcc=1;
+    if(drawAcc!==null && drawAcc!==undefined){
+      const sym=drawAcc===1?'♯':drawAcc===-1?'♭':'♮';
       s+=`<text x="${nx-8}" y="${ny+4}" font-size="11" fill="${fill}" font-family="'Times New Roman',serif" text-anchor="end">${sym}</text>`;
-    } else if(n.p&&n.p.includes('#')){
-      s+=`<text x="${nx-8}" y="${ny+4}" font-size="10" fill="${fill}" font-family="'Times New Roman',serif" text-anchor="end">♯</text>`;
     }
     return s;
   },
