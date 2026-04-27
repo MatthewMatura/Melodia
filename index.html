@@ -372,9 +372,10 @@ transform-origin:center bottom;font-family:inherit;
   <div id="cmp-s3" class="cmp-step">
     <div class="cmp-topbar">
       <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
-      <span class="cmp-ts-label" id="cmp-ts-label">4/4</span>
+      <span class="cmp-ts-label rhythm-only" id="cmp-ts-label">4/4</span>
+      <span class="cmp-ts-label pitch-only" id="cmp-pitch-label">—</span>
       <div style="display:flex;gap:7px">
-        <button class="cmp-submit-btn" onclick="Cmp.addMelody()" style="background:#10101e;color:#f5c518;border:2px solid #f5c518">🎹 Add Melody</button>
+        <button class="cmp-submit-btn rhythm-only" onclick="Cmp.addMelody()" style="background:#10101e;color:#f5c518;border:2px solid #f5c518">🎹 Add Melody</button>
         <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
       </div>
     </div>
@@ -383,13 +384,23 @@ transform-origin:center bottom;font-family:inherit;
 
 <div class="cmp-input-area">
   <div class="cmp-input-left">
-    <div class="cmp-input-label">Notes</div>
-    <div class="cmp-note-row" id="cmp-note-row"></div>
-    <div class="cmp-input-label" style="margin-top:7px">Rests</div>
-    <div class="cmp-note-row" id="cmp-rest-row"></div>
+    <div class="rhythm-only">
+      <div class="cmp-input-label">Notes</div>
+      <div class="cmp-note-row" id="cmp-note-row"></div>
+      <div class="cmp-input-label" style="margin-top:7px">Rests</div>
+      <div class="cmp-note-row" id="cmp-rest-row"></div>
+    </div>
+    <div class="pitch-only">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
+        <button class="cmp-pitchmode-btn" id="cmp-pitchmode-btn" onclick="Cmp.togglePitchScope()">Diatonic</button>
+        <span style="font-size:10px;letter-spacing:.14em;color:#f5c518;opacity:.85" id="cmp-pitch-meta">—</span>
+      </div>
+      <div class="cmp-input-label">Pitches</div>
+      <div class="cmp-pitch-row" id="cmp-pitch-row"></div>
+    </div>
   </div>
   <div class="cmp-input-mid" aria-hidden="true">
-    <svg class="cmp-beaver" viewBox="0 0 100 130" width="100" height="130" xmlns="http://www.w3.org/2000/svg">
+    <svg class="cmp-beaver rhythm-only" viewBox="0 0 100 130" width="100" height="130" xmlns="http://www.w3.org/2000/svg">
       <circle cx="50" cy="65" r="55" fill="#f5c518" opacity="0.06"/>
       <ellipse cx="22" cy="100" rx="9" ry="17" fill="#5a3a1f" transform="rotate(-25 22 100)"/>
       <ellipse cx="22" cy="100" rx="6" ry="13" fill="#3d2410" opacity="0.4" transform="rotate(-25 22 100)"/>
@@ -433,13 +444,48 @@ transform-origin:center bottom;font-family:inherit;
         <path d="M 44 57 Q 50 60 56 57" stroke="#3d2410" stroke-width="1" fill="none" stroke-linecap="round"/>
       </g>
     </svg>
+    <svg class="cmp-giraffe pitch-only" viewBox="0 0 100 130" width="100" height="130" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="65" r="55" fill="#f5c518" opacity="0.06"/>
+      <ellipse cx="50" cy="120" rx="22" ry="4" fill="#000" opacity="0.25"/>
+      <g class="gir-leg-b"><rect x="56" y="92" width="7" height="28" fill="#d4a256" rx="2"/></g>
+      <g class="gir-leg-f"><rect x="36" y="86" width="7" height="22" fill="#d4a256" rx="2" transform="rotate(-25 39.5 97)"/></g>
+      <g class="gir-body">
+        <ellipse cx="50" cy="92" rx="22" ry="14" fill="#d4a256"/>
+        <ellipse cx="50" cy="94" rx="14" ry="9" fill="#e8b870"/>
+        <circle cx="42" cy="88" r="2.4" fill="#8b6332"/>
+        <circle cx="55" cy="86" r="2" fill="#8b6332"/>
+        <circle cx="60" cy="94" r="2.6" fill="#8b6332"/>
+        <circle cx="44" cy="98" r="2" fill="#8b6332"/>
+      </g>
+      <g class="gir-neck" style="transform-box:fill-box;transform-origin:50% 100%;">
+        <rect x="46" y="42" width="9" height="42" fill="#d4a256" rx="3"/>
+        <circle cx="50.5" cy="50" r="2" fill="#8b6332"/>
+        <circle cx="50.5" cy="62" r="2" fill="#8b6332"/>
+        <circle cx="50.5" cy="74" r="2" fill="#8b6332"/>
+      </g>
+      <g class="gir-head">
+        <ellipse cx="51" cy="36" rx="11" ry="8" fill="#d4a256"/>
+        <rect x="46" y="24" width="2.2" height="6" fill="#8b6332" rx="1"/><circle cx="47.1" cy="23" r="2" fill="#5a3a1f"/>
+        <rect x="54" y="24" width="2.2" height="6" fill="#8b6332" rx="1"/><circle cx="55.1" cy="23" r="2" fill="#5a3a1f"/>
+        <rect x="40" y="30" width="22" height="3.5" fill="#e8142a"/>
+        <path d="M 40 32 Q 32 30 28 36" stroke="#e8142a" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <ellipse cx="46" cy="36" rx="2" ry="2.4" fill="#fffbf0"/>
+        <ellipse cx="56" cy="36" rx="2" ry="2.4" fill="#fffbf0"/>
+        <circle cx="46" cy="36.5" r="1.3" fill="#1a1a2e"/>
+        <circle cx="56" cy="36.5" r="1.3" fill="#1a1a2e"/>
+        <ellipse cx="51" cy="40" rx="5" ry="2.5" fill="#e8b870"/>
+        <path d="M 48 41.5 Q 51 43 54 41.5" stroke="#3d2410" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+        <ellipse cx="40" cy="32" rx="3" ry="2" fill="#d4a256" transform="rotate(-30 40 32)"/>
+        <ellipse cx="62" cy="32" rx="3" ry="2" fill="#d4a256" transform="rotate(30 62 32)"/>
+      </g>
+    </svg>
   </div>
   <div class="cmp-input-right">
     <button class="cmp-edit-btn cmp-stack-btn" id="cmp-slower-btn"
       ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.slower()">🐢 Slower</button>
     <button class="cmp-edit-btn cmp-stack-btn" id="cmp-faster-btn"
       ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.faster()">⚡ Faster</button>
-    <button class="cmp-triplet-btn cmp-stack-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
+    <button class="cmp-triplet-btn cmp-stack-btn rhythm-only" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
     <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.undo()">↩ Undo</button>
     <button class="cmp-edit-btn cmp-stack-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
     <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.save()">💾 Save</button>
@@ -1313,11 +1359,14 @@ const Cmp = {
     const name=ring==='minor'?k.rel:k.name;
     this._keysig={idx:i,name:name,major:ring==='major',acc:k.acc,type:k.type};
     Toast.show({ic:'🎼',title:`Key: ${name}`,sub:`${this._clef} clef · ${k.acc} ${k.type==='#'?'sharp':'flat'}${k.acc===1?'':'s'}`});
-    const hdr=document.getElementById('cmp-mel-hdr');
-    if(hdr) hdr.textContent=`${this._clef} • ${name}`;
-    const info=document.getElementById('cmp-mel-info');
-    if(info) info.textContent=`${this._clef.toUpperCase()} CLEF · ${name}`;
-    this._showStep('melody');
+    if(this._melodyFlow){
+      // Home Melody flow: continue to time sig, then rhythm, then user hits Add Melody
+      this._showStep('timesig');
+    } else {
+      // Add Melody flow: enter pitch mode on the existing compose page
+      this._showStep('compose');
+      this._enterPitchMode();
+    }
   },
 
   // Phase 2: pitch mode infrastructure
@@ -1528,11 +1577,14 @@ const Cmp = {
 
   goBack(){
     this.stop();
-    if(this.step==='compose') this._showStep('timesig');
-    else if(this.step==='timesig') this._showStep('entry');
+    if(this.step==='compose'){
+      // If in pitch mode, first exit pitch mode (back to rhythm input on same page)
+      if(this._pitchMode){this._exitPitchMode();return;}
+      this._showStep('timesig');
+    }
+    else if(this.step==='timesig') this._showStep(this._melodyFlow?'key':'entry');
     else if(this.step==='clef') this._showStep(this._melodyFlow?'entry':'compose');
     else if(this.step==='key') this._showStep('clef');
-    else if(this.step==='melody') this._showStep(this._melodyFlow?'key':'compose');
   },
 
   // FEATURE 1 — hold-to-accelerate tempo
@@ -1780,7 +1832,7 @@ const Cmp = {
     } else if(!this._keysig){
       this._showStep('key');
     } else {
-      this._showStep('melody');
+      this._enterPitchMode();
     }
   },
 
