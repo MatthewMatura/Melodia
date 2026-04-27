@@ -260,6 +260,15 @@ transform-origin:center bottom;font-family:inherit;
 .cmp-cof text{fill:#f0e6d0;font-weight:900;font-family:inherit;text-anchor:middle;dominant-baseline:central;pointer-events:none;}
 .cmp-cof .cof-acc{fill:#f5c518;font-size:9px;}
 .cmp-mel-placeholder{padding:60px 30px;text-align:center;color:#f0e6d0;font-size:18px;line-height:1.6;letter-spacing:.1em;}
+/* Phase 2 reserve: pitch UI styles (used in s6) */
+.cmp-pitch-row{display:flex;flex-wrap:wrap;gap:5px;}
+.cmp-pitch-btn{min-width:38px;padding:8px 4px;border-radius:8px;border:2px solid rgba(245,197,24,.32);background:#10101e;color:#f5c518;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1;}
+.cmp-pitch-btn:active,.cmp-pitch-btn.on{background:#f5c518;color:#111;border-color:#f5c518;}
+.cmp-pitch-btn .pb-acc{font-size:11px;opacity:.85;}
+.cmp-pitch-btn .pb-deg{font-size:8px;opacity:.7;letter-spacing:.1em;font-weight:700;}
+.cmp-pitchmode-btn{padding:9px 16px;border-radius:9px;border:2px solid #f5c518;background:#10101e;color:#f5c518;font-family:inherit;font-weight:900;font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.cmp-pitchmode-btn.chromatic{border-color:#e8142a;color:#e8142a;background:rgba(232,20,42,.08);}
+.cmp-giraffe{display:block;}
 </style>
 
 </head>
@@ -546,17 +555,6 @@ transform-origin:center bottom;font-family:inherit;
     <div class="cmp-cof-wrap" id="cmp-cof-wrap"></div>
   </div>
 
-  <!-- STEP 6: Melody Composition (Phase 1 placeholder) -->
-
-  <div id="cmp-s6" class="cmp-step">
-    <div class="cmp-topbar">
-      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
-      <span class="cmp-ts-label" id="cmp-mel-hdr">&nbsp;</span>
-      <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
-    </div>
-    <div class="cmp-mel-placeholder">🎵 Melody Page<br><span id="cmp-mel-info" style="font-size:13px;color:#f5c518;letter-spacing:.18em;">—</span><br><br>Coming in Phase 2.</div>
-  </div>
-
 </div>
 
 <div class="cmp-customts-modal" id="cmp-customts-modal" onclick="if(event.target===this)Cmp.closeCustomTs()">
@@ -703,6 +701,65 @@ const CmpSheet = {
     'C#4':58,'D#4':54,'F#4':46,'G#4':42,'A#4':38,'C#5':30,'D#5':26,
   },
 
+  // Phase 2: pitch / clef / key infrastructure
+  // staffPos = signed integer offset from middle line (pos 0). Each unit = 4px (half line spacing).
+  // staffPos +1 = first space above middle line, +2 = next line up, etc. Negative = below.
+
+  LETTER_STEP:{C:0,D:1,E:2,F:3,G:4,A:5,B:6},
+
+  // Each clef's center-line letter (the staff position 0)
+  CLEF_CENTER:{
+    treble:'B',  // B4 sits on middle line
+    bass:'D',    // D3 sits on middle line
+    alto:'C',    // C4 sits on middle line (middle C)
+    tenor:'A',   // A3 sits on middle line (tenor C-clef puts middle C on 4th line)
+  },
+
+  // Tonic letter and key-signature accidental flag for each KEYS index (matches Cmp.KEYS order)
+  KEY_TONIC:[
+    {l:'C', acc:0},  {l:'G', acc:0},  {l:'D', acc:0},  {l:'A', acc:0},
+    {l:'E', acc:0},  {l:'B', acc:0},  {l:'F', acc:1},  {l:'D', acc:-1},
+    {l:'A', acc:-1}, {l:'E', acc:-1}, {l:'B', acc:-1}, {l:'F', acc:0},
+  ],
+
+  // Diatonic step pattern for major scale: each step is +1 staff position (ascending)
+  // Chromatic = 12-tone with sharp/flat applied to certain steps
+  SHARP_ORDER:['F','C','G','D','A','E','B'], // order sharps appear in key sig
+  FLAT_ORDER: ['B','E','A','D','G','C','F'],
+
+  // For accidental drawing in key signature: staffPos for each accidental in F-C-G-D-A-E-B (sharp) or B-E-A-D-G-C-F (flat) order.
+  // Approximate traditional engraving positions; refined in Phase 3 if needed.
+  KEYSIG_POS:{
+    treble:{sharp:[+4,+1,+5,+2,-1,+3, 0], flat:[ 0,+3,-1,+2,-2,+1,-3]},
+    bass:  {sharp:[+2,+5,+3,+6,+4,+7,+5], flat:[-2,+1,-3, 0,-4,-1,-5]},
+    alto:  {sharp:[+3, 0,+4,+1,-2,+2,-1], flat:[-1,+2,-2,+1,-3, 0,-4]},
+    tenor: {sharp:[+1,-2,+2,-1,-4, 0,-3], flat:[-3, 0,-4,-1,-5,-2,-6]},
+  },
+
+  // Convert a (letter, octave) pitch to staffPos for given clef.
+  // staffPos = diatonic-step distance from center line.
+  // Center line letter sits at center letter step in CENTER_OCTAVE (4 for treble/alto, 3 for bass/tenor).
+  // But to keep things simple in Phase 2, callers pass in tonic-relative staffPos directly.
+  _staffPosForLetter(letter, octave, clef){
+    const c = this.CLEF_CENTER[clef];
+    const centerOct = (clef==='bass'||clef==='tenor') ? 3 : 4;
+    const cs = this.LETTER_STEP[c];
+    const ts = this.LETTER_STEP[letter];
+    return (octave - centerOct)*7 + (ts - cs);
+  },
+
+  // Given clef and key idx, return staffPos for tonic, biased so scale ascends from below middle line
+  _tonicStaffPos(clef, keyIdx){
+    const k = this.KEY_TONIC[keyIdx];
+    const c = this.CLEF_CENTER[clef];
+    const cs = this.LETTER_STEP[c];
+    const ts = this.LETTER_STEP[k.l];
+    let diff = ts - cs; // letter-step distance, same octave as center
+    while(diff > 0)  diff -= 7;
+    while(diff < -6) diff += 7;
+    return diff;
+  },
+
   noteIcon(d,dot,rest){
     let body='';
     if(rest){
@@ -738,9 +795,12 @@ const CmpSheet = {
   },
 
   render(svgEl, state){
-    const {notes,ts,totalMeasures,selectedMeasure,selectedMeasureEnd}=state;
+    const {notes,ts,totalMeasures,selectedMeasure,selectedMeasureEnd,clef,keysig}=state;
     if(!ts){svgEl.innerHTML='';return;}
-    const mLeft=68,H=108,ST=this.ST,SB=this.SB;
+    const ST=this.ST,SB=this.SB,H=108;
+    // mLeft expands when drawing real clef + key signature accidentals
+    const numAcc=(clef&&keysig)?keysig.acc:0;
+    const mLeft=clef ? (66 + numAcc*8) : 68;
     const vp=svgEl.parentElement?.clientWidth||600;
     // Pre-compute measures so mW can adapt to the densest one — otherwise dense
     // 16th runs in tight meters (e.g. 20 16ths in 10/8) can't fit at min spacing.
@@ -764,11 +824,35 @@ const CmpSheet = {
       const y=ST+i*8;
       s+=`<line x1="4" y1="${y}" x2="${W-4}" y2="${y}" stroke="${lc[i]}" stroke-width="1.3" opacity=".7"/>`;
     }
-    // Neutral/rhythm clef — two vertical bars (hand-drawn, font-independent)
-    s+=`<rect x="10" y="${ST+3}" width="3.5" height="${SB-ST-6}" fill="#f5c518" opacity=".9"/><rect x="17" y="${ST+3}" width="3.5" height="${SB-ST-6}" fill="#f5c518" opacity=".9"/>`;
-    // Time sig
-    s+=`<text x="52" y="${ST+14}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.b}</text>`;
-    s+=`<text x="52" y="${ST+27}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.v}</text>`;
+    if(clef){
+      // Real clef glyph (Unicode music symbols). Each clef has empirical y offset + size.
+      const G={treble:{g:'𝄞',y:62,sz:38},bass:{g:'𝄢',y:54,sz:30},alto:{g:'𝄡',y:56,sz:34},tenor:{g:'𝄡',y:50,sz:34}}[clef];
+      s+=`<text x="10" y="${G.y}" font-size="${G.sz}" font-family="'Apple Symbols','Bravura','Times New Roman',serif" fill="#f5c518">${G.g}</text>`;
+      // Key signature accidentals
+      if(keysig&&keysig.acc>0){
+        const isSharp=keysig.type==='#';
+        const order=isSharp?this.SHARP_ORDER:this.FLAT_ORDER;
+        const positions=this.KEYSIG_POS[clef][isSharp?'sharp':'flat'];
+        const sym=isSharp?'♯':'♭';
+        const startX=clef==='treble'?32:30;
+        for(let ai=0;ai<keysig.acc;ai++){
+          const sp=positions[ai];
+          const ax=startX+ai*8;
+          const ay=ST+16-sp*4+(isSharp?3:2);
+          s+=`<text x="${ax}" y="${ay}" font-size="14" font-family="'Times New Roman',serif" fill="#f5c518">${sym}</text>`;
+        }
+      }
+      // Time sig pushed past key sig
+      const tsX=mLeft-12;
+      s+=`<text x="${tsX}" y="${ST+14}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.b}</text>`;
+      s+=`<text x="${tsX}" y="${ST+27}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.v}</text>`;
+    } else {
+      // Neutral/rhythm clef — two vertical bars (hand-drawn, font-independent)
+      s+=`<rect x="10" y="${ST+3}" width="3.5" height="${SB-ST-6}" fill="#f5c518" opacity=".9"/><rect x="17" y="${ST+3}" width="3.5" height="${SB-ST-6}" fill="#f5c518" opacity=".9"/>`;
+      // Time sig
+      s+=`<text x="52" y="${ST+14}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.b}</text>`;
+      s+=`<text x="52" y="${ST+27}" font-size="13" font-family="'Times New Roman',serif" fill="#f5c518" text-anchor="middle">${ts.v}</text>`;
+    }
     // Measures already computed above for mW sizing
     const isCompound=(ts.v===8&&ts.b%3===0&&ts.b>3);
     const beatSize=isCompound?3:Math.max(1,ts.cap/ts.b);
@@ -921,19 +1005,32 @@ const CmpSheet = {
 
   _drawNote(n,nx,ST,SB,beamed){
     if(n.rest)return this._drawRest(n.dur8,999,nx,ST,SB,n.dot,n.current);
-    const ny=ST+16;
+    const sp=n.staffPos||0;
+    const ny=ST+16-sp*4; // each staffPos unit = 4px (half-line)
     const isCur=n.current;
     const fill=isCur?'#f5c518':'rgba(240,230,208,.75)';
     const open=n.d<=2;
     let s='';
     if(isCur) s+=`<ellipse cx="${nx}" cy="${ny}" rx="15" ry="10" fill="rgba(245,197,24,.11)"/>`;
-    // Ledger lines
-    for(let ly=SB+8;ly<=ny;ly+=8) s+=`<line x1="${nx-9}" y1="${ly}" x2="${nx+9}" y2="${ly}" stroke="${fill}" stroke-width="1.2" opacity=".8"/>`;
-    for(let ly=ST-8;ly>=ny;ly-=8) s+=`<line x1="${nx-9}" y1="${ly}" x2="${nx+9}" y2="${ly}" stroke="${fill}" stroke-width="1.2" opacity=".8"/>`;
+    // Ledger lines — drawn at every other staffPos when notehead is outside the staff (|sp| > 4)
+    // Staff spans staffPos -4 (bottom line, ST+32=64=SB) to +4 (top line, ST=32). Ledger lines extend beyond.
+    if(sp>4){
+      // Above staff: ledger lines at staffPos +6, +8, +10, ...
+      for(let lp=6;lp<=sp;lp+=2){
+        const ly=ST+16-lp*4;
+        s+=`<line x1="${nx-9}" y1="${ly}" x2="${nx+9}" y2="${ly}" stroke="${fill}" stroke-width="1.2" opacity=".8"/>`;
+      }
+    } else if(sp<-4){
+      // Below staff: ledger lines at staffPos -6, -8, -10, ...
+      for(let lp=-6;lp>=sp;lp-=2){
+        const ly=ST+16-lp*4;
+        s+=`<line x1="${nx-9}" y1="${ly}" x2="${nx+9}" y2="${ly}" stroke="${fill}" stroke-width="1.2" opacity=".8"/>`;
+      }
+    }
     // Notehead
     if(open) s+=`<ellipse cx="${nx}" cy="${ny}" rx="6" ry="4" fill="none" stroke="${fill}" stroke-width="1.7" transform="rotate(-15 ${nx} ${ny})"/>`;
     else s+=`<ellipse cx="${nx}" cy="${ny}" rx="6" ry="4" fill="${fill}" transform="rotate(-15 ${nx} ${ny})"/>`;
-    // Stem — always down (notehead sits on middle line for rhythm notation)
+    // Stem — Phase 2: still always down (notehead may be off-center but stem direction logic deferred to Phase 3)
     if(n.d!==1){
       const sx=nx-5.4;
       const sy2=ny+24;
@@ -946,7 +1043,14 @@ const CmpSheet = {
       }
     }
     if(n.dot) s+=`<circle cx="${nx+8}" cy="${ny-2}" r="2" fill="${fill}"/>`;
-    if(n.p&&n.p.includes('#')) s+=`<text x="${nx-8}" y="${ny+4}" font-size="10" fill="${fill}" font-family="'Times New Roman',serif" text-anchor="end">♯</text>`;
+    // Accidental from n.acc field: -1=flat, 0=natural, +1=sharp (drawn explicitly).
+    // Falls back to legacy n.p sharp parsing for backward compat with rhythm-page notes.
+    if(typeof n.acc==='number'){
+      const sym=n.acc===1?'♯':n.acc===-1?'♭':'♮';
+      s+=`<text x="${nx-8}" y="${ny+4}" font-size="11" fill="${fill}" font-family="'Times New Roman',serif" text-anchor="end">${sym}</text>`;
+    } else if(n.p&&n.p.includes('#')){
+      s+=`<text x="${nx-8}" y="${ny+4}" font-size="10" fill="${fill}" font-family="'Times New Roman',serif" text-anchor="end">♯</text>`;
+    }
     return s;
   },
 
@@ -1024,6 +1128,7 @@ const Cmp = {
   notes:[], durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
   totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, repeatOn:false, metronomeOn:false, drumOn:false, countingOn:false,
+  _clef:null, _keysig:null, _melodyFlow:false, _pitchMode:false, _diatonic:true,
 
   TIME_SIGS:[
     {label:'Cut Time', sub:'2/2',  b:2,  v:2, cap:8,  beatUnit:2, bul:'𝅗𝅥'},
@@ -1076,9 +1181,9 @@ const Cmp = {
   },
 
   _showStep(s){
-    const map={entry:'cmp-s1',timesig:'cmp-s2',compose:'cmp-s3',clef:'cmp-s4',key:'cmp-s5',melody:'cmp-s6'};
+    const map={entry:'cmp-s1',timesig:'cmp-s2',compose:'cmp-s3',clef:'cmp-s4',key:'cmp-s5'};
     // Remove all active states first
-    ['cmp-s1','cmp-s2','cmp-s3','cmp-s4','cmp-s5','cmp-s6'].forEach(id=>{
+    ['cmp-s1','cmp-s2','cmp-s3','cmp-s4','cmp-s5'].forEach(id=>{
       document.getElementById(id)?.classList.remove('cmp-active');
     });
     // Add active state in next animation frame — iOS Safari requires this
@@ -1212,10 +1317,156 @@ const Cmp = {
     if(hdr) hdr.textContent=`${this._clef} • ${name}`;
     const info=document.getElementById('cmp-mel-info');
     if(info) info.textContent=`${this._clef.toUpperCase()} CLEF · ${name}`;
-    if(this._melodyFlow){
-      this._showStep('timesig');
+    this._showStep('melody');
+  },
+
+  // Phase 2: pitch mode infrastructure
+  _enterPitchMode(){
+    if(!this._clef||!this._keysig){Toast.show({ic:'⚠',title:'Pick clef and key first',sub:'',type:'e'});return;}
+    this._pitchMode=true;
+    document.getElementById('cmp-s3')?.classList.add('pitch-mode');
+    // Initialize all non-rest notes to tonic staffPos if they don't already have one set
+    const tonicSP=CmpSheet._tonicStaffPos(this._clef,this._keysig.idx);
+    this.notes.forEach(n=>{
+      if(!n.rest&&typeof n.staffPos!=='number') n.staffPos=tonicSP;
+      if(!n.rest&&typeof n.acc!=='number') n.acc=null;
+    });
+    // Update topbar label
+    const lbl=document.getElementById('cmp-pitch-label');
+    if(lbl) lbl.textContent=`${this._clef} · ${this._keysig.name}`;
+    const meta=document.getElementById('cmp-pitch-meta');
+    if(meta) meta.textContent=`${this._clef.toUpperCase()} · ${this._keysig.name}`;
+    // Build pitch buttons for current diatonic/chromatic state
+    this._buildPitchButtons();
+    // Select first non-rest note for cursor
+    const firstIdx=this.notes.findIndex(n=>!n.rest);
+    if(firstIdx>=0) this.selectNote(firstIdx);
+    else this.render();
+  },
+
+  _exitPitchMode(){
+    this._pitchMode=false;
+    document.getElementById('cmp-s3')?.classList.remove('pitch-mode');
+    this.render();
+  },
+
+  togglePitchScope(){
+    this._diatonic=!this._diatonic;
+    const btn=document.getElementById('cmp-pitchmode-btn');
+    if(btn){
+      btn.textContent=this._diatonic?'Diatonic':'Chromatic';
+      btn.classList.toggle('chromatic',!this._diatonic);
+    }
+    this._buildPitchButtons();
+    Toast.show({ic:'🎵',title:this._diatonic?'Diatonic':'Chromatic',sub:this._diatonic?'Notes within the key':'All 12 chromatic pitches'});
+  },
+
+  // Build pitch button row based on current diatonic/chromatic state
+  _buildPitchButtons(){
+    const row=document.getElementById('cmp-pitch-row');
+    if(!row||!this._clef||!this._keysig)return;
+    const tonicSP=CmpSheet._tonicStaffPos(this._clef,this._keysig.idx);
+    const tonicLetter=CmpSheet.KEY_TONIC[this._keysig.idx].l;
+    // Letter cycle starting from tonic, going up
+    const NOTE_LETTERS=['C','D','E','F','G','A','B'];
+    const tonicLetterIdx=NOTE_LETTERS.indexOf(tonicLetter);
+    // Major scale interval pattern (in semitones from tonic): 0,2,4,5,7,9,11,12
+    // Diatonic = 8 buttons (1-8 with octave doubled)
+    // Chromatic = 13 buttons (12 semitones + octave)
+    // For each step we know: staffPos offset (in diatonic letter steps), and accidental flag
+    const isSharpKey=this._keysig.type==='#';
+    // Which letters are altered by the key signature?
+    const sharpsInKey=new Set(CmpSheet.SHARP_ORDER.slice(0,isSharpKey?this._keysig.acc:0));
+    const flatsInKey=new Set(CmpSheet.FLAT_ORDER.slice(0,!isSharpKey?this._keysig.acc:0));
+
+    let buttons=[];
+    if(this._diatonic){
+      // 8 buttons: scale degrees 1-8
+      for(let deg=0;deg<8;deg++){
+        const letterIdx=(tonicLetterIdx+deg)%7;
+        const letter=NOTE_LETTERS[letterIdx];
+        const sp=tonicSP+deg;
+        let label=letter;
+        // Apply key signature accidental to label (visual only — the key sig handles it on staff)
+        if(sharpsInKey.has(letter)) label=letter+'♯';
+        else if(flatsInKey.has(letter)) label=letter+'♭';
+        buttons.push({sp,acc:null,label,deg:deg+1});
+      }
     } else {
-      this._showStep('melody');
+      // 13 buttons: chromatic, 12 semitones + octave
+      // Each diatonic step in major key: whole, whole, half, whole, whole, whole, half (= 2,2,1,2,2,2,1 semitones)
+      // Walk semitones; for each semitone, decide which staffPos+accidental to use
+      const SEMITONE_STEPS=[2,2,1,2,2,2,1]; // major scale
+      let cumSemitone=0;
+      let curLetterIdx=tonicLetterIdx;
+      let curSp=tonicSP;
+      for(let st=0;st<=12;st++){
+        // For each semitone st from 0 to 12: figure out staffPos and accidental
+        // The diatonic notes occupy semitones 0,2,4,5,7,9,11,12. The chromatic ones are 1,3,6,8,10.
+        // For chromatic notes, we sharp the previous diatonic letter.
+        const DIATONIC_SEMI=[0,2,4,5,7,9,11,12];
+        const idx=DIATONIC_SEMI.indexOf(st);
+        if(idx>=0){
+          // Diatonic note — letter offset = idx
+          const letterIdx=(tonicLetterIdx+idx)%7;
+          const letter=NOTE_LETTERS[letterIdx];
+          const sp=tonicSP+idx;
+          let label=letter;
+          let accVal=null;
+          if(sharpsInKey.has(letter)) label=letter+'♯';
+          else if(flatsInKey.has(letter)) label=letter+'♭';
+          buttons.push({sp,acc:accVal,label,deg:null});
+        } else {
+          // Chromatic alteration — find previous diatonic letter and sharp it (or use enharmonic)
+          // Find largest idx where DIATONIC_SEMI[idx] < st
+          let prevIdx=0;
+          for(let i=0;i<DIATONIC_SEMI.length;i++) if(DIATONIC_SEMI[i]<st) prevIdx=i;
+          const letterIdx=(tonicLetterIdx+prevIdx)%7;
+          const letter=NOTE_LETTERS[letterIdx];
+          const sp=tonicSP+prevIdx;
+          // If letter is already sharped in key sig, this is a double-sharp situation — skip (rare)
+          // If letter is flatted in key, use natural for the chromatic raise
+          let accVal=1; // sharp by default
+          let labelAcc='♯';
+          if(flatsInKey.has(letter)){accVal=0;labelAcc='♮';}
+          buttons.push({sp,acc:accVal,label:letter+labelAcc,deg:null});
+        }
+      }
+    }
+    // Render buttons
+    row.innerHTML=buttons.map((b,i)=>{
+      const degHtml=b.deg?`<span class="pb-deg">${b.deg}</span>`:'';
+      return `<button class="cmp-pitch-btn" data-sp="${b.sp}" data-acc="${b.acc===null?'null':b.acc}" onclick="Cmp.setPitch(${b.sp},${b.acc===null?'null':b.acc})">${degHtml}<span>${b.label}</span></button>`;
+    }).join('');
+  },
+
+  // Apply pitch (staffPos, accidental) to current selected note (or first non-rest current note),
+  // then advance to next non-rest note.
+  setPitch(sp,acc){
+    if(!this._pitchMode||!this.notes.length)return;
+    // Find target index: prefer _selectedIdx, else first note with current=true, else first non-rest
+    let idx=this._selectedIdx;
+    if(idx===null||idx===undefined){
+      idx=this.notes.findIndex(n=>n.current&&!n.rest);
+      if(idx<0) idx=this.notes.findIndex(n=>!n.rest);
+    }
+    if(idx<0||idx>=this.notes.length)return;
+    const n=this.notes[idx];
+    if(n.rest){
+      // Skip past — advance to next non-rest
+      const next=this.notes.findIndex((nn,i)=>i>idx&&!nn.rest);
+      if(next>=0)this.selectNote(next);
+      return;
+    }
+    n.staffPos=sp;
+    n.acc=(acc===null||acc==='null')?null:acc;
+    // Advance to next non-rest
+    const next=this.notes.findIndex((nn,i)=>i>idx&&!nn.rest);
+    if(next>=0){
+      this.selectNote(next);
+    } else {
+      // Reached end — keep selection on current and re-render
+      this.render();
     }
   },
 
@@ -1278,10 +1529,10 @@ const Cmp = {
   goBack(){
     this.stop();
     if(this.step==='compose') this._showStep('timesig');
-    else if(this.step==='timesig') this._showStep(this._melodyFlow?'key':'entry');
-    else if(this.step==='clef') this._showStep('entry');
+    else if(this.step==='timesig') this._showStep('entry');
+    else if(this.step==='clef') this._showStep(this._melodyFlow?'entry':'compose');
     else if(this.step==='key') this._showStep('clef');
-    else if(this.step==='melody') this._showStep('compose');
+    else if(this.step==='melody') this._showStep(this._melodyFlow?'key':'compose');
   },
 
   // FEATURE 1 — hold-to-accelerate tempo
@@ -1522,6 +1773,7 @@ const Cmp = {
   },
 
   addMelody(){
+    if(!this.notes.length){Toast.show({ic:'⚠',title:'Nothing to add melody to',sub:'Compose a rhythm first.',type:'e'});return;}
     this._melodyFlow=false;
     if(!this._clef){
       this._showStep('clef');
@@ -1761,7 +2013,7 @@ const Cmp = {
 
   render(){
     const svg=document.getElementById('cmp-svg');if(!svg)return;
-    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure,selectedMeasureEnd:this.selectedMeasureEnd});
+    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure,selectedMeasureEnd:this.selectedMeasureEnd,clef:this._pitchMode?this._clef:null,keysig:this._pitchMode?this._keysig:null});
     if(!this._tapInstalled){
       this._tapInstalled=true;
       svg.addEventListener('click',e=>{
