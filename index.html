@@ -2641,16 +2641,20 @@ const Cmp = {
             }
           }
         }
-        // Phase 4: Giraffe neck scaleY — pick most-recent scheduled scale for current elapsed
+        // Phase 4: Giraffe neck scaleY + head translateY — pick most-recent scheduled scale for current elapsed.
+        // Neck rect is 42px tall with transform-origin at bottom, so head delta = 42*(1 - scaleY).
         const gs=this._girSchedule;
         if(gs&&gs.length){
-          const neck=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-neck');
+          const giraffe=document.querySelector('.cmp-input-mid .cmp-giraffe');
+          const neck=giraffe?.querySelector('.gir-neck');
+          const head=giraffe?.querySelector('.gir-head');
           if(neck){
             let gi=-1;
             for(let k=0;k<gs.length;k++){if(gs[k].t<=elapsed)gi=k;else break;}
             const targetSY=gi>=0?gs[gi].scaleY:1;
             if(this._girLastSY!==targetSY){
               neck.style.transform=`scaleY(${targetSY})`;
+              if(head) head.style.transform=`translateY(${(42*(1-targetSY)).toFixed(2)}px)`;
               this._girLastSY=targetSY;
             }
           }
@@ -2662,6 +2666,13 @@ const Cmp = {
     if(this._wPaused&&this._wac&&this._wac.state==='suspended'){
       // Resume from pause
       this._wac.resume();
+      // Shift wall-clock baseline forward by the duration of the pause so wallElapsed
+      // and audElapsed remain aligned (otherwise the playhead/giraffe snap forward by
+      // the pause duration the first frame after resume).
+      if(this._wStartWall&&this._wPauseWallAt){
+        this._wStartWall+=(performance.now()-this._wPauseWallAt);
+        this._wPauseWallAt=0;
+      }
       this.playing=true;
       document.getElementById('cmp-play-btn')?.classList.add('on');
       // Restart completion timer for remaining duration (range-aware)
@@ -2733,7 +2744,8 @@ const Cmp = {
     for(let i=0;i<countInBeats;i++){
       const tt=t0+i*secPerBeat;
       const accent=(i%beatsPerBar)===0;
-      if(this.metronomeOn){
+      // Count-in click always plays: drum if drumOn, else metronome click. Independent of metronome toggle.
+      if(!this.drumOn){
         const node=this._toneMetClick(ctx,tt,accent);
         if(node)this._wNodes.push(node);
       }
@@ -2812,6 +2824,9 @@ const Cmp = {
     // Phase 4: giraffe neck scaleY mapping. Middle line (sp=0) → 1.0. Range clamped to [0.5, 2.0].
     // Coefficient 0.06 means ~10 staffPos units (octave-and-a-third diatonic) covers a ~0.6 swing.
     const _girScale=(sp)=>Math.max(0.5,Math.min(2.0,0.6+(sp||0)*0.06));
+    // Track last computed scaleY so rests/tied notes freeze the neck at last-played pitch height.
+    // Carries across main+repeat passes via instance state.
+    this._girLastBuildSY=1;
     let beat8=0, lastMi=-1, poseIdx=0;
 
     playNotes.forEach(n=>{
@@ -2820,12 +2835,12 @@ const Cmp = {
         const node=this._playTone(ctx,D4,t,dur);
         if(node)this._wNodes.push(node);
         this._bvrSchedule.push({t:t-this._wStart,pose:_BVR_POSES[poseIdx%4]});
-        this._girSchedule.push({t:t-this._wStart,scaleY:_girScale(n.staffPos)});
+        this._girLastBuildSY=_girScale(n.staffPos);
         poseIdx++;
       } else {
         this._bvrSchedule.push({t:t-this._wStart,pose:''});
-        this._girSchedule.push({t:t-this._wStart,scaleY:1});
       }
+      this._girSchedule.push({t:t-this._wStart,scaleY:this._girLastBuildSY});
       // Auto-scroll-to-measure removed so user can scroll freely during play
       beat8+=n.dur8;
       t+=dur;
@@ -2863,12 +2878,12 @@ const Cmp = {
           const node=this._playTone(ctx,D4,t2,dur);
           if(node)this._wNodes.push(node);
           this._bvrSchedule.push({t:t2-this._wStart,pose:_BVR_POSES[poseIdx%4]});
-          this._girSchedule.push({t:t2-this._wStart,scaleY:_girScale(n.staffPos)});
+          this._girLastBuildSY=_girScale(n.staffPos);
           poseIdx++;
         } else {
           this._bvrSchedule.push({t:t2-this._wStart,pose:''});
-          this._girSchedule.push({t:t2-this._wStart,scaleY:1});
         }
+        this._girSchedule.push({t:t2-this._wStart,scaleY:this._girLastBuildSY});
         // Auto-scroll-to-measure removed so user can scroll freely during play
         beat82+=n.dur8;
         t2+=dur;
@@ -2954,7 +2969,8 @@ const Cmp = {
     for(let i=0;i<countInBeats;i++){
       const tt=t0+i*secPerBeat;
       const accent=(i%beatsPerBar)===0;
-      if(this.metronomeOn){
+      // Count-in click always plays: drum if drumOn, else metronome click. Independent of metronome toggle.
+      if(!this.drumOn){
         const node=this._toneMetClick(ctx,tt,accent);
         if(node)this._wNodes.push(node);
       }
@@ -3019,6 +3035,8 @@ const Cmp = {
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
     const neck=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-neck');
     if(neck){neck.style.transform='';this._girLastSY=null;}
+    const head=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-head');
+    if(head){head.style.transform='';}
     // Park playhead at end-of-piece position so it doesn't look stuck mid-score
     const sc=this._phSchedule;
     if(sc&&sc.length){
@@ -3034,6 +3052,7 @@ const Cmp = {
     clearTimeout(this._wTimer);
     this._wScrollTimers?.forEach(id=>clearTimeout(id));this._wScrollTimers=[];
     this._wPauseAt=this._wac.currentTime;
+    this._wPauseWallAt=performance.now();
     this._wac.suspend();
     this.playing=false;this._wPaused=true;
     document.getElementById('cmp-play-btn')?.classList.remove('on');
@@ -3048,6 +3067,8 @@ const Cmp = {
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
     const neck=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-neck');
     if(neck){neck.style.transform='';this._girLastSY=null;}
+    const head=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-head');
+    if(head){head.style.transform='';}
     const sw=document.querySelector('.cmp-staff-wrap');if(sw){sw.style.borderColor='';sw.classList.remove('locked');sw.scrollTo({left:0,behavior:'smooth'});}
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const ph=document.getElementById('cmp-playhead');if(ph){ph.setAttribute('transform','translate(68,0)');ph.removeAttribute('display');}
