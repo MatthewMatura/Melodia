@@ -269,6 +269,9 @@ transform-origin:center bottom;font-family:inherit;
 .cmp-pitchmode-btn{padding:9px 16px;border-radius:9px;border:2px solid #f5c518;background:#10101e;color:#f5c518;font-family:inherit;font-weight:900;font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-pitchmode-btn.chromatic{border-color:#e8142a;color:#e8142a;background:rgba(232,20,42,.08);}
 .cmp-giraffe{display:block;}
+/* Phase 2: visibility gate — toggled by s3.pitch-mode class set by Cmp._enterPitchMode/_exitPitchMode */
+#cmp-s3.pitch-mode .rhythm-only{display:none !important;}
+#cmp-s3:not(.pitch-mode) .pitch-only{display:none !important;}
 </style>
 
 </head>
@@ -1282,6 +1285,17 @@ const Cmp = {
       this._showStep('timesig');
     } else if(mode==='pitch'){
       this._melodyFlow=true;
+      // Fresh melody composition: hardcode 4/4, clear notes & state
+      this.ts=this.TIME_SIGS[1]; // Common time = 4/4
+      this.notes=[];
+      this.totalMeasures=4;
+      this.selectedMeasure=null;
+      this.selectedMeasureEnd=null;
+      this._selectedIdx=null;
+      this.tripletMode=false;
+      document.getElementById('cmp-triplet-btn')?.classList.remove('on');
+      const tsLbl=document.getElementById('cmp-ts-label');
+      if(tsLbl) tsLbl.textContent='4/4';
       this._showStep('clef');
     }
   },
@@ -1359,14 +1373,11 @@ const Cmp = {
     const name=ring==='minor'?k.rel:k.name;
     this._keysig={idx:i,name:name,major:ring==='major',acc:k.acc,type:k.type};
     Toast.show({ic:'🎼',title:`Key: ${name}`,sub:`${this._clef} clef · ${k.acc} ${k.type==='#'?'sharp':'flat'}${k.acc===1?'':'s'}`});
-    if(this._melodyFlow){
-      // Home Melody flow: continue to time sig, then rhythm, then user hits Add Melody
-      this._showStep('timesig');
-    } else {
-      // Add Melody flow: enter pitch mode on the existing compose page
-      this._showStep('compose');
-      this._enterPitchMode();
-    }
+    // Both flows end at compose page in pitch mode.
+    // Melody flow: empty notes — user taps pitches to append quarter notes.
+    // Add Melody flow: existing rhythm — user taps pitches to assign to each note.
+    this._showStep('compose');
+    this._enterPitchMode();
   },
 
   // Phase 2: pitch mode infrastructure
@@ -1489,34 +1500,54 @@ const Cmp = {
     }).join('');
   },
 
-  // Apply pitch (staffPos, accidental) to current selected note (or first non-rest current note),
-  // then advance to next non-rest note.
+  // Apply pitch (staffPos, accidental) to current selected note, then advance.
+  // Behavior depends on flow:
+  //  - Melody flow (_melodyFlow=true): no rhythm exists → tap appends a new quarter note with this pitch.
+  //  - Add Melody flow (_melodyFlow=false): rhythm exists → tap assigns pitch to selected note + advances.
+  //                                          When all notes pitched, further taps are no-ops (rhythm is locked).
   setPitch(sp,acc){
-    if(!this._pitchMode||!this.notes.length)return;
-    // Find target index: prefer _selectedIdx, else first note with current=true, else first non-rest
+    if(!this._pitchMode)return;
+    const accVal=(acc===null||acc==='null')?null:acc;
     let idx=this._selectedIdx;
-    if(idx===null||idx===undefined){
-      idx=this.notes.findIndex(n=>n.current&&!n.rest);
-      if(idx<0) idx=this.notes.findIndex(n=>!n.rest);
-    }
-    if(idx<0||idx>=this.notes.length)return;
-    const n=this.notes[idx];
-    if(n.rest){
-      // Skip past — advance to next non-rest
+    // Path 1: valid non-rest selection → assign + advance
+    if(idx!==null&&idx!==undefined&&idx>=0&&idx<this.notes.length&&!this.notes[idx].rest){
+      const n=this.notes[idx];
+      n.staffPos=sp;
+      n.acc=accVal;
+      // Advance to next non-rest
       const next=this.notes.findIndex((nn,i)=>i>idx&&!nn.rest);
-      if(next>=0)this.selectNote(next);
+      if(next>=0){
+        this.selectNote(next);
+      } else {
+        // End reached
+        if(this._melodyFlow){
+          // Pure Melody flow: clear selection so subsequent taps append
+          this.notes.forEach(nn=>nn.current=false);
+          this._selectedIdx=null;
+          this.render();
+        } else {
+          // Add Melody flow: rhythm is locked — stop here
+          this.render();
+          Toast.show({ic:'✓',title:'All notes pitched',sub:'Tap any note on the staff to edit, or Submit.'});
+        }
+      }
       return;
     }
-    n.staffPos=sp;
-    n.acc=(acc===null||acc==='null')?null:acc;
-    // Advance to next non-rest
-    const next=this.notes.findIndex((nn,i)=>i>idx&&!nn.rest);
-    if(next>=0){
-      this.selectNote(next);
-    } else {
-      // Reached end — keep selection on current and re-render
+    // Path 2: no valid selection
+    if(this._melodyFlow){
+      // Append a new quarter note. addEntry handles measure-fit + staff-growth.
+      // The pitch parameter to addEntry is legacy ('C4'); render reads staffPos/acc which we patch below.
+      const beforeLen=this.notes.length;
+      this.addEntry('C4',4,false,false);
+      for(let i=beforeLen;i<this.notes.length;i++){
+        if(!this.notes[i].rest){
+          this.notes[i].staffPos=sp;
+          this.notes[i].acc=accVal;
+        }
+      }
       this.render();
     }
+    // Else (Add Melody flow, no selection): no-op
   },
 
   pickTs(i){
@@ -1578,11 +1609,21 @@ const Cmp = {
   goBack(){
     this.stop();
     if(this.step==='compose'){
-      // If in pitch mode, first exit pitch mode (back to rhythm input on same page)
-      if(this._pitchMode){this._exitPitchMode();return;}
+      // If in pitch mode:
+      //  - Melody flow: rhythm picker doesn't apply → go back to key picker
+      //  - Add Melody flow: exit pitch mode in place to return to rhythm UI
+      if(this._pitchMode){
+        if(this._melodyFlow){
+          this._exitPitchMode();
+          this._showStep('key');
+        } else {
+          this._exitPitchMode();
+        }
+        return;
+      }
       this._showStep('timesig');
     }
-    else if(this.step==='timesig') this._showStep(this._melodyFlow?'key':'entry');
+    else if(this.step==='timesig') this._showStep('entry');
     else if(this.step==='clef') this._showStep(this._melodyFlow?'entry':'compose');
     else if(this.step==='key') this._showStep('clef');
   },
