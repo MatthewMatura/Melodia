@@ -2026,7 +2026,7 @@ const Cmp = {
     let saves={};
     try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){saves={};}
     const id=Date.now().toString(36);
-    saves[id]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,notes:this.notes.map(n=>({...n,current:false})),savedAt:Date.now()};
+    saves[id]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_pitchMode:this._pitchMode,notes:this.notes.map(n=>({...n,current:false})),savedAt:Date.now()};
     try{localStorage.setItem('melodia:saves',JSON.stringify(saves));}
     catch(e){Toast.show({ic:'⚠',title:'Save failed',sub:'Browser storage may be full.',type:'e'});return;}
     Toast.show({ic:'💾',title:'Saved',sub:`"${title}" stored on this device.`});
@@ -2073,7 +2073,11 @@ const Cmp = {
     document.getElementById('cmp-triplet-btn')?.classList.remove('on');
     const titleEl=document.getElementById('c-title');if(titleEl)titleEl.value=s.title||'';
     if(typeof this._updTempoDisp==='function')this._updTempoDisp();
-    this.render();
+    this._clef=s._clef||null;
+    this._keysig=s._keysig||null;
+    this._pitchMode=false;
+    document.getElementById('cmp-s3')?.classList.remove('pitch-mode');
+    if(s._pitchMode&&this._clef&&this._keysig){this._enterPitchMode();}else{this.render();}
     this.closeLoadModal();
     Toast.show({ic:'📂',title:'Loaded',sub:`"${s.title||'Untitled'}"`});
   },
@@ -2269,6 +2273,25 @@ const Cmp = {
   },
 
   setTone(v){this.tone=v;},
+
+  // Pitch → frequency. Rhythm-only (no clef/keysig or no staffPos) → constant D4.
+  // In pitch mode: derive (letter, octave) from staffPos+clef, alteration from n.acc (override) or key sig default.
+  _pitchToFreq(n,clef,keysig){
+    if(!clef||!keysig||typeof n.staffPos!=='number') return 293.66;
+    const sp=n.staffPos;
+    const c=CmpSheet.CLEF_CENTER[clef];
+    const cs=CmpSheet.LETTER_STEP[c];
+    const centerOct=(clef==='bass'||clef==='tenor')?3:4;
+    const absStep=centerOct*7+cs+sp;
+    const octave=Math.floor(absStep/7);
+    const letterIdx=((absStep%7)+7)%7;
+    const letter='CDEFGAB'[letterIdx];
+    const semOff={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[letter];
+    const keyAcc=CmpSheet._keyAccForLetter(letter,keysig);
+    const eff=(typeof n.acc==='number')?n.acc:keyAcc;
+    const midi=(octave+1)*12+semOff+eff;
+    return 440*Math.pow(2,(midi-69)/12);
+  },
 
   _playTone(ctx,freq,startTime,durSec){
     const fn={
@@ -2832,7 +2855,7 @@ const Cmp = {
     playNotes.forEach(n=>{
       const dur=n.dur8*spe;
       if(!n.rest&&!n.tied){
-        const node=this._playTone(ctx,D4,t,dur);
+        const node=this._playTone(ctx,this._pitchToFreq(n,this._clef,this._keysig),t,dur);
         if(node)this._wNodes.push(node);
         this._bvrSchedule.push({t:t-this._wStart,pose:_BVR_POSES[poseIdx%4]});
         this._girLastBuildSY=_girScale(n.staffPos);
@@ -2875,7 +2898,7 @@ const Cmp = {
       playNotes.forEach(n=>{
         const dur=n.dur8*spe;
         if(!n.rest&&!n.tied){
-          const node=this._playTone(ctx,D4,t2,dur);
+          const node=this._playTone(ctx,this._pitchToFreq(n,this._clef,this._keysig),t2,dur);
           if(node)this._wNodes.push(node);
           this._bvrSchedule.push({t:t2-this._wStart,pose:_BVR_POSES[poseIdx%4]});
           this._girLastBuildSY=_girScale(n.staffPos);
@@ -3011,7 +3034,7 @@ const Cmp = {
     playNotes.forEach(n=>{
       const dur=n.dur8*spe;
       if(!n.rest&&!n.tied){
-        const node=this._playTone(ctx,D4,t,dur);
+        const node=this._playTone(ctx,this._pitchToFreq(n,this._clef,this._keysig),t,dur);
         if(node)this._wNodes.push(node);
       }
       // Auto-scroll-to-measure removed so user can scroll freely during play
