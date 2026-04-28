@@ -244,6 +244,17 @@ transform-origin:center bottom;font-family:inherit;
 .t-sub{font-size:12px;color:#3f3f46;margin-top:3px;line-height:1.25;font-weight:600;}
 @keyframes t-in{0%{transform:scale(.4) rotate(-10deg);opacity:0;}55%{transform:scale(1.1) rotate(3deg);opacity:1;}80%{transform:scale(.95) rotate(-1deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
 @keyframes t-out{0%{transform:scale(1) rotate(0);opacity:1;}100%{transform:scale(.6) translateY(8px) rotate(6deg);opacity:0;}}
+/* Phase 5: speech-bubble tail for mascot-attached toasts */
+.toast.bubble{position:relative;}
+.toast.bubble::after{content:’’;position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:14px solid #f5c518;filter:drop-shadow(0 4px 4px rgba(0,0,0,.25));}
+.toast.bubble.e::after{border-top-color:#dc2626;}
+.toast.bubble.s::after{border-top-color:#16a34a;}
+/* Phase 5: giraffe dance poses (Option C — whole-body translate/rotate, neck scaleY composes) */
+.cmp-giraffe{transition:transform .14s cubic-bezier(.5,1.7,.4,1);}
+.cmp-giraffe.gp-bounce{transform:translateY(-5px);}
+.cmp-giraffe.gp-twist{transform:rotate(4deg) translateX(2px);}
+.cmp-giraffe.gp-kick{transform:rotate(-3deg) translateX(-2px) translateY(-2px);}
+.cmp-giraffe.gp-hop{transform:translateY(-7px) rotate(2deg);}
 /* score floats */
 .sf{position:fixed;font-size:22px;font-weight:900;color:var(–jade);pointer-events:none;z-index:500;}
 .sf.w{color:var(–red);}
@@ -379,6 +390,7 @@ transform-origin:center bottom;font-family:inherit;
       <span class="cmp-ts-label pitch-only" id="cmp-pitch-label">—</span>
       <div style="display:flex;gap:7px">
         <button class="cmp-submit-btn rhythm-only" onclick="Cmp.addMelody()" style="background:#10101e;color:#f5c518;border:2px solid #f5c518">🎹 Add Melody</button>
+        <button class="cmp-submit-btn pitch-only" onclick="Cmp.addRhythm()" style="background:#10101e;color:#f5c518;border:2px solid #f5c518">🥁 Add Rhythm</button>
         <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
       </div>
     </div>
@@ -394,9 +406,8 @@ transform-origin:center bottom;font-family:inherit;
       <div class="cmp-note-row" id="cmp-rest-row"></div>
     </div>
     <div class="pitch-only">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
+      <div style="display:flex;justify-content:flex-start;align-items:center;gap:8px;margin-bottom:6px;padding-top:18px">
         <button class="cmp-pitchmode-btn" id="cmp-pitchmode-btn" onclick="Cmp.togglePitchScope()">Diatonic</button>
-        <span style="font-size:10px;letter-spacing:.14em;color:#f5c518;opacity:.85" id="cmp-pitch-meta">—</span>
       </div>
       <div class="cmp-input-label">Pitches</div>
       <div class="cmp-pitch-row" id="cmp-pitch-row"></div>
@@ -450,6 +461,8 @@ transform-origin:center bottom;font-family:inherit;
     <svg class="cmp-giraffe pitch-only" viewBox="0 0 100 130" width="100" height="130" xmlns="http://www.w3.org/2000/svg">
       <circle cx="50" cy="65" r="55" fill="#f5c518" opacity="0.06"/>
       <ellipse cx="50" cy="120" rx="22" ry="4" fill="#000" opacity="0.25"/>
+      <g class="gir-leg-bf"><rect x="51" y="92" width="7" height="28" fill="#b88842" rx="2"/></g>
+      <g class="gir-leg-ff"><rect x="40" y="86" width="7" height="22" fill="#b88842" rx="2" transform="rotate(-22 43.5 97)"/></g>
       <g class="gir-leg-b"><rect x="56" y="92" width="7" height="28" fill="#d4a256" rx="2"/></g>
       <g class="gir-leg-f"><rect x="36" y="86" width="7" height="22" fill="#d4a256" rx="2" transform="rotate(-25 39.5 97)"/></g>
       <g class="gir-body">
@@ -529,6 +542,9 @@ transform-origin:center bottom;font-family:inherit;
       <optgroup label="Instruments">
         <option value="piano" selected>Piano</option>
         <option value="violin">Violin</option>
+        <option value="viola">Viola</option>
+        <option value="cello">Cello</option>
+        <option value="dbass">Double Bass</option>
         <option value="flute">Flute</option>
         <option value="trumpet">Trumpet</option>
       </optgroup>
@@ -683,6 +699,11 @@ const Toast = {
   _anchor: null,
   _active: [],
   show({ic='🎵',title='',sub='',type='',cat=''}){
+    // Phase 5: Mascot speech-bubble mode. Toasts only show when a mascot is on-screen.
+    let mascot=document.querySelector('.cmp-input-mid .cmp-beaver');
+    if(!mascot||mascot.offsetParent===null) mascot=document.querySelector('.cmp-input-mid .cmp-giraffe');
+    if(!mascot||mascot.offsetParent===null) mascot=document.querySelector('.cmp-conductor .cmp-beaver');
+    if(!mascot||mascot.offsetParent===null){return;}
     // Replacement rule: a new toast removes ALL existing toasts EXCEPT in the
     // special beat↔counting pair, which is allowed to coexist side-by-side.
     this._active=this._active.filter(x=>x.el.isConnected);
@@ -693,46 +714,36 @@ const Toast = {
       return false;
     });
     const el=document.createElement('div');
-    el.className=`toast${type==='e'?' e':type==='s'?' s':''}`;
+    el.className=`toast bubble${type==='e'?' e':type==='s'?' s':''}`;
     el.innerHTML=`<span class="t-ic">${ic}</span><div class="t-body"><div class="t-title">${title}</div><div class="t-sub">${sub}</div></div>`;
-    // Prefer placing toast near a visible beaver so it looks like he's saying it.
-    let beaver=document.querySelector('.cmp-input-mid .cmp-beaver');
-    if(!beaver||beaver.offsetParent===null) beaver=document.querySelector('.cmp-conductor .cmp-beaver');
-    if(beaver&&beaver.offsetParent===null) beaver=null;
-    const target=beaver||(this._anchor&&this._anchor.isConnected?this._anchor:null);
-    if(target){
-      el.style.position='fixed';
-      el.style.maxWidth='280px';
-      el.style.zIndex='9999';
-      el.style.pointerEvents='none';
-      document.body.appendChild(el);
-      const tr=el.getBoundingClientRect();
-      const r=target.getBoundingClientRect();
-      const cx=r.left+r.width/2;
-      // Place beside any other still-visible toasts (other categories)
-      const slot=this._active.length;
-      let L;
-      if(slot===0){
-        L=cx-tr.width/2;
-      } else if(slot===1){
-        const existing=this._active[0];
-        if(existing && existing.el.isConnected){
-          existing.el.style.left=Math.max(8,cx-existing.el.getBoundingClientRect().width-12)+'px';
-        }
-        L=cx+12;
-      } else {
-        L=cx-tr.width/2;
+    el.style.position='fixed';
+    el.style.maxWidth='280px';
+    el.style.zIndex='9999';
+    el.style.pointerEvents='none';
+    document.body.appendChild(el);
+    const tr=el.getBoundingClientRect();
+    const r=mascot.getBoundingClientRect();
+    const cx=r.left+r.width/2;
+    const slot=this._active.length;
+    let L;
+    if(slot===0){
+      L=cx-tr.width/2;
+    } else if(slot===1){
+      const existing=this._active[0];
+      if(existing && existing.el.isConnected){
+        existing.el.style.left=Math.max(8,cx-existing.el.getBoundingClientRect().width-12)+'px';
       }
-      L=Math.max(8,Math.min(window.innerWidth-tr.width-8,L));
-      let T=r.top-10-tr.height;
-      if(slot>=2) T-=(slot-1)*(tr.height+6);
-      if(T<8) T=8;
-      el.style.left=L+'px';
-      el.style.top=T+'px';
-      this._active.push({el,cat});
+      L=cx+12;
     } else {
-      document.getElementById('toasts').appendChild(el);
+      L=cx-tr.width/2;
     }
+    L=Math.max(8,Math.min(window.innerWidth-tr.width-8,L));
+    let T=r.top-22-tr.height; // extra gap leaves room for bubble tail
+    if(slot>=2) T-=(slot-1)*(tr.height+10);
+    if(T<8) T=8;
+    el.style.left=L+'px';
+    el.style.top=T+'px';
+    this._active.push({el,cat});
     setTimeout(()=>{el.style.animation='t-out .28s ease-in forwards';setTimeout(()=>el.remove(),280);},3200);
   },
 };
@@ -1493,7 +1504,7 @@ const Cmp = {
     });
     // Update topbar label
     const lbl=document.getElementById('cmp-pitch-label');
-    if(lbl) lbl.textContent=`${this._clef} · ${this._keysig.name}`;
+    if(lbl) lbl.textContent=`${this._clef[0].toUpperCase()+this._clef.slice(1)} · ${this._keysig.name}`;
     const meta=document.getElementById('cmp-pitch-meta');
     if(meta) meta.textContent=`${this._clef.toUpperCase()} · ${this._keysig.name}`;
     // Build pitch buttons for current diatonic/chromatic state
@@ -1608,6 +1619,13 @@ const Cmp = {
   setPitch(sp,acc){
     if(!this._pitchMode)return;
     const accVal=(acc===null||acc==='null')?null:acc;
+    // Audio preview of tapped pitch
+    try{
+      const ctx=this._getWAC();
+      if(ctx.state==='suspended')ctx.resume();
+      const f=this._pitchToFreq({staffPos:sp,acc:accVal},this._clef,this._keysig);
+      this._playTone(ctx,f,ctx.currentTime+0.005,0.45);
+    }catch(e){}
     let idx=this._selectedIdx;
     // Path 1: valid non-rest selection → assign + advance
     if(idx!==null&&idx!==undefined&&idx>=0&&idx<this.notes.length&&!this.notes[idx].rest){
@@ -1977,6 +1995,11 @@ const Cmp = {
     }
   },
 
+  addRhythm(){
+    if(!this.notes.length){Toast.show({ic:'⚠',title:'Nothing here',sub:'Add notes first.',type:'e'});return;}
+    this._exitPitchMode();
+  },
+
   tapTempo(){
     const now=performance.now();
     if(!this._tapTimes||now-this._tapTimes[this._tapTimes.length-1]>2000){this._tapTimes=[];}
@@ -2295,7 +2318,7 @@ const Cmp = {
 
   _playTone(ctx,freq,startTime,durSec){
     const fn={
-      piano:this._tonePiano, violin:this._toneViolin, flute:this._toneFlute, trumpet:this._toneTrumpet,
+      piano:this._tonePiano, violin:this._toneViolin, viola:this._toneViola, cello:this._toneCello, dbass:this._toneDbass, flute:this._toneFlute, trumpet:this._toneTrumpet,
       clap:this._toneClap, kick808:this._toneKick808, laser:this._toneLaser,
       slide:this._toneSlide, squeak:this._toneSqueak, raspberry:this._toneRaspberry, honk:this._toneHonk, boing:this._toneBoing
     }[this.tone] || this._tonePiano;
@@ -2326,6 +2349,24 @@ const Cmp = {
     osc.start(t);lfo.start(t);osc.stop(t+d);lfo.stop(t+d);
     return osc;
   },
+
+  // Phase 5 (Option A): bowed-string family. Same sawtooth+vibrato+lowpass core as violin.
+  // Per-instrument cutoff approximates body-resonance darkness; vibrato slows for larger instruments.
+  _toneBowed(ctx,freq,t,d,cutoff,vibRate,vibDepth,gain){
+    const osc=ctx.createOscillator();osc.type='sawtooth';osc.frequency.value=freq;
+    const lfo=ctx.createOscillator();lfo.frequency.value=vibRate;
+    const lfoG=ctx.createGain();lfoG.gain.value=freq*vibDepth;
+    const filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=cutoff;filt.Q.value=1;
+    const g=ctx.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+Math.min(0.1,d*0.22));
+    g.gain.setValueAtTime(gain,t+Math.max(0,d-0.05));g.gain.linearRampToValueAtTime(0.001,t+d);
+    lfo.connect(lfoG);lfoG.connect(osc.frequency);osc.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    osc.start(t);lfo.start(t);osc.stop(t+d);lfo.stop(t+d);
+    return osc;
+  },
+  _toneViola(ctx,freq,t,d){return this._toneBowed(ctx,freq,t,d,1500,4.5,0.012,0.22);},
+  _toneCello(ctx,freq,t,d){return this._toneBowed(ctx,freq,t,d,900,4,0.010,0.24);},
+  _toneDbass(ctx,freq,t,d){return this._toneBowed(ctx,freq,t,d,500,3.5,0.008,0.26);},
 
   _toneFlute(ctx,freq,t,d){
     const osc=ctx.createOscillator();osc.type='sine';osc.frequency.value=freq;
@@ -2675,10 +2716,16 @@ const Cmp = {
             let gi=-1;
             for(let k=0;k<gs.length;k++){if(gs[k].t<=elapsed)gi=k;else break;}
             const targetSY=gi>=0?gs[gi].scaleY:1;
+            const targetPose=gi>=0?(gs[gi].pose||''):'';
             if(this._girLastSY!==targetSY){
               neck.style.transform=`scaleY(${targetSY})`;
               if(head) head.style.transform=`translateY(${(42*(1-targetSY)).toFixed(2)}px)`;
               this._girLastSY=targetSY;
+            }
+            if(this._girLastPose!==targetPose && giraffe){
+              giraffe.classList.remove('gp-bounce','gp-twist','gp-kick','gp-hop');
+              if(targetPose) giraffe.classList.add(targetPose);
+              this._girLastPose=targetPose;
             }
           }
         }
@@ -2844,12 +2891,15 @@ const Cmp = {
     this._bvrSchedule=[];
     this._girSchedule=[];
     const _BVR_POSES=['p-punch','p-kick','p-block','p-chamber'];
+    // Phase 5: giraffe whole-body dance poses (Option C — composes with neck scaleY).
+    const _GIR_POSES=['gp-bounce','gp-twist','gp-kick','gp-hop'];
     // Phase 4: giraffe neck scaleY mapping. Middle line (sp=0) → 1.0. Range clamped to [0.5, 2.0].
     // Coefficient 0.06 means ~10 staffPos units (octave-and-a-third diatonic) covers a ~0.6 swing.
     const _girScale=(sp)=>Math.max(0.5,Math.min(2.0,0.6+(sp||0)*0.06));
     // Track last computed scaleY so rests/tied notes freeze the neck at last-played pitch height.
     // Carries across main+repeat passes via instance state.
     this._girLastBuildSY=1;
+    this._girLastBuildPose='';
     let beat8=0, lastMi=-1, poseIdx=0;
 
     playNotes.forEach(n=>{
@@ -2859,11 +2909,12 @@ const Cmp = {
         if(node)this._wNodes.push(node);
         this._bvrSchedule.push({t:t-this._wStart,pose:_BVR_POSES[poseIdx%4]});
         this._girLastBuildSY=_girScale(n.staffPos);
+        this._girLastBuildPose=_GIR_POSES[poseIdx%4];
         poseIdx++;
       } else {
         this._bvrSchedule.push({t:t-this._wStart,pose:''});
       }
-      this._girSchedule.push({t:t-this._wStart,scaleY:this._girLastBuildSY});
+      this._girSchedule.push({t:t-this._wStart,scaleY:this._girLastBuildSY,pose:this._girLastBuildPose});
       // Auto-scroll-to-measure removed so user can scroll freely during play
       beat8+=n.dur8;
       t+=dur;
@@ -2902,11 +2953,12 @@ const Cmp = {
           if(node)this._wNodes.push(node);
           this._bvrSchedule.push({t:t2-this._wStart,pose:_BVR_POSES[poseIdx%4]});
           this._girLastBuildSY=_girScale(n.staffPos);
+          this._girLastBuildPose=_GIR_POSES[poseIdx%4];
           poseIdx++;
         } else {
           this._bvrSchedule.push({t:t2-this._wStart,pose:''});
         }
-        this._girSchedule.push({t:t2-this._wStart,scaleY:this._girLastBuildSY});
+        this._girSchedule.push({t:t2-this._wStart,scaleY:this._girLastBuildSY,pose:this._girLastBuildPose});
         // Auto-scroll-to-measure removed so user can scroll freely during play
         beat82+=n.dur8;
         t2+=dur;
@@ -3056,9 +3108,11 @@ const Cmp = {
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
-    const neck=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-neck');
+    const giraffe=document.querySelector('.cmp-input-mid .cmp-giraffe');
+    if(giraffe){giraffe.classList.remove('gp-bounce','gp-twist','gp-kick','gp-hop');this._girLastPose=null;}
+    const neck=giraffe?.querySelector('.gir-neck');
     if(neck){neck.style.transform='';this._girLastSY=null;}
-    const head=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-head');
+    const head=giraffe?.querySelector('.gir-head');
     if(head){head.style.transform='';}
     // Park playhead at end-of-piece position so it doesn't look stuck mid-score
     const sc=this._phSchedule;
@@ -3088,9 +3142,11 @@ const Cmp = {
     this._repeatPass=0;
     const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
-    const neck=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-neck');
+    const giraffe=document.querySelector('.cmp-input-mid .cmp-giraffe');
+    if(giraffe){giraffe.classList.remove('gp-bounce','gp-twist','gp-kick','gp-hop');this._girLastPose=null;}
+    const neck=giraffe?.querySelector('.gir-neck');
     if(neck){neck.style.transform='';this._girLastSY=null;}
-    const head=document.querySelector('.cmp-input-mid .cmp-giraffe .gir-head');
+    const head=giraffe?.querySelector('.gir-head');
     if(head){head.style.transform='';}
     const sw=document.querySelector('.cmp-staff-wrap');if(sw){sw.style.borderColor='';sw.classList.remove('locked');sw.scrollTo({left:0,behavior:'smooth'});}
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
