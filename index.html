@@ -283,6 +283,12 @@ transform-origin:center bottom;font-family:inherit;
 /* Phase 2: visibility gate — toggled by s3.pitch-mode class set by Cmp._enterPitchMode/_exitPitchMode */
 #cmp-s3.pitch-mode .rhythm-only{display:none !important;}
 #cmp-s3:not(.pitch-mode) .pitch-only{display:none !important;}
+/* Phase 6A: tab system — parallel to pitch-mode, will become the sole driver next phase */
+#cmp-s3.tab-melody .rhythm-only{display:none !important;}
+#cmp-s3.tab-rhythm .pitch-only{display:none !important;}
+.cmp-tabs{display:flex;gap:6px;padding:8px 12px 0;border-top:1px solid rgba(245,197,24,.15);background:#0a0a14;}
+.cmp-tab{flex:1;padding:10px 14px;border-radius:9px 9px 0 0;border:2px solid #2a2a3a;border-bottom:none;background:#10101e;color:#888;font-family:inherit;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s,border-color .15s;}
+#cmp-s3.tab-rhythm .cmp-tab-rhythm,#cmp-s3.tab-melody .cmp-tab-melody{background:#f5c518;color:#10101e;border-color:#f5c518;}
 </style>
 
 </head>
@@ -298,7 +304,9 @@ transform-origin:center bottom;font-family:inherit;
 
   <!-- STEP 1: Mode Entry -->
 
-  <div id="cmp-s1" class="cmp-step cmp-active">
+  <!-- Phase 6A: s1 preserved for later — cmp-active moved to s2 below -->
+
+  <div id="cmp-s1" class="cmp-step">
     <div class="cmp-topbar">
       <button class="cmp-edit-btn" style="flex:unset;padding:8px 14px;visibility:hidden" aria-hidden="true" tabindex="-1">‹ Back</button>
       <span class="cmp-ts-label">&nbsp;</span>
@@ -324,7 +332,7 @@ transform-origin:center bottom;font-family:inherit;
 
   <!-- STEP 2: Time Signature -->
 
-  <div id="cmp-s2" class="cmp-step">
+  <div id="cmp-s2" class="cmp-step cmp-active">
     <div class="cmp-topbar">
       <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
       <span class="cmp-ts-label">Rhythm</span>
@@ -383,7 +391,7 @@ transform-origin:center bottom;font-family:inherit;
 
   <!-- STEP 3: Composition -->
 
-  <div id="cmp-s3" class="cmp-step">
+  <div id="cmp-s3" class="cmp-step tab-rhythm">
     <div class="cmp-topbar">
       <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
       <span class="cmp-ts-label rhythm-only" id="cmp-ts-label">4/4</span>
@@ -394,6 +402,14 @@ transform-origin:center bottom;font-family:inherit;
         <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
       </div>
     </div>
+
+```
+<!-- Phase 6A: tab strip — flips top-half input area between rhythm and melody -->
+<div class="cmp-tabs" role="tablist">
+  <button class="cmp-tab cmp-tab-rhythm" role="tab" onclick="Cmp.setTab('rhythm')">🥁 Rhythm</button>
+  <button class="cmp-tab cmp-tab-melody" role="tab" onclick="Cmp.setTab('melody')">🎵 Melody</button>
+</div>
+```
 
 <!-- LAYOUT FIX 1: note/rest buttons moved to header area, above staff -->
 
@@ -1288,7 +1304,7 @@ const Cmp = {
   notes:[], durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
   totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, repeatOn:false, metronomeOn:false, drumOn:false, countingOn:false,
-  _clef:null, _keysig:null, _melodyFlow:false, _pitchMode:false, _diatonic:true,
+  _clef:null, _keysig:null, _melodyFlow:false, _pitchMode:false, _tab:'rhythm', _diatonic:true,
 
   TIME_SIGS:[
     {label:'Cut Time', sub:'2/2',  b:2,  v:2, cap:8,  beatUnit:2, bul:'𝅗𝅥'},
@@ -1335,7 +1351,7 @@ const Cmp = {
       btn.addEventListener('touchend',handler);
     });
 
-    if(!this.ts) this._showStep('entry');
+    if(!this.ts) this._showStep('timesig'); // Phase 6A: was 'entry' — s1 retired but preserved
     else this._showStep(this.step);
     if(this.step==='compose') this.render();
   },
@@ -1491,11 +1507,31 @@ const Cmp = {
     this._enterPitchMode();
   },
 
+  // Phase 6A: tab system stub. Flips top-half input area class on #cmp-s3.
+  // 6A behavior: _enterPitchMode/_exitPitchMode call this to keep tab class in sync.
+  // 6B will rewire setTab to drive entry into melody/rhythm modes directly.
+  setTab(t){
+    if(t!=='rhythm'&&t!=='melody')return;
+    this._tab=t;
+    const s3=document.getElementById('cmp-s3');
+    if(!s3)return;
+    s3.classList.remove('tab-rhythm','tab-melody');
+    s3.classList.add(t==='melody'?'tab-melody':'tab-rhythm');
+    // Phase 6A: defer real mode switching to existing pitch-mode methods.
+    // If user taps a tab from inside a non-matching real mode, sync it.
+    if(t==='melody'&&!this._pitchMode&&this._clef&&this._keysig) this._enterPitchMode();
+    else if(t==='rhythm'&&this._pitchMode) this._exitPitchMode();
+  },
+
   // Phase 2: pitch mode infrastructure
   _enterPitchMode(){
     if(!this._clef||!this._keysig){Toast.show({ic:'⚠',title:'Pick clef and key first',sub:'',type:'e'});return;}
     this._pitchMode=true;
     document.getElementById('cmp-s3')?.classList.add('pitch-mode');
+    // Phase 6A: keep tab class in sync
+    this._tab='melody';
+    document.getElementById('cmp-s3')?.classList.remove('tab-rhythm');
+    document.getElementById('cmp-s3')?.classList.add('tab-melody');
     // Initialize all non-rest notes to tonic staffPos if they don't already have one set
     const tonicSP=CmpSheet._tonicStaffPos(this._clef,this._keysig.idx);
     this.notes.forEach(n=>{
@@ -1518,6 +1554,10 @@ const Cmp = {
   _exitPitchMode(){
     this._pitchMode=false;
     document.getElementById('cmp-s3')?.classList.remove('pitch-mode');
+    // Phase 6A: keep tab class in sync
+    this._tab='rhythm';
+    document.getElementById('cmp-s3')?.classList.remove('tab-melody');
+    document.getElementById('cmp-s3')?.classList.add('tab-rhythm');
     this.render();
   },
 
@@ -3179,7 +3219,7 @@ const Cmp = {
     this.notes=[];
     document.getElementById('c-title').value='';
     this.render();
-    this._showStep('entry');
+    this._showStep('timesig'); // Phase 6A: was 'entry' — s1 retired but preserved
   },
 };
 
