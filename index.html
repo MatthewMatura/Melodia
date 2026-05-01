@@ -124,8 +124,8 @@ transform:scale(.96);
 .cmp-submit-btn{padding:9px 16px;border-radius:9px;border:none;background:#f5c518;background:var(–gold);color:#111;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
-.cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;min-height:170px;box-sizing:border-box;}
-.cmp-input-left{flex:1;min-width:0;}
+.cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;min-height:200px;box-sizing:border-box;}
+.cmp-input-left{flex:1;min-width:0;min-height:185px;}
 .cmp-input-mid{flex:0 0 100px;display:flex;align-items:center;justify-content:center;padding-top:6px;}
 .cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));}
 .cmp-beaver g{transition:transform 90ms ease-out;transform-box:fill-box;}
@@ -3215,6 +3215,13 @@ const Cmp = {
     });
     S.set('user-songs',songs);
     U.badge('composer');
+    // Phase 6B: also persist to Load modal so user can re-open and edit submitted piece.
+    // Mirrors save() but silent (no extra toast — submit's toast is enough).
+    let saves={};
+    try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){saves={};}
+    const sid=Date.now().toString(36);
+    saves[sid]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_tab:this._tab,_melodyFlow:this._melodyFlow,notes:this.notes.map(n=>({...n,current:false})),savedAt:Date.now(),submitted:true};
+    try{localStorage.setItem('melodia:saves',JSON.stringify(saves));}catch(e){}
     Toast.show({ic:'📤',title:'Submitted!',sub:`"${title}" is now in the library!`,type:'s'});
     this.notes=[];
     document.getElementById('c-title').value='';
