@@ -1307,7 +1307,7 @@ const Cmp = {
   notes:[], durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
   totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, repeatOn:false, metronomeOn:false, drumOn:false, countingOn:false,
-  _clef:null, _keysig:null, _melodyFlow:false, _pitchMode:false, _tab:'rhythm', _diatonic:true,
+  _clef:null, _keysig:null, _melodyFlow:false, _tab:'rhythm', _diatonic:true,
 
   TIME_SIGS:[
     {label:'Cut Time', sub:'2/2',  b:2,  v:2, cap:8,  beatUnit:2, bul:'𝅗𝅥'},
@@ -1512,18 +1512,18 @@ const Cmp = {
     const name=ring==='minor'?k.rel:k.name;
     this._keysig={idx:i,name:name,major:ring==='major',acc:k.acc,type:k.type};
     Toast.show({ic:'🎼',title:`Key: ${name}`,sub:`${this._clef} clef · ${k.acc} ${k.type==='#'?'sharp':'flat'}${k.acc===1?'':'s'}`});
-    // Both flows end at compose page in pitch mode.
-    // Melody flow: empty notes — user taps pitches to append quarter notes.
-    // Add Melody flow: existing rhythm — user taps pitches to assign to each note.
+    // Phase 6B: clef+keysig now set — return to compose with melody tab active.
+    // setTab('melody') handles tab class flip + _enterPitchMode setup.
     this._showStep('compose');
-    this._enterPitchMode();
+    this.setTab('melody');
   },
 
-  // Phase 6A: tab system stub. Flips top-half input area class on #cmp-s3.
-  // 6A behavior: _enterPitchMode/_exitPitchMode call this to keep tab class in sync.
-  // 6B will rewire setTab to drive entry into melody/rhythm modes directly.
+  // Phase 6B: tab system is now the sole driver of melody/rhythm mode.
+  // _tab is the source of truth. _enterPitchMode / _exitPitchMode are setup helpers
+  // called only from here.
   setTab(t){
     if(t!=='rhythm'&&t!=='melody')return;
+    const prev=this._tab;
     this._tab=t;
     const s3=document.getElementById('cmp-s3');
     if(!s3)return;
@@ -1539,21 +1539,16 @@ const Cmp = {
         this._showStep('clef');
         return;
       }
-      if(!this._pitchMode) this._enterPitchMode();
-    } else if(this._pitchMode){
+      this._enterPitchMode();
+    } else if(prev==='melody'){
       this._exitPitchMode();
     }
   },
 
-  // Phase 2: pitch mode infrastructure
+  // Phase 6B: pitch-mode setup helper — no longer owns mode state, just does the setup.
+  // Called only by setTab('melody') after clef+keysig confirmed.
   _enterPitchMode(){
     if(!this._clef||!this._keysig){Toast.show({ic:'⚠',title:'Pick clef and key first',sub:'',type:'e'});return;}
-    this._pitchMode=true;
-    document.getElementById('cmp-s3')?.classList.add('pitch-mode');
-    // Phase 6A: keep tab class in sync
-    this._tab='melody';
-    document.getElementById('cmp-s3')?.classList.remove('tab-rhythm');
-    document.getElementById('cmp-s3')?.classList.add('tab-melody');
     // Initialize all non-rest notes to tonic staffPos if they don't already have one set
     const tonicSP=CmpSheet._tonicStaffPos(this._clef,this._keysig.idx);
     this.notes.forEach(n=>{
@@ -1573,13 +1568,8 @@ const Cmp = {
     else this.render();
   },
 
+  // Phase 6B: rhythm-mode teardown helper — just re-render to drop pitch-mode visual state.
   _exitPitchMode(){
-    this._pitchMode=false;
-    document.getElementById('cmp-s3')?.classList.remove('pitch-mode');
-    // Phase 6A: keep tab class in sync
-    this._tab='rhythm';
-    document.getElementById('cmp-s3')?.classList.remove('tab-melody');
-    document.getElementById('cmp-s3')?.classList.add('tab-rhythm');
     this.render();
   },
 
@@ -1679,7 +1669,7 @@ const Cmp = {
   //  - Add Melody flow (_melodyFlow=false): rhythm exists → tap assigns pitch to selected note + advances.
   //                                          When all notes pitched, further taps are no-ops (rhythm is locked).
   setPitch(sp,acc){
-    if(!this._pitchMode)return;
+    if(this._tab!=='melody')return;
     const accVal=(acc===null||acc==='null')?null:acc;
     // Audio preview of tapped pitch
     try{
@@ -1788,24 +1778,20 @@ const Cmp = {
 
   goBack(){
     this.stop();
+    // Phase 6B: compose is the home state. Only the clef/key picker chain navigates back.
     if(this.step==='compose'){
-      // If in pitch mode:
-      //  - Melody flow: rhythm picker doesn't apply → go back to key picker
-      //  - Add Melody flow: exit pitch mode in place to return to rhythm UI
-      if(this._pitchMode){
-        if(this._melodyFlow){
-          this._exitPitchMode();
-          this._showStep('key');
-        } else {
-          this._exitPitchMode();
-        }
-        return;
-      }
-      this._showStep('timesig');
+      // No-op: tabs handle mode switching, no upstream step exists in current architecture.
+      // (s1, s2 paths preserved in code but not reachable.)
+      return;
     }
-    else if(this.step==='timesig') this._showStep('entry');
-    else if(this.step==='clef') this._showStep(this._melodyFlow?'entry':'compose');
+    else if(this.step==='clef'){
+      // Cancel melody-tab clef picker — return to compose with rhythm tab active.
+      this.setTab('rhythm');
+      this._showStep('compose');
+    }
     else if(this.step==='key') this._showStep('clef');
+    // Stashed-for-later cases (only reachable if s1/s2 are restored)
+    else if(this.step==='timesig') this._showStep('entry');
   },
 
   // FEATURE 1 — hold-to-accelerate tempo
@@ -2045,22 +2031,9 @@ const Cmp = {
     document.getElementById('cmp-svg').parentElement.scrollLeft=0;
   },
 
-  addMelody(){
-    if(!this.notes.length){Toast.show({ic:'⚠',title:'Nothing to add melody to',sub:'Compose a rhythm first.',type:'e'});return;}
-    this._melodyFlow=false;
-    if(!this._clef){
-      this._showStep('clef');
-    } else if(!this._keysig){
-      this._showStep('key');
-    } else {
-      this._enterPitchMode();
-    }
-  },
-
-  addRhythm(){
-    if(!this.notes.length){Toast.show({ic:'⚠',title:'Nothing here',sub:'Add notes first.',type:'e'});return;}
-    this._exitPitchMode();
-  },
+  // Phase 6B: redundant with tabs but kept functional. Removed in 6C along with topbar buttons.
+  addMelody(){ this.setTab('melody'); },
+  addRhythm(){ this.setTab('rhythm'); },
 
   tapTempo(){
     const now=performance.now();
@@ -2111,7 +2084,7 @@ const Cmp = {
     let saves={};
     try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){saves={};}
     const id=Date.now().toString(36);
-    saves[id]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_pitchMode:this._pitchMode,notes:this.notes.map(n=>({...n,current:false})),savedAt:Date.now()};
+    saves[id]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_tab:this._tab,_melodyFlow:this._melodyFlow,notes:this.notes.map(n=>({...n,current:false})),savedAt:Date.now()};
     try{localStorage.setItem('melodia:saves',JSON.stringify(saves));}
     catch(e){Toast.show({ic:'⚠',title:'Save failed',sub:'Browser storage may be full.',type:'e'});return;}
     Toast.show({ic:'💾',title:'Saved',sub:`"${title}" stored on this device.`});
@@ -2160,9 +2133,16 @@ const Cmp = {
     if(typeof this._updTempoDisp==='function')this._updTempoDisp();
     this._clef=s._clef||null;
     this._keysig=s._keysig||null;
-    this._pitchMode=false;
+    // Phase 6B: _tab is the source of truth. Backward-compat: old saves used _pitchMode.
+    this._melodyFlow=!!s._melodyFlow;
+    const wantMelody=(s._tab==='melody')||(!!s._pitchMode);
     document.getElementById('cmp-s3')?.classList.remove('pitch-mode');
-    if(s._pitchMode&&this._clef&&this._keysig){this._enterPitchMode();}else{this.render();}
+    if(wantMelody&&this._clef&&this._keysig){
+      this.setTab('melody');
+    } else {
+      this.setTab('rhythm');
+      this.render();
+    }
     this.closeLoadModal();
     Toast.show({ic:'📂',title:'Loaded',sub:`"${s.title||'Untitled'}"`});
   },
@@ -2295,7 +2275,7 @@ const Cmp = {
 
   render(){
     const svg=document.getElementById('cmp-svg');if(!svg)return;
-    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure,selectedMeasureEnd:this.selectedMeasureEnd,clef:this._pitchMode?this._clef:null,keysig:this._pitchMode?this._keysig:null});
+    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure,selectedMeasureEnd:this.selectedMeasureEnd,clef:this._tab==='melody'?this._clef:null,keysig:this._tab==='melody'?this._keysig:null});
     if(!this._tapInstalled){
       this._tapInstalled=true;
       svg.addEventListener('click',e=>{
