@@ -124,8 +124,14 @@ transform:scale(.96);
 .cmp-submit-btn{padding:9px 16px;border-radius:9px;border:none;background:#f5c518;background:var(–gold);color:#111;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
-.cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;min-height:200px;box-sizing:border-box;}
-.cmp-input-left{flex:1;min-width:0;min-height:185px;}
+.cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;box-sizing:border-box;}
+.cmp-input-left{flex:1;min-width:0;display:grid;}
+/* Phase 6B fix: stack rhythm-only and pitch-only in same grid cell so the container height
+is locked to the larger of the two contents. The hidden child takes layout space but is invisible. */
+.cmp-input-left > .rhythm-only,
+.cmp-input-left > .pitch-only{grid-area:1/1;min-width:0;}
+#cmp-s3.tab-melody .cmp-input-left > .rhythm-only,
+#cmp-s3.tab-rhythm .cmp-input-left > .pitch-only{display:block !important;visibility:hidden;pointer-events:none;}
 .cmp-input-mid{flex:0 0 100px;display:flex;align-items:center;justify-content:center;padding-top:6px;}
 .cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));}
 .cmp-beaver g{transition:transform 90ms ease-out;transform-box:fill-box;}
