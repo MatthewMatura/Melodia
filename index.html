@@ -120,6 +120,7 @@ transform:scale(.96);
 .cmp-ts-btn-text{font-size:13px;font-weight:900;color:rgba(240,230,208,.55);}/* Make Your Own */
 /* — compose step (step 3) — */
 .cmp-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#10101e;background:var(–surf);border-bottom:1px solid rgba(245,197,24,.22);border-bottom:1px solid var(–gold2);flex-shrink:0;margin-bottom:16px;position:relative;}
+#cmp-s3 .cmp-topbar{justify-content:flex-end;}
 .cmp-back-btn{padding:7px 10px;border-radius:8px;border:none;background:transparent;color:rgba(240,230,208,.55);color:var(–dim);font-family:inherit;font-weight:900;font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-submit-btn{padding:9px 16px;border-radius:9px;border:none;background:#f5c518;background:var(–gold);color:#111;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
@@ -276,7 +277,8 @@ transform-origin:center bottom;font-family:inherit;
 .cmp-cof .cof-acc{fill:#f5c518;font-size:9px;}
 .cmp-mel-placeholder{padding:60px 30px;text-align:center;color:#f0e6d0;font-size:18px;line-height:1.6;letter-spacing:.1em;}
 /* Phase 2 reserve: pitch UI styles (used in s6) */
-.cmp-pitch-row{display:flex;flex-wrap:wrap;gap:5px;}
+.cmp-pitch-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px;}
+.cmp-compose-title{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;text-transform:uppercase;}
 .cmp-pitch-btn{min-width:38px;padding:8px 4px;border-radius:8px;border:2px solid rgba(245,197,24,.32);background:#10101e;color:#f5c518;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1;}
 .cmp-pitch-btn:active,.cmp-pitch-btn.on{background:#f5c518;color:#111;border-color:#f5c518;}
 .cmp-pitch-btn .pb-acc{font-size:11px;opacity:.85;}
@@ -406,18 +408,8 @@ and the staff position cannot shift when toggling tabs. */
 
   <div id="cmp-s3" class="cmp-step cmp-active tab-rhythm">
     <div class="cmp-topbar">
-      <!-- Phase 6C: stashed for later — no-op since tabs handle navigation
-      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
-      -->
-      <span class="cmp-ts-label rhythm-only" id="cmp-ts-label">4/4</span>
-      <span class="cmp-ts-label pitch-only" id="cmp-pitch-label">—</span>
-      <div style="display:flex;gap:7px">
-        <!-- Phase 6C: stashed — Add Melody / Add Rhythm are redundant with tab strip
-        <button class="cmp-submit-btn rhythm-only" onclick="Cmp.addMelody()" style="background:#10101e;color:#f5c518;border:2px solid #f5c518">🎹 Add Melody</button>
-        <button class="cmp-submit-btn pitch-only" onclick="Cmp.addRhythm()" style="background:#10101e;color:#f5c518;border:2px solid #f5c518">🥁 Add Rhythm</button>
-        -->
-        <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
-      </div>
+      <span class="cmp-compose-title">Compose</span>
+      <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
     </div>
 
 ```
@@ -427,8 +419,6 @@ and the staff position cannot shift when toggling tabs. */
   <button class="cmp-tab cmp-tab-melody" role="tab" onclick="Cmp.setTab('melody')">🎵 Melody</button>
 </div>
 ```
-
-<!-- LAYOUT FIX 1: note/rest buttons moved to header area, above staff -->
 
 <div class="cmp-input-area">
   <div class="cmp-input-left">
