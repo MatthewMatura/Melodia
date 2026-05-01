@@ -124,7 +124,7 @@ transform:scale(.96);
 .cmp-submit-btn{padding:9px 16px;border-radius:9px;border:none;background:#f5c518;background:var(–gold);color:#111;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
-.cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;}
+.cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;min-height:170px;box-sizing:border-box;}
 .cmp-input-left{flex:1;min-width:0;}
 .cmp-input-mid{flex:0 0 100px;display:flex;align-items:center;justify-content:center;padding-top:6px;}
 .cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));}
@@ -280,9 +280,7 @@ transform-origin:center bottom;font-family:inherit;
 .cmp-pitchmode-btn{padding:9px 16px;border-radius:9px;border:2px solid #f5c518;background:#10101e;color:#f5c518;font-family:inherit;font-weight:900;font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-pitchmode-btn.chromatic{border-color:#e8142a;color:#e8142a;background:rgba(232,20,42,.08);}
 .cmp-giraffe{display:block;}
-/* Phase 2: visibility gate — toggled by s3.pitch-mode class set by Cmp._enterPitchMode/_exitPitchMode */
-#cmp-s3.pitch-mode .rhythm-only{display:none !important;}
-#cmp-s3:not(.pitch-mode) .pitch-only{display:none !important;}
+/* Phase 6B: visibility gate driven solely by tab classes (.pitch-mode rules retired) */
 /* Phase 6A: tab system — parallel to pitch-mode, will become the sole driver next phase */
 #cmp-s3.tab-melody .rhythm-only{display:none !important;}
 #cmp-s3.tab-rhythm .pitch-only{display:none !important;}
@@ -396,7 +394,7 @@ transform-origin:center bottom;font-family:inherit;
 
   <div id="cmp-s3" class="cmp-step cmp-active tab-rhythm">
     <div class="cmp-topbar">
-      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
+      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px;visibility:hidden">‹ Back</button>
       <span class="cmp-ts-label rhythm-only" id="cmp-ts-label">4/4</span>
       <span class="cmp-ts-label pitch-only" id="cmp-pitch-label">—</span>
       <div style="display:flex;gap:7px">
