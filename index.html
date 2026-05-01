@@ -2285,7 +2285,7 @@ const Cmp = {
 
   render(){
     const svg=document.getElementById('cmp-svg');if(!svg)return;
-    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure,selectedMeasureEnd:this.selectedMeasureEnd,clef:this._tab==='melody'?this._clef:null,keysig:this._tab==='melody'?this._keysig:null});
+    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure,selectedMeasureEnd:this.selectedMeasureEnd,clef:this._clef,keysig:this._keysig});
     if(!this._tapInstalled){
       this._tapInstalled=true;
       svg.addEventListener('click',e=>{
