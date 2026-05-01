@@ -127,11 +127,9 @@ transform:scale(.96);
 .cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;box-sizing:border-box;}
 .cmp-input-left{flex:1;min-width:0;display:grid;}
 /* Phase 6B fix: stack rhythm-only and pitch-only in same grid cell so the container height
-is locked to the larger of the two contents. The hidden child takes layout space but is invisible. */
+is locked to the larger of the two contents. Visibility-hidden flip happens via global rule. */
 .cmp-input-left > .rhythm-only,
 .cmp-input-left > .pitch-only{grid-area:1/1;min-width:0;}
-#cmp-s3.tab-melody .cmp-input-left > .rhythm-only,
-#cmp-s3.tab-rhythm .cmp-input-left > .pitch-only{display:block !important;visibility:hidden;pointer-events:none;}
 .cmp-input-mid{flex:0 0 100px;display:flex;align-items:center;justify-content:center;padding-top:6px;}
 .cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));}
 .cmp-beaver g{transition:transform 90ms ease-out;transform-box:fill-box;}
@@ -288,8 +286,16 @@ transform-origin:center bottom;font-family:inherit;
 .cmp-giraffe{display:block;}
 /* Phase 6B: visibility gate driven solely by tab classes (.pitch-mode rules retired) */
 /* Phase 6A: tab system — parallel to pitch-mode, will become the sole driver next phase */
-#cmp-s3.tab-melody .rhythm-only{display:none !important;}
-#cmp-s3.tab-rhythm .pitch-only{display:none !important;}
+/* Phase 6B fix: visibility instead of display so hidden elements keep their layout slot
+and the staff position cannot shift when toggling tabs. */
+#cmp-s3.tab-melody .rhythm-only{visibility:hidden !important;pointer-events:none !important;}
+#cmp-s3.tab-rhythm .pitch-only{visibility:hidden !important;pointer-events:none !important;}
+/* Override for topbar swaps (labels, Add Melody/Add Rhythm buttons) — clean swap, equal sizes */
+#cmp-s3.tab-melody .cmp-topbar .rhythm-only,
+#cmp-s3.tab-rhythm .cmp-topbar .pitch-only{display:none !important;}
+/* Override for mascots — beaver and giraffe both 100x130, so display:none swap is shift-safe */
+#cmp-s3.tab-melody .cmp-input-mid .rhythm-only,
+#cmp-s3.tab-rhythm .cmp-input-mid .pitch-only{display:none !important;}
 .cmp-tabs{display:flex;gap:6px;padding:6px 12px 0;border-top:1px solid rgba(245,197,24,.15);background:#0a0a14;}
 .cmp-tab{flex:1;padding:6px 10px;border-radius:7px 7px 0 0;border:2px solid #2a2a3a;border-bottom:none;background:#10101e;color:#888;font-family:inherit;font-weight:900;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s,border-color .15s;}
 #cmp-s3.tab-rhythm .cmp-tab-rhythm{background:linear-gradient(135deg,#003d8a,#0066dd);color:#fff;border-color:#0066dd;}
