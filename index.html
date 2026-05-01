@@ -406,12 +406,16 @@ and the staff position cannot shift when toggling tabs. */
 
   <div id="cmp-s3" class="cmp-step cmp-active tab-rhythm">
     <div class="cmp-topbar">
-      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px;visibility:hidden">‹ Back</button>
+      <!-- Phase 6C: stashed for later — no-op since tabs handle navigation
+      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
+      -->
       <span class="cmp-ts-label rhythm-only" id="cmp-ts-label">4/4</span>
       <span class="cmp-ts-label pitch-only" id="cmp-pitch-label">—</span>
       <div style="display:flex;gap:7px">
+        <!-- Phase 6C: stashed — Add Melody / Add Rhythm are redundant with tab strip
         <button class="cmp-submit-btn rhythm-only" onclick="Cmp.addMelody()" style="background:#10101e;color:#f5c518;border:2px solid #f5c518">🎹 Add Melody</button>
         <button class="cmp-submit-btn pitch-only" onclick="Cmp.addRhythm()" style="background:#10101e;color:#f5c518;border:2px solid #f5c518">🥁 Add Rhythm</button>
+        -->
         <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
       </div>
     </div>
@@ -1427,6 +1431,9 @@ const Cmp = {
       </button>`).join('');
   },
 
+  // Phase 6C: stashed — pickMode was the s1 entry-screen handler.
+  // Restoring requires also un-stashing s1 in HTML and the 'entry'/'timesig' init/post-submit routes.
+  /*
   pickMode(mode){
     this.mode=mode;
     if(mode==='rhythm'){
@@ -1448,6 +1455,7 @@ const Cmp = {
       this._showStep('clef');
     }
   },
+  */
 
   KEYS:[
     {name:'C',     rel:'Am',     acc:0, type:'#'},
@@ -1788,19 +1796,14 @@ const Cmp = {
 
   goBack(){
     this.stop();
-    // Phase 6B: compose is the home state. Only the clef/key picker chain navigates back.
-    if(this.step==='compose'){
-      // No-op: tabs handle mode switching, no upstream step exists in current architecture.
-      // (s1, s2 paths preserved in code but not reachable.)
-      return;
-    }
-    else if(this.step==='clef'){
+    // Phase 6C: compose has no Back button anymore. Only clef/key pickers navigate back.
+    if(this.step==='clef'){
       // Cancel melody-tab clef picker — return to compose with rhythm tab active.
       this.setTab('rhythm');
       this._showStep('compose');
     }
     else if(this.step==='key') this._showStep('clef');
-    // Stashed-for-later cases (only reachable if s1/s2 are restored)
+    // Stashed-for-later case (only reachable if s2 is restored)
     else if(this.step==='timesig') this._showStep('entry');
   },
 
@@ -2041,9 +2044,9 @@ const Cmp = {
     document.getElementById('cmp-svg').parentElement.scrollLeft=0;
   },
 
-  // Phase 6B: redundant with tabs but kept functional. Removed in 6C along with topbar buttons.
-  addMelody(){ this.setTab('melody'); },
-  addRhythm(){ this.setTab('rhythm'); },
+  // Phase 6C: stashed — addMelody/addRhythm were aliases for setTab. Kept here for restore.
+  // addMelody(){ this.setTab('melody'); },
+  // addRhythm(){ this.setTab('rhythm'); },
 
   tapTempo(){
     const now=performance.now();
