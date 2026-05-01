@@ -616,7 +616,10 @@ and the staff position cannot shift when toggling tabs. */
 
   <div id="cmp-s4" class="cmp-step">
     <div class="cmp-topbar">
+      <!-- Phase 7: stashed — pickers are forward-only
       <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
+      -->
+      <button class="cmp-edit-btn" style="flex:unset;padding:8px 14px;visibility:hidden" aria-hidden="true" tabindex="-1">‹ Back</button>
       <span class="cmp-ts-label">&nbsp;</span>
       <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
     </div>
@@ -645,7 +648,10 @@ and the staff position cannot shift when toggling tabs. */
 
   <div id="cmp-s5" class="cmp-step">
     <div class="cmp-topbar">
+      <!-- Phase 7: stashed — pickers are forward-only
       <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
+      -->
+      <button class="cmp-edit-btn" style="flex:unset;padding:8px 14px;visibility:hidden" aria-hidden="true" tabindex="-1">‹ Back</button>
       <span class="cmp-ts-label">&nbsp;</span>
       <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
     </div>
@@ -1520,8 +1526,7 @@ const Cmp = {
 
   pickClef(c){
     this._clef=c;
-    const lbl=c.charAt(0).toUpperCase()+c.slice(1);
-    Toast.show({ic:'🎼',title:`${lbl} Clef`,sub:'Now pick a key signature.'});
+    // Phase 7: clef pick toast suppressed — picker UX is self-evident.
     this._showStep('key');
   },
 
@@ -1529,9 +1534,7 @@ const Cmp = {
     const k=this.KEYS[i];
     const name=ring==='minor'?k.rel:k.name;
     this._keysig={idx:i,name:name,major:ring==='major',acc:k.acc,type:k.type};
-    Toast.show({ic:'🎼',title:`Key: ${name}`,sub:`${this._clef} clef · ${k.acc} ${k.type==='#'?'sharp':'flat'}${k.acc===1?'':'s'}`});
-    // Phase 6B: clef+keysig now set — return to compose with melody tab active.
-    // setTab('melody') handles tab class flip + _enterPitchMode setup.
+    // Phase 7: key pick toast suppressed — return to compose silently.
     this._showStep('compose');
     this.setTab('melody');
   },
