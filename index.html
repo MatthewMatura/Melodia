@@ -277,7 +277,7 @@ transform-origin:center bottom;font-family:inherit;
 .cmp-cof .cof-acc{fill:#f5c518;font-size:9px;}
 .cmp-mel-placeholder{padding:60px 30px;text-align:center;color:#f0e6d0;font-size:18px;line-height:1.6;letter-spacing:.1em;}
 /* Phase 2 reserve: pitch UI styles (used in s6) */
-.cmp-pitch-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px;}
+.cmp-pitch-row{display:flex;flex-wrap:wrap;gap:5px;}
 .cmp-compose-title{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;text-transform:uppercase;}
 .cmp-pitch-btn{min-width:38px;padding:8px 4px;border-radius:8px;border:2px solid rgba(245,197,24,.32);background:#10101e;color:#f5c518;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1;}
 .cmp-pitch-btn:active,.cmp-pitch-btn.on{background:#f5c518;color:#111;border-color:#f5c518;}
@@ -429,11 +429,11 @@ and the staff position cannot shift when toggling tabs. */
       <div class="cmp-note-row" id="cmp-rest-row"></div>
     </div>
     <div class="pitch-only">
-      <div style="display:flex;justify-content:flex-start;align-items:center;gap:8px;margin-bottom:6px;padding-top:18px">
+      <div class="cmp-input-label" style="padding-top:18px">Pitches</div>
+      <div class="cmp-pitch-row" id="cmp-pitch-row"></div>
+      <div style="display:flex;justify-content:flex-start;align-items:center;gap:8px;margin-top:12px">
         <button class="cmp-pitchmode-btn" id="cmp-pitchmode-btn" onclick="Cmp.togglePitchScope()">Diatonic</button>
       </div>
-      <div class="cmp-input-label">Pitches</div>
-      <div class="cmp-pitch-row" id="cmp-pitch-row"></div>
     </div>
   </div>
   <div class="cmp-input-mid" aria-hidden="true">
