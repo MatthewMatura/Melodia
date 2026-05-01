@@ -286,9 +286,10 @@ transform-origin:center bottom;font-family:inherit;
 /* Phase 6A: tab system — parallel to pitch-mode, will become the sole driver next phase */
 #cmp-s3.tab-melody .rhythm-only{display:none !important;}
 #cmp-s3.tab-rhythm .pitch-only{display:none !important;}
-.cmp-tabs{display:flex;gap:6px;padding:8px 12px 0;border-top:1px solid rgba(245,197,24,.15);background:#0a0a14;}
-.cmp-tab{flex:1;padding:10px 14px;border-radius:9px 9px 0 0;border:2px solid #2a2a3a;border-bottom:none;background:#10101e;color:#888;font-family:inherit;font-weight:900;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s,border-color .15s;}
-#cmp-s3.tab-rhythm .cmp-tab-rhythm,#cmp-s3.tab-melody .cmp-tab-melody{background:#f5c518;color:#10101e;border-color:#f5c518;}
+.cmp-tabs{display:flex;gap:6px;padding:6px 12px 0;border-top:1px solid rgba(245,197,24,.15);background:#0a0a14;}
+.cmp-tab{flex:1;padding:6px 10px;border-radius:7px 7px 0 0;border:2px solid #2a2a3a;border-bottom:none;background:#10101e;color:#888;font-family:inherit;font-weight:900;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s,border-color .15s;}
+#cmp-s3.tab-rhythm .cmp-tab-rhythm{background:linear-gradient(135deg,#003d8a,#0066dd);color:#fff;border-color:#0066dd;}
+#cmp-s3.tab-melody .cmp-tab-melody{background:linear-gradient(135deg,#005c3a,#00d97e);color:#fff;border-color:#00d97e;}
 </style>
 
 </head>
@@ -332,7 +333,9 @@ transform-origin:center bottom;font-family:inherit;
 
   <!-- STEP 2: Time Signature -->
 
-  <div id="cmp-s2" class="cmp-step cmp-active">
+  <!-- Phase 6A: s2 preserved for later — cmp-active moved to s3 below -->
+
+  <div id="cmp-s2" class="cmp-step">
     <div class="cmp-topbar">
       <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
       <span class="cmp-ts-label">Rhythm</span>
@@ -391,7 +394,7 @@ transform-origin:center bottom;font-family:inherit;
 
   <!-- STEP 3: Composition -->
 
-  <div id="cmp-s3" class="cmp-step tab-rhythm">
+  <div id="cmp-s3" class="cmp-step cmp-active tab-rhythm">
     <div class="cmp-topbar">
       <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
       <span class="cmp-ts-label rhythm-only" id="cmp-ts-label">4/4</span>
@@ -1351,7 +1354,16 @@ const Cmp = {
       btn.addEventListener('touchend',handler);
     });
 
-    if(!this.ts) this._showStep('timesig'); // Phase 6A: was 'entry' — s1 retired but preserved
+    if(!this.ts){
+      // Phase 6A: skip s1+s2 — default to 4/4 and land on compose
+      this.ts=this.TIME_SIGS[1]; // Common time = 4/4
+      this.tempo=100;
+      this.notes=[];
+      const tsLbl=document.getElementById('cmp-ts-label');
+      if(tsLbl) tsLbl.textContent=this.ts.sub||this.ts.label;
+      this._updTempoDisp();
+      this._showStep('compose');
+    }
     else this._showStep(this.step);
     if(this.step==='compose') this.render();
   },
@@ -1517,10 +1529,20 @@ const Cmp = {
     if(!s3)return;
     s3.classList.remove('tab-rhythm','tab-melody');
     s3.classList.add(t==='melody'?'tab-melody':'tab-rhythm');
-    // Phase 6A: defer real mode switching to existing pitch-mode methods.
-    // If user taps a tab from inside a non-matching real mode, sync it.
-    if(t==='melody'&&!this._pitchMode&&this._clef&&this._keysig) this._enterPitchMode();
-    else if(t==='rhythm'&&this._pitchMode) this._exitPitchMode();
+    if(t==='melody'){
+      // Set flow based on whether rhythm already exists.
+      // Empty staff → append-on-pitch-tap (Melody flow).
+      // Has rhythm → assign-pitch-to-selected (Add Melody flow).
+      this._melodyFlow = !this.notes.some(n=>!n.rest);
+      // First-time gate: route to clef picker; pickKey chains back to compose with tab-melody active.
+      if(!this._clef||!this._keysig){
+        this._showStep('clef');
+        return;
+      }
+      if(!this._pitchMode) this._enterPitchMode();
+    } else if(this._pitchMode){
+      this._exitPitchMode();
+    }
   },
 
   // Phase 2: pitch mode infrastructure
@@ -3219,7 +3241,7 @@ const Cmp = {
     this.notes=[];
     document.getElementById('c-title').value='';
     this.render();
-    this._showStep('timesig'); // Phase 6A: was 'entry' — s1 retired but preserved
+    this._showStep('compose'); // Phase 6A: was 'timesig' — s1+s2 stashed for later
   },
 };
 
