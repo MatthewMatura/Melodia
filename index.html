@@ -2821,12 +2821,11 @@ const Cmp = {
     const isCompoundMet=(this.ts.v===8&&this.ts.b%3===0&&this.ts.b>3);
     const beatsPerBar=isCompoundMet?(this.ts.b/3):this.ts.b;
     const secPerBeat=(capForMet*spe)/beatsPerBar;
-    const countInBeats=this._skipCountIn?0:(2*beatsPerBar);
+    const countInBeats=2*beatsPerBar;
     const countInDur=countInBeats*secPerBeat;
     // Schedule count-in ticks + staff border pulse
     const wrap0=document.querySelector('.cmp-staff-wrap');
     this._wMetPulseTimers=[];
-    if(!this._skipCountIn){
     // Drum bars during count-in if drumOn (2 bars), else metronome click per beat
     if(this.drumOn){
       for(let bar=0;bar<2;bar++){
@@ -2853,9 +2852,6 @@ const Cmp = {
         this._wMetPulseTimers.push(timer);
       }
     }
-    } // end !_skipCountIn
-    // Phase 8D: clear one-shot flag — fresh play() calls always count in
-    this._skipCountIn=false;
     // Audio start point for notes = after count-in
     let t=t0+countInDur;
     this._wStart=t;
@@ -2947,9 +2943,56 @@ const Cmp = {
       t+=dur;
     });
 
-    // Phase 8D: inline second-pass repeat removed — _onPlayEnd chains play() while repeatOn.
+    // Phase 8D-v2: schedule N passes when repeatOn (no AC close/reopen, no audio gap)
+    const repeatPasses=this.repeatOn?7:0; // 1 base pass + 7 extra = 8 total
+    for(let pass=0;pass<repeatPasses;pass++){
+      const phLen=this._phSchedule.length;
+      const passOffset=rangeDur*(pass+1);
+      // Skip the duplicated final-x marker from prior pass (last entry repeated)
+      for(let k=0;k<phLen;k++){
+        const e=this._phSchedule[k];
+        this._phSchedule.push({t:e.t+rangeDur,x:e.x});
+      }
+      let t2=t, beat82=0;
+      // Extend drum or metronome through this pass
+      if(this.metronomeOn){
+        const totalBeats=(rEnd-rStart+1)*beatsPerBar;
+        for(let i=0;i<totalBeats;i++){
+          const tt=t2+i*secPerBeat;
+          const accent=(i%beatsPerBar)===0;
+          const node=this._toneMetClick(ctx,tt,accent);
+          if(node)this._wNodes.push(node);
+        }
+      }
+      if(this.drumOn){
+        const totalBars=(rEnd-rStart+1);
+        for(let b=0;b<totalBars;b++){
+          const barT=t2+b*beatsPerBar*secPerBeat;
+          const nodes=this._drumScheduleBar(ctx,barT,secPerBeat,beatsPerBar,isCompoundMet);
+          nodes.forEach(n=>{if(n)this._wNodes.push(n);});
+        }
+      }
+      playNotes.forEach(n=>{
+        const dur=n.dur8*spe;
+        if(!n.rest&&!n.tied){
+          const node=this._playTone(ctx,this._pitchToFreq(n,this._clef,this._keysig),t2,dur);
+          if(node)this._wNodes.push(node);
+          this._bvrSchedule.push({t:t2-this._wStart,pose:_BVR_POSES[poseIdx%4]});
+          this._girLastBuildSY=_girScale(n.staffPos);
+          this._girLastBuildPose=_GIR_POSES[poseIdx%4];
+          poseIdx++;
+        } else {
+          this._bvrSchedule.push({t:t2-this._wStart,pose:''});
+        }
+        this._girSchedule.push({t:t2-this._wStart,scaleY:this._girLastBuildSY,pose:this._girLastBuildPose});
+        beat82+=n.dur8;
+        t2+=dur;
+      });
+      t=t2;
+    }
 
-    const totalMs=rangeDur*1000;
+    const passes=this.repeatOn?(repeatPasses+1):1;
+    const totalMs=rangeDur*1000*passes;
     const countInMs=countInDur*1000;
     this.playing=true;this._wPaused=false;
     document.getElementById('cmp-play-btn')?.classList.add('on');
@@ -3087,16 +3130,6 @@ const Cmp = {
   },
 
   _onPlayEnd(){
-    // Phase 8D: if Repeat is on and user hasn't pressed Stop, chain another pass.
-    // Skip count-in on chained passes for seamless looping; Stop clears repeatOn implicitly via stop() resetting state.
-    if(this.repeatOn&&this.playing){
-      this.playing=false;
-      if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
-      // Park playhead briefly at end then restart
-      this._skipCountIn=true;
-      this.play();
-      return;
-    }
     this.playing=false;this._wPaused=false;this._repeatPass=0;
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
