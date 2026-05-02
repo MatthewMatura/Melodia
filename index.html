@@ -302,6 +302,15 @@ and the staff position cannot shift when toggling tabs. */
 .cmp-tab{flex:1;padding:6px 10px;border-radius:7px 7px 0 0;border:2px solid #2a2a3a;border-bottom:none;background:#10101e;color:#888;font-family:inherit;font-weight:900;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s,border-color .15s;}
 #cmp-s3.tab-rhythm .cmp-tab-rhythm{background:linear-gradient(135deg,#003d8a,#0066dd);color:#fff;border-color:#0066dd;}
 #cmp-s3.tab-melody .cmp-tab-melody{background:linear-gradient(135deg,#005c3a,#00d97e);color:#fff;border-color:#00d97e;}
+#cmp-s3.tab-parts .cmp-tab-parts{background:linear-gradient(135deg,#4a148c,#9c27b0);color:#fff;border-color:#9c27b0;}
+#cmp-s3.tab-parts .rhythm-only,#cmp-s3.tab-parts .pitch-only{visibility:hidden !important;pointer-events:none !important;}
+#cmp-s3:not(.tab-parts) .parts-only{visibility:hidden !important;pointer-events:none !important;}
+#cmp-s3.tab-parts .cmp-topbar .rhythm-only,#cmp-s3.tab-parts .cmp-topbar .pitch-only{display:none !important;}
+#cmp-s3.tab-parts .cmp-input-mid .rhythm-only,#cmp-s3.tab-parts .cmp-input-mid .pitch-only{display:none !important;}
+.cmp-input-left > .parts-only{grid-area:1/1;min-width:0;}
+.cmp-parts-list{display:flex;flex-direction:column;gap:5px;max-height:140px;overflow-y:auto;}
+.cmp-part-row{padding:8px 12px;border-radius:7px;border:2px solid rgba(240,230,208,.22);background:#10101e;color:#f0e6d0;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:left;}
+.cmp-part-row.active{border-color:#9c27b0;background:rgba(156,39,176,.18);color:#fff;}
 </style>
 
 </head>
@@ -401,6 +410,7 @@ and the staff position cannot shift when toggling tabs. */
 <div class="cmp-tabs" role="tablist">
 <button class="cmp-tab cmp-tab-rhythm" role="tab" onclick="Cmp.setTab('rhythm')">🥁 Rhythm</button>
 <button class="cmp-tab cmp-tab-melody" role="tab" onclick="Cmp.setTab('melody')">🎵 Melody</button>
+<button class="cmp-tab cmp-tab-parts" role="tab" onclick="Cmp.setTab('parts')">🎚 Parts</button>
 </div>
 
 <div class="cmp-input-area">
@@ -417,6 +427,14 @@ and the staff position cannot shift when toggling tabs. */
 <div class="cmp-pitch-row" id="cmp-pitch-row"></div>
 <div style="display:flex;justify-content:flex-start;align-items:center;gap:8px;margin-top:12px">
 <button class="cmp-pitchmode-btn" id="cmp-pitchmode-btn" onclick="Cmp.togglePitchScope()">Diatonic</button>
+</div>
+</div>
+<div class="parts-only">
+<div class="cmp-input-label" style="padding-top:18px">Parts</div>
+<div class="cmp-parts-list" id="cmp-parts-list"></div>
+<div style="display:flex;gap:8px;margin-top:10px">
+<button class="cmp-pitchmode-btn" onclick="Cmp.addPart()">+ Add</button>
+<button class="cmp-pitchmode-btn" onclick="Cmp.removePart()" style="border-color:#e8142a;color:#e8142a;">− Delete</button>
 </div>
 </div>
 </div>
@@ -1289,7 +1307,8 @@ const CmpSheet = {
 const Cmp = {
   step:'entry', mode:null,
   ts:null, tempo:100,
-  notes:[], durSel:4, dotSel:false, tripletMode:false,
+  parts:[{notes:[]}], _activePart:0,
+  durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
   totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, repeatOn:false, metronomeOn:false, drumOn:false, countingOn:false,
   _clef:null, _keysig:null, _melodyFlow:false, _tab:'rhythm', _diatonic:true,
@@ -1321,6 +1340,14 @@ const Cmp = {
   ],
 
   init(){
+    // Phase 9A: notes getter/setter proxies to active part. Legacy code reading/writing this.notes works unchanged.
+    if(!Object.getOwnPropertyDescriptor(this,'notes')||typeof Object.getOwnPropertyDescriptor(this,'notes').get!=='function'){
+      Object.defineProperty(this,'notes',{
+        get(){return (this.parts[this._activePart]||(this.parts[this._activePart]={notes:[]})).notes;},
+        set(v){(this.parts[this._activePart]||(this.parts[this._activePart]={notes:[]})).notes=v;},
+        configurable:true
+      });
+    }
     this._buildTimeSigs();
     this._buildNoteButtons();
     this._buildCircle();
@@ -1508,27 +1535,59 @@ const Cmp = {
   // _tab is the source of truth. _enterPitchMode / _exitPitchMode are setup helpers
   // called only from here.
   setTab(t){
-    if(t!=='rhythm'&&t!=='melody')return;
+    if(t!=='rhythm'&&t!=='melody'&&t!=='parts')return;
     const prev=this._tab;
     this._tab=t;
     const s3=document.getElementById('cmp-s3');
     if(!s3)return;
-    s3.classList.remove('tab-rhythm','tab-melody');
-    s3.classList.add(t==='melody'?'tab-melody':'tab-rhythm');
+    s3.classList.remove('tab-rhythm','tab-melody','tab-parts');
+    s3.classList.add(t==='melody'?'tab-melody':(t==='parts'?'tab-parts':'tab-rhythm'));
     if(t==='melody'){
-      // Set flow based on whether rhythm already exists.
-      // Empty staff → append-on-pitch-tap (Melody flow).
-      // Has rhythm → assign-pitch-to-selected (Add Melody flow).
       this._melodyFlow = !this.notes.some(n=>!n.rest);
-      // First-time gate: route to clef picker; pickKey chains back to compose with tab-melody active.
       if(!this._clef||!this._keysig){
         this._showStep('clef');
         return;
       }
       this._enterPitchMode();
+    } else if(t==='parts'){
+      this._renderPartsList();
     } else if(prev==='melody'){
       this._exitPitchMode();
     }
+  },
+
+  // Phase 9A+B: parts management
+  addPart(){
+    if(this.parts.length>=8){Toast.show({ic:'⚠',title:'Max 8 parts',sub:'',type:'e'});return;}
+    this.parts.push({notes:[]});
+    this._activePart=this.parts.length-1;
+    this._renderPartsList();
+  },
+  removePart(){
+    if(this.parts.length<=1){Toast.show({ic:'⚠',title:'Must have at least 1 part',sub:'',type:'e'});return;}
+    const cur=this.parts[this._activePart];
+    if(cur&&cur.notes&&cur.notes.some(n=>!n.rest)){
+      if(!confirm(`Delete Part ${this._activePart+1} and its notes?`))return;
+    }
+    this.parts.splice(this._activePart,1);
+    if(this._activePart>=this.parts.length)this._activePart=this.parts.length-1;
+    this._renderPartsList();
+    this.render();
+  },
+  setActivePart(i){
+    if(i<0||i>=this.parts.length)return;
+    this._activePart=i;
+    this._renderPartsList();
+    this.render();
+  },
+  _renderPartsList(){
+    const list=document.getElementById('cmp-parts-list');
+    if(!list)return;
+    list.innerHTML=this.parts.map((p,i)=>{
+      const active=i===this._activePart?' active':'';
+      const count=p.notes?p.notes.filter(n=>!n.rest).length:0;
+      return `<button class="cmp-part-row${active}" onclick="Cmp.setActivePart(${i})">Part ${i+1} <span style="opacity:.55;font-weight:400;font-size:10px">· ${count} note${count===1?'':'s'}</span></button>`;
+    }).join('');
   },
 
   // Phase 6B: pitch-mode setup helper — no longer owns mode state, just does the setup.
@@ -2065,7 +2124,7 @@ const Cmp = {
     let saves={};
     try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){saves={};}
     const id=Date.now().toString(36);
-    saves[id]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_tab:this._tab,_melodyFlow:this._melodyFlow,notes:this.notes.map(n=>({...n,current:false})),savedAt:Date.now()};
+    saves[id]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_tab:this._tab,_melodyFlow:this._melodyFlow,parts:this.parts.map(p=>({notes:p.notes.map(n=>({...n,current:false}))})),_activePart:this._activePart,savedAt:Date.now()};
     try{localStorage.setItem('melodia:saves',JSON.stringify(saves));}
     catch(e){Toast.show({ic:'⚠',title:'Save failed',sub:'Browser storage may be full.',type:'e'});return;}
     Toast.show({ic:'💾',title:'Saved',sub:`"${title}" stored on this device.`});
@@ -2105,7 +2164,14 @@ const Cmp = {
     this.totalMeasures=s.totalMeasures||4;
     this.tempo=s.tempo||100;
     if(s.tone){this.tone=s.tone;const sel=document.getElementById('cmp-tone');if(sel)sel.value=s.tone;}
-    this.notes=(s.notes||[]).map(n=>({...n,current:false}));
+    // Phase 9A: parts schema, with legacy fallback (old saves had top-level notes only)
+    if(Array.isArray(s.parts)&&s.parts.length){
+      this.parts=s.parts.map(p=>({notes:(p.notes||[]).map(n=>({...n,current:false}))}));
+      this._activePart=Math.min(s._activePart||0,this.parts.length-1);
+    } else {
+      this.parts=[{notes:(s.notes||[]).map(n=>({...n,current:false}))}];
+      this._activePart=0;
+    }
     if(this.notes.length)this.notes[this.notes.length-1].current=true;
     this._selectedIdx=null;this.selectedMeasure=null;this.selectedMeasureEnd=null;
     this._tg={base:0,count:0,accum:0};this.tripletMode=false;
@@ -3206,7 +3272,7 @@ const Cmp = {
     let saves={};
     try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){saves={};}
     const sid=Date.now().toString(36);
-    saves[sid]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_tab:this._tab,_melodyFlow:this._melodyFlow,notes:this.notes.map(n=>({...n,current:false})),savedAt:Date.now(),submitted:true};
+    saves[sid]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_tab:this._tab,_melodyFlow:this._melodyFlow,parts:this.parts.map(p=>({notes:p.notes.map(n=>({...n,current:false}))})),_activePart:this._activePart,savedAt:Date.now(),submitted:true};
     try{localStorage.setItem('melodia:saves',JSON.stringify(saves));}catch(e){}
     Toast.show({ic:'📤',title:'Submitted!',sub:`"${title}" is now in the library!`,type:'s'});
     this.notes=[];
