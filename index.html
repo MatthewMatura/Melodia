@@ -307,17 +307,9 @@ and the staff position cannot shift when toggling tabs. */
 </head>
 <body>
 
-<!-- ======= TOAST CONTAINER ======= -->
-
 <div id="toasts"></div>
 
-<!-- ======= COMPOSE ======= -->
-
 <div id="view-compose" class="view active">
-
-  <!-- STEP 1: Mode Entry -->
-
-  <!-- Phase 6A: s1 preserved for later — cmp-active moved to s2 below -->
 
   <div id="cmp-s1" class="cmp-step">
     <div class="cmp-topbar">
@@ -342,10 +334,6 @@ and the staff position cannot shift when toggling tabs. */
       </button>
     </div>
   </div>
-
-  <!-- STEP 2: Time Signature -->
-
-  <!-- Phase 6A: s2 preserved for later — cmp-active moved to s3 below -->
 
   <div id="cmp-s2" class="cmp-step">
     <div class="cmp-topbar">
@@ -404,8 +392,6 @@ and the staff position cannot shift when toggling tabs. */
     </div>
   </div>
 
-  <!-- STEP 3: Composition -->
-
   <div id="cmp-s3" class="cmp-step cmp-active tab-rhythm">
     <div class="cmp-topbar">
       <span class="cmp-compose-title">Compose</span>
@@ -413,7 +399,6 @@ and the staff position cannot shift when toggling tabs. */
     </div>
 
 ```
-<!-- Phase 6A: tab strip — flips top-half input area between rhythm and melody -->
 <div class="cmp-tabs" role="tablist">
   <button class="cmp-tab cmp-tab-rhythm" role="tab" onclick="Cmp.setTab('rhythm')">🥁 Rhythm</button>
   <button class="cmp-tab cmp-tab-melody" role="tab" onclick="Cmp.setTab('melody')">🎵 Melody</button>
@@ -532,19 +517,13 @@ and the staff position cannot shift when toggling tabs. */
   </div>
 </div>
 
-<!-- Tempo controls below input, above staff -->
-
 <div class="cmp-tempo-row">
   <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 100</div>
 </div>
 
-<!-- Staff — nothing overlaps it -->
-
 <div class="cmp-staff-wrap">
   <svg id="cmp-svg" preserveAspectRatio="none"></svg>
 </div>
-
-<!-- Playback controls below staff -->
 
 <div class="cmp-playbar">
   <div class="cmp-playbar-left">
@@ -602,51 +581,49 @@ and the staff position cannot shift when toggling tabs. */
 
   </div>
 
-  <!-- STEP 4: Clef Picker -->
-
   <div id="cmp-s4" class="cmp-step">
     <div class="cmp-topbar">
-      <!-- Phase 7: stashed — pickers are forward-only
-      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
-      -->
-      <button class="cmp-edit-btn" style="flex:unset;padding:8px 14px;visibility:hidden" aria-hidden="true" tabindex="-1">‹ Back</button>
-      <span class="cmp-ts-label">&nbsp;</span>
-      <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
-    </div>
-    <div class="cmp-step-hdr" style="padding-top:24px;padding-bottom:28px">𝄞 Pick Your Clef</div>
-    <div class="cmp-clef-grid">
-      <button class="cmp-clef-btn" onclick="Cmp.pickClef('treble')">
-        <div class="cmp-clef-glyph">𝄞</div>
-        <div>Treble</div>
-      </button>
-      <button class="cmp-clef-btn" onclick="Cmp.pickClef('bass')">
-        <div class="cmp-clef-glyph">𝄢</div>
-        <div>Bass</div>
-      </button>
-      <button class="cmp-clef-btn" onclick="Cmp.pickClef('alto')">
-        <div class="cmp-clef-glyph">𝄡</div>
-        <div>Alto</div>
-      </button>
-      <button class="cmp-clef-btn" onclick="Cmp.pickClef('tenor')">
-        <div class="cmp-clef-glyph">𝄡</div>
-        <div>Tenor</div>
-      </button>
-    </div>
-  </div>
 
-  <!-- STEP 5: Key Signature (Circle of Fifths) -->
+```
+  <button class="cmp-edit-btn" style="flex:unset;padding:8px 14px;visibility:hidden" aria-hidden="true" tabindex="-1">‹ Back</button>
+  <span class="cmp-ts-label">&nbsp;</span>
+  <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
+</div>
+<div class="cmp-step-hdr" style="padding-top:24px;padding-bottom:28px">𝄞 Pick Your Clef</div>
+<div class="cmp-clef-grid">
+  <button class="cmp-clef-btn" onclick="Cmp.pickClef('treble')">
+    <div class="cmp-clef-glyph">𝄞</div>
+    <div>Treble</div>
+  </button>
+  <button class="cmp-clef-btn" onclick="Cmp.pickClef('bass')">
+    <div class="cmp-clef-glyph">𝄢</div>
+    <div>Bass</div>
+  </button>
+  <button class="cmp-clef-btn" onclick="Cmp.pickClef('alto')">
+    <div class="cmp-clef-glyph">𝄡</div>
+    <div>Alto</div>
+  </button>
+  <button class="cmp-clef-btn" onclick="Cmp.pickClef('tenor')">
+    <div class="cmp-clef-glyph">𝄡</div>
+    <div>Tenor</div>
+  </button>
+</div>
+```
+
+  </div>
 
   <div id="cmp-s5" class="cmp-step">
     <div class="cmp-topbar">
-      <!-- Phase 7: stashed — pickers are forward-only
-      <button class="cmp-edit-btn" onclick="Cmp.goBack()" style="flex:unset;padding:8px 14px">‹ Back</button>
-      -->
-      <button class="cmp-edit-btn" style="flex:unset;padding:8px 14px;visibility:hidden" aria-hidden="true" tabindex="-1">‹ Back</button>
-      <span class="cmp-ts-label">&nbsp;</span>
-      <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
-    </div>
-    <div class="cmp-step-hdr" style="padding-top:24px;padding-bottom:18px">🎼 Pick Your Key Signature</div>
-    <div class="cmp-cof-wrap" id="cmp-cof-wrap"></div>
+
+```
+  <button class="cmp-edit-btn" style="flex:unset;padding:8px 14px;visibility:hidden" aria-hidden="true" tabindex="-1">‹ Back</button>
+  <span class="cmp-ts-label">&nbsp;</span>
+  <button class="cmp-submit-btn" style="visibility:hidden" aria-hidden="true" tabindex="-1">Submit 📤</button>
+</div>
+<div class="cmp-step-hdr" style="padding-top:24px;padding-bottom:18px">🎼 Pick Your Key Signature</div>
+<div class="cmp-cof-wrap" id="cmp-cof-wrap"></div>
+```
+
   </div>
 
 </div>
