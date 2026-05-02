@@ -408,7 +408,7 @@ and the staff position cannot shift when toggling tabs. */
 
   <div id="cmp-s3" class="cmp-step cmp-active tab-rhythm">
     <div class="cmp-topbar">
-      <span class="cmp-compose-title">Compose 8B-TEST</span>
+      <span class="cmp-compose-title">Compose</span>
       <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
     </div>
 
@@ -3248,38 +3248,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(!u.songsCompleted)u.songsCompleted=[];
   });
   Cmp.init();
-});
-</script>
-
-<script>
-// Phase 8B-TEST diagnostic: scan cmp-s3 for unexpected text content
-window.addEventListener('load',()=>{
-  setTimeout(()=>{
-    const s3=document.getElementById('cmp-s3');
-    if(!s3){alert('No s3');return;}
-    const findings=[];
-    const walker=document.createTreeWalker(s3,NodeFilter.SHOW_TEXT,null);
-    let node;
-    while((node=walker.nextNode())){
-      const txt=node.nodeValue;
-      const trimmed=txt.replace(/\s/g,'');
-      if(trimmed.length===0) continue;
-      // Skip obvious legitimate UI text
-      const known=['Compose','Compose8B-TEST','Submit📤','🥁Rhythm','🎵Melody','Notes','Rests','Pitches','Diatonic','Whole','Half','Dot.Half','Quarter','Dot.Qtr','Eighth','Dot.8th','16th','Slower','Faster','Triplet','Undo','Nuke','Save','Load','Surprise','Loop','Repeat','Piano','♩=100','Songtitle...','Songtitle…','—','4/4','4'];
-      let isKnown=false;
-      for(const k of known){if(trimmed.includes(k.replace(/\s/g,''))){isKnown=true;break;}}
-      if(isKnown) continue;
-      // Suspicious — capture parent chain
-      let p=node.parentElement;
-      const chain=[];
-      while(p&&p!==s3){chain.push(p.tagName.toLowerCase()+(p.id?'#'+p.id:'')+(p.className?'.'+String(p.className).replace(/\s+/g,'.'):''));p=p.parentElement;}
-      findings.push({text:JSON.stringify(txt),codes:[...txt].map(c=>'U+'+c.charCodeAt(0).toString(16).padStart(4,'0')).join(' '),parent:chain.slice(0,3).join(' > ')});
-    }
-    if(findings.length===0){alert('No suspicious text found in cmp-s3');return;}
-    let msg='SUSPICIOUS TEXT NODES:\n\n';
-    findings.forEach((f,i)=>{msg+=`#${i+1}: ${f.text}\n  codes: ${f.codes}\n  parent: ${f.parent}\n\n`;});
-    alert(msg);
-  },1000);
 });
 </script>
 
