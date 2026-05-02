@@ -183,8 +183,11 @@ is locked to the larger of the two contents. Visibility-hidden flip happens via 
 .cmp-tempo-btn:active{background:#e8142a;background:var(–red);border-color:#e8142a;border-color:var(–red);}
 .cmp-tempo-disp{flex:1.6;text-align:center;font-size:17px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.06em;}
 /* LAYOUT FIX 2: staff never overlaps adjacent elements */
-.cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;height:110px;display:flex;align-items:center;}
+.cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;height:200px;display:flex;flex-direction:column;align-items:stretch;}
 .cmp-staff-wrap.locked{overflow-x:hidden;touch-action:none;}
+.cmp-part-block{display:flex;flex-direction:column;gap:0;flex-shrink:0;}
+.cmp-part-label{padding:4px 10px 2px;font-size:11px;font-weight:900;letter-spacing:.1em;color:rgba(240,230,208,.6);cursor:pointer;-webkit-tap-highlight-color:transparent;align-self:flex-start;border-radius:5px;}
+.cmp-part-label.active{color:#9c27b0;background:rgba(156,39,176,.12);}
 .cmp-surprise-btn{padding:10px 14px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
 .cmp-surprise-btn:active,.cmp-surprise-btn.on{background:rgba(245,197,24,.18);border-color:#f5c518;border-color:var(–gold);}
 .cmp-playbar{display:flex;align-items:center;padding:6px 14px 2px;flex-shrink:0;justify-content:space-between;gap:10px;}
@@ -430,11 +433,9 @@ and the staff position cannot shift when toggling tabs. */
 </div>
 </div>
 <div class="parts-only">
-<div class="cmp-input-label" style="padding-top:18px">Parts</div>
-<div class="cmp-parts-list" id="cmp-parts-list"></div>
-<div style="display:flex;gap:8px;margin-top:10px">
-<button class="cmp-pitchmode-btn" onclick="Cmp.addPart()">+ Add</button>
-<button class="cmp-pitchmode-btn" onclick="Cmp.removePart()" style="border-color:#e8142a;color:#e8142a;">− Delete</button>
+<div style="display:flex;gap:8px;padding-top:18px">
+<button class="cmp-pitchmode-btn" onclick="Cmp.addPart()">+ Add Part</button>
+<button class="cmp-pitchmode-btn" onclick="Cmp.removePart()" style="border-color:#e8142a;color:#e8142a;">− Delete Part</button>
 </div>
 </div>
 </div>
@@ -537,8 +538,9 @@ ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.en
 <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 100</div>
 </div>
 
-<div class="cmp-staff-wrap">
-<svg id="cmp-svg" preserveAspectRatio="none"></svg>
+<div class="cmp-staff-wrap" id="cmp-staff-wrap">
+<div id="cmp-staves-container"></div>
+<svg id="cmp-svg" preserveAspectRatio="none" style="display:none"></svg>
 </div>
 
 <div class="cmp-playbar">
@@ -1550,7 +1552,7 @@ const Cmp = {
       }
       this._enterPitchMode();
     } else if(t==='parts'){
-      this._renderPartsList();
+      this.render();
     } else if(prev==='melody'){
       this._exitPitchMode();
     }
@@ -1561,7 +1563,7 @@ const Cmp = {
     if(this.parts.length>=8){Toast.show({ic:'⚠',title:'Max 8 parts',sub:'',type:'e'});return;}
     this.parts.push({notes:[]});
     this._activePart=this.parts.length-1;
-    this._renderPartsList();
+    this.render();
   },
   removePart(){
     if(this.parts.length<=1){Toast.show({ic:'⚠',title:'Must have at least 1 part',sub:'',type:'e'});return;}
@@ -1571,23 +1573,12 @@ const Cmp = {
     }
     this.parts.splice(this._activePart,1);
     if(this._activePart>=this.parts.length)this._activePart=this.parts.length-1;
-    this._renderPartsList();
     this.render();
   },
   setActivePart(i){
     if(i<0||i>=this.parts.length)return;
     this._activePart=i;
-    this._renderPartsList();
     this.render();
-  },
-  _renderPartsList(){
-    const list=document.getElementById('cmp-parts-list');
-    if(!list)return;
-    list.innerHTML=this.parts.map((p,i)=>{
-      const active=i===this._activePart?' active':'';
-      const count=p.notes?p.notes.filter(n=>!n.rest).length:0;
-      return `<button class="cmp-part-row${active}" onclick="Cmp.setActivePart(${i})">Part ${i+1} <span style="opacity:.55;font-weight:400;font-size:10px">· ${count} note${count===1?'':'s'}</span></button>`;
-    }).join('');
   },
 
   // Phase 6B: pitch-mode setup helper — no longer owns mode state, just does the setup.
@@ -2321,10 +2312,59 @@ const Cmp = {
   },
 
   render(){
-    const svg=document.getElementById('cmp-svg');if(!svg)return;
-    CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure,selectedMeasureEnd:this.selectedMeasureEnd,clef:this._clef,keysig:this._keysig});
-    if(!this._tapInstalled){
+    const container=document.getElementById('cmp-staves-container');
+    const svgLegacy=document.getElementById('cmp-svg');
+    if(!container)return;
+    // Build per-part blocks: label + svg
+    container.innerHTML=this.parts.map((p,i)=>{
+      const active=i===this._activePart?' active':'';
+      return `<div class="cmp-part-block"><span class="cmp-part-label${active}" onclick="Cmp.setActivePart(${i})">PART ${i+1}</span><svg class="cmp-part-svg" data-part-idx="${i}" preserveAspectRatio="none"></svg></div>`;
+    }).join('');
+    // Render each part's notes into its own svg
+    this.parts.forEach((p,i)=>{
+      const psvg=container.querySelector(`svg[data-part-idx="${i}"]`);
+      if(!psvg)return;
+      CmpSheet.render(psvg,{notes:p.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:i===this._activePart?this.selectedMeasure:null,selectedMeasureEnd:i===this._activePart?this.selectedMeasureEnd:null,clef:this._clef,keysig:this._keysig});
+    });
+    // Mirror active part into legacy #cmp-svg so existing playhead/scroll code keeps working
+    const svg=svgLegacy;
+    if(svg){
+      CmpSheet.render(svg,{notes:this.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:this.selectedMeasure,selectedMeasureEnd:this.selectedMeasureEnd,clef:this._clef,keysig:this._keysig});
+    }
+    if(!this._tapInstalled&&svg){
       this._tapInstalled=true;
+      // Delegated taps on per-part svgs
+      const cont=document.getElementById('cmp-staves-container');
+      if(cont){
+        cont.addEventListener('click',e=>{
+          const psvg=e.target.closest('svg[data-part-idx]');
+          if(!psvg)return;
+          const pi=parseInt(psvg.getAttribute('data-part-idx'));
+          if(pi!==this._activePart){
+            this._activePart=pi;
+            this.render();
+            return;
+          }
+          // Forward to legacy logic via same code path on active part svg
+          const mg=e.target.closest('[data-measure-idx]');
+          if(mg){
+            if(!this.loopOn)return;
+            const mi=parseInt(mg.getAttribute('data-measure-idx'));
+            if(this.selectedMeasure===null){this.selectedMeasure=mi;this.selectedMeasureEnd=null;}
+            else if(this.selectedMeasureEnd===null){
+              if(this.selectedMeasure===mi){this.selectedMeasure=null;}else{this.selectedMeasureEnd=mi;}
+            } else {
+              const lo=Math.min(this.selectedMeasure,this.selectedMeasureEnd,mi);
+              const hi=Math.max(this.selectedMeasure,this.selectedMeasureEnd,mi);
+              this.selectedMeasure=lo;this.selectedMeasureEnd=hi;
+            }
+            this.deselectNote();this.render();return;
+          }
+          const g=e.target.closest('[data-note-idx]');
+          if(g){this.selectedMeasure=null;this.selectedMeasureEnd=null;this.selectNote(parseInt(g.getAttribute('data-note-idx')));}
+          else{this.selectedMeasure=null;this.selectedMeasureEnd=null;this.deselectNote();}
+        });
+      }
       svg.addEventListener('click',e=>{
         const mg=e.target.closest('[data-measure-idx]');
         if(mg){
