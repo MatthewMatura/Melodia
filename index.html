@@ -186,6 +186,12 @@ is locked to the larger of the two contents. Visibility-hidden flip happens via 
 .cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;height:200px;display:flex;flex-direction:column;align-items:stretch;}
 .cmp-staff-wrap.locked{overflow-x:hidden;touch-action:none;}
 .cmp-part-block{display:flex;flex-direction:column;gap:0;flex-shrink:0;}
+#cmp-staves-container{position:relative;display:flex;flex-direction:column;align-items:stretch;}
+.cmp-part-svg #cmp-playhead{display:none;}
+#cmp-playhead-bar{position:absolute;top:0;left:0;width:0;height:100%;pointer-events:none;z-index:5;border-left:2px solid #f5c518;opacity:.95;transform:translateX(68px);}
+#cmp-playhead-bar::before{content:’’;position:absolute;top:6px;left:-6px;width:0;height:0;border-style:solid;border-width:8px 6px 0 6px;border-color:#f5c518 transparent transparent transparent;}
+.cmp-zoom-btn{padding:8px 10px;border-radius:8px;border:2px solid rgba(240,230,208,.22);background:#10101e;color:#f5c518;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.cmp-zoom-btn:active{background:rgba(245,197,24,.18);border-color:#f5c518;}
 .cmp-part-label{padding:4px 10px 2px;font-size:11px;font-weight:900;letter-spacing:.1em;color:rgba(240,230,208,.6);cursor:pointer;-webkit-tap-highlight-color:transparent;align-self:flex-start;border-radius:5px;}
 .cmp-part-label.active{color:#9c27b0;background:rgba(156,39,176,.12);}
 .cmp-part-label-row{display:flex;align-items:center;gap:6px;padding:0 6px;}
@@ -552,6 +558,8 @@ ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.en
 <button class="cmp-surprise-btn" onclick="Cmp.surprise()">🎲 Surprise</button>
 <button class="cmp-surprise-btn" id="cmp-loop-btn" onclick="Cmp.toggleLoop()">🔁 Loop</button>
 <button class="cmp-surprise-btn" id="cmp-repeat-btn" onclick="Cmp.toggleRepeat()">𝄇 Repeat</button>
+<button class="cmp-zoom-btn" onclick="Cmp.zoomOut()" title="Zoom out">🔍−</button>
+<button class="cmp-zoom-btn" onclick="Cmp.zoomIn()" title="Zoom in">🔍+</button>
 </div>
 <div class="cmp-playbar-center">
 <button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
@@ -1313,7 +1321,7 @@ const CmpSheet = {
 const Cmp = {
   step:'entry', mode:null,
   ts:null, tempo:100,
-  parts:[{notes:[]}], _activePart:0,
+  parts:[{notes:[]}], _activePart:0, _zoom:1,
   durSel:4, dotSel:false, tripletMode:false,
   playing:false, playTimer:null,
   totalMeasures:4, tone:'piano', selectedMeasure:null, selectedMeasureEnd:null, loopOn:false, repeatOn:false, metronomeOn:false, drumOn:false, countingOn:false,
@@ -1593,6 +1601,15 @@ const Cmp = {
   togglePartSolo(i){
     if(i<0||i>=this.parts.length)return;
     this.parts[i].solo=!this.parts[i].solo;
+    this.render();
+  },
+  // Phase 9F: zoom (vertical scale of per-part staves)
+  zoomIn(){
+    this._zoom=Math.min(1.6,(this._zoom||1)+0.2);
+    this.render();
+  },
+  zoomOut(){
+    this._zoom=Math.max(0.4,(this._zoom||1)-0.2);
     this.render();
   },
   // If any part is soloed, only soloed parts are audible. Otherwise all non-muted parts.
@@ -2020,6 +2037,8 @@ const Cmp = {
         const px=68+mi*mW+(b8/this.ts.cap)*mW+10;
         const ph=document.getElementById('cmp-playhead');
         if(ph)ph.setAttribute('transform',`translate(${px},0)`);
+        const _phB=document.getElementById('cmp-playhead-bar');
+        if(_phB)_phB.style.transform=`translateX(${px}px)`;
       }
     }
   },
@@ -2370,7 +2389,17 @@ const Cmp = {
       const psvg=container.querySelector(`svg[data-part-idx="${i}"]`);
       if(!psvg)return;
       CmpSheet.render(psvg,{notes:p.notes,ts:this.ts,totalMeasures:this.totalMeasures,selectedMeasure:i===this._activePart?this.selectedMeasure:null,selectedMeasureEnd:i===this._activePart?this.selectedMeasureEnd:null,clef:this._clef,keysig:this._keysig});
+      // Phase 9F: apply zoom to per-part svg height
+      const z=this._zoom||1;
+      psvg.style.height=(108*z)+'px';
     });
+    // Phase 9F: overlay playhead bar that spans all parts (innerHTML wiped above, so re-append)
+    let phBar=document.getElementById('cmp-playhead-bar');
+    if(!phBar){
+      phBar=document.createElement('div');
+      phBar.id='cmp-playhead-bar';
+      container.appendChild(phBar);
+    }
     // Mirror active part into legacy #cmp-svg so existing playhead/scroll code keeps working
     const svg=svgLegacy;
     if(svg){
@@ -2848,6 +2877,8 @@ const Cmp = {
         const frac=b.t>a.t?(t-a.t)/(b.t-a.t):0;
         const x=a.x+(b.x-a.x)*frac;
         ph.setAttribute('transform',`translate(${x},0)`);
+        const _phB=document.getElementById('cmp-playhead-bar');
+        if(_phB)_phB.style.transform=`translateX(${x}px)`;
         // Continuous follow: viewport tracks playhead so it sits ~30% from the left edge.
         // This gives the user 70% of the viewport width as look-ahead and is inherently
         // smooth (no threshold-snap). On a backward jump (repeat-back-to-start), detect
@@ -3180,6 +3211,8 @@ const Cmp = {
     // Reset playhead to start visually, then play full piece again with no count-in
     const ph=document.getElementById('cmp-playhead');
     if(ph)ph.setAttribute('transform','translate(68,0)');
+    const _phB3=document.getElementById('cmp-playhead-bar');
+    if(_phB3)_phB3.style.transform='translateX(68px)';
     const ctx=this._getWAC();
     if(ctx.state==='suspended')ctx.resume();
     const spe=this._secPerEighth();
@@ -3324,6 +3357,8 @@ const Cmp = {
       const last=sc[sc.length-1];
       const ph=document.getElementById('cmp-playhead');
       if(ph) ph.setAttribute('transform',`translate(${last.x},0)`);
+      const _phB4=document.getElementById('cmp-playhead-bar');
+      if(_phB4)_phB4.style.transform=`translateX(${last.x}px)`;
     }
     document.getElementById('cmp-play-btn')?.classList.remove('on');
   },
@@ -3355,6 +3390,7 @@ const Cmp = {
     const sw=document.querySelector('.cmp-staff-wrap');if(sw){sw.style.borderColor='';sw.classList.remove('locked');sw.scrollTo({left:0,behavior:'smooth'});}
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
     const ph=document.getElementById('cmp-playhead');if(ph){ph.setAttribute('transform','translate(68,0)');ph.removeAttribute('display');}
+    const _phB5=document.getElementById('cmp-playhead-bar');if(_phB5)_phB5.style.transform='translateX(68px)';
     if(this._wac&&this._wac.state!=='closed'){
       try{this._wac.close();}catch(e){}
     }
