@@ -410,6 +410,7 @@ and the staff position cannot shift when toggling tabs. */
 <div class="cmp-note-row" id="cmp-note-row"></div>
 <div class="cmp-input-label" style="margin-top:7px">Rests</div>
 <div class="cmp-note-row" id="cmp-rest-row"></div>
+<button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()" style="margin-top:12px">Triplet</button>
 </div>
 <div class="pitch-only">
 <div class="cmp-input-label" style="padding-top:18px">Pitches</div>
@@ -507,7 +508,6 @@ and the staff position cannot shift when toggling tabs. */
 ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.slower()">🐢 Slower</button>
 <button class="cmp-edit-btn cmp-stack-btn" id="cmp-faster-btn"
 ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.faster()">⚡ Faster</button>
-<button class="cmp-triplet-btn cmp-stack-btn rhythm-only" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
 <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.undo()">↩ Undo</button>
 <button class="cmp-edit-btn cmp-stack-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
 <button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.save()">💾 Save</button>
