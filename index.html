@@ -188,6 +188,10 @@ is locked to the larger of the two contents. Visibility-hidden flip happens via 
 .cmp-part-block{display:flex;flex-direction:column;gap:0;flex-shrink:0;}
 .cmp-part-label{padding:4px 10px 2px;font-size:11px;font-weight:900;letter-spacing:.1em;color:rgba(240,230,208,.6);cursor:pointer;-webkit-tap-highlight-color:transparent;align-self:flex-start;border-radius:5px;}
 .cmp-part-label.active{color:#9c27b0;background:rgba(156,39,176,.12);}
+.cmp-part-label-row{display:flex;align-items:center;gap:6px;padding:0 6px;}
+.cmp-part-mute,.cmp-part-solo{padding:2px 7px;font-size:10px;font-weight:900;border-radius:4px;border:1.5px solid rgba(240,230,208,.3);background:transparent;color:rgba(240,230,208,.5);cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;letter-spacing:.05em;}
+.cmp-part-mute.on{background:rgba(232,20,42,.2);border-color:#e8142a;color:#ff6680;}
+.cmp-part-solo.on{background:rgba(245,197,24,.2);border-color:#f5c518;color:#f5c518;}
 .cmp-surprise-btn{padding:10px 14px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
 .cmp-surprise-btn:active,.cmp-surprise-btn.on{background:rgba(245,197,24,.18);border-color:#f5c518;border-color:var(–gold);}
 .cmp-playbar{display:flex;align-items:center;padding:6px 14px 2px;flex-shrink:0;justify-content:space-between;gap:10px;}
@@ -1580,6 +1584,45 @@ const Cmp = {
     this._activePart=i;
     this.render();
   },
+  // Phase 9E: per-part mute/solo
+  togglePartMute(i){
+    if(i<0||i>=this.parts.length)return;
+    this.parts[i].mute=!this.parts[i].mute;
+    this.render();
+  },
+  togglePartSolo(i){
+    if(i<0||i>=this.parts.length)return;
+    this.parts[i].solo=!this.parts[i].solo;
+    this.render();
+  },
+  // If any part is soloed, only soloed parts are audible. Otherwise all non-muted parts.
+  _audibleParts(){
+    const anySolo=this.parts.some(p=>p.solo);
+    return this.parts.map((p,i)=>({i,audible:anySolo?!!p.solo:!p.mute}));
+  },
+  // Phase 9C+D: schedule a single part's tones starting at startTime, for measure range [rStart,rEnd]
+  _schedulePartTones(ctx,part,rStart,rEnd,cap,startTime,spe){
+    let _cum=0,firstIdx=-1,lastIdx=-1;
+    for(let i=0;i<part.notes.length;i++){
+      const mi=Math.floor((_cum+0.001)/cap);
+      if(mi>=rStart&&mi<=rEnd){
+        if(firstIdx<0)firstIdx=i;
+        lastIdx=i;
+      }
+      _cum+=part.notes[i].dur8;
+    }
+    if(firstIdx<0)return;
+    const slice=part.notes.slice(firstIdx,lastIdx+1);
+    let t=startTime;
+    slice.forEach(n=>{
+      const dur=n.dur8*spe;
+      if(!n.rest&&!n.tied){
+        const node=this._playTone(ctx,this._pitchToFreq(n,this._clef,this._keysig),t,dur);
+        if(node)this._wNodes.push(node);
+      }
+      t+=dur;
+    });
+  },
 
   // Phase 6B: pitch-mode setup helper — no longer owns mode state, just does the setup.
   // Called only by setTab('melody') after clef+keysig confirmed.
@@ -2115,7 +2158,7 @@ const Cmp = {
     let saves={};
     try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){saves={};}
     const id=Date.now().toString(36);
-    saves[id]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_tab:this._tab,_melodyFlow:this._melodyFlow,parts:this.parts.map(p=>({notes:p.notes.map(n=>({...n,current:false}))})),_activePart:this._activePart,savedAt:Date.now()};
+    saves[id]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_tab:this._tab,_melodyFlow:this._melodyFlow,parts:this.parts.map(p=>({notes:p.notes.map(n=>({...n,current:false})),mute:!!p.mute,solo:!!p.solo})),_activePart:this._activePart,savedAt:Date.now()};
     try{localStorage.setItem('melodia:saves',JSON.stringify(saves));}
     catch(e){Toast.show({ic:'⚠',title:'Save failed',sub:'Browser storage may be full.',type:'e'});return;}
     Toast.show({ic:'💾',title:'Saved',sub:`"${title}" stored on this device.`});
@@ -2157,7 +2200,7 @@ const Cmp = {
     if(s.tone){this.tone=s.tone;const sel=document.getElementById('cmp-tone');if(sel)sel.value=s.tone;}
     // Phase 9A: parts schema, with legacy fallback (old saves had top-level notes only)
     if(Array.isArray(s.parts)&&s.parts.length){
-      this.parts=s.parts.map(p=>({notes:(p.notes||[]).map(n=>({...n,current:false}))}));
+      this.parts=s.parts.map(p=>({notes:(p.notes||[]).map(n=>({...n,current:false})),mute:!!p.mute,solo:!!p.solo}));
       this._activePart=Math.min(s._activePart||0,this.parts.length-1);
     } else {
       this.parts=[{notes:(s.notes||[]).map(n=>({...n,current:false}))}];
@@ -2318,7 +2361,9 @@ const Cmp = {
     // Build per-part blocks: label + svg
     container.innerHTML=this.parts.map((p,i)=>{
       const active=i===this._activePart?' active':'';
-      return `<div class="cmp-part-block"><span class="cmp-part-label${active}" onclick="Cmp.setActivePart(${i})">PART ${i+1}</span><svg class="cmp-part-svg" data-part-idx="${i}" preserveAspectRatio="none"></svg></div>`;
+      const mute=p.mute?' on':'';
+      const solo=p.solo?' on':'';
+      return `<div class="cmp-part-block"><div class="cmp-part-label-row"><span class="cmp-part-label${active}" onclick="Cmp.setActivePart(${i})">PART ${i+1}</span><button class="cmp-part-mute${mute}" onclick="event.stopPropagation();Cmp.togglePartMute(${i})">M</button><button class="cmp-part-solo${solo}" onclick="event.stopPropagation();Cmp.togglePartSolo(${i})">S</button></div><svg class="cmp-part-svg" data-part-idx="${i}" preserveAspectRatio="none"></svg></div>`;
     }).join('');
     // Render each part's notes into its own svg
     this.parts.forEach((p,i)=>{
@@ -3031,11 +3076,17 @@ const Cmp = {
     this._girLastBuildPose='';
     let beat8=0, lastMi=-1, poseIdx=0;
 
+    // Phase 9C+D: compute audibility once for this play() call
+    const _aud=this._audibleParts();
+    const _activeAudible=!!_aud.find(a=>a.i===this._activePart)?.audible;
+
     playNotes.forEach(n=>{
       const dur=n.dur8*spe;
       if(!n.rest&&!n.tied){
-        const node=this._playTone(ctx,this._pitchToFreq(n,this._clef,this._keysig),t,dur);
-        if(node)this._wNodes.push(node);
+        if(_activeAudible){
+          const node=this._playTone(ctx,this._pitchToFreq(n,this._clef,this._keysig),t,dur);
+          if(node)this._wNodes.push(node);
+        }
         this._bvrSchedule.push({t:t-this._wStart,pose:_BVR_POSES[poseIdx%4]});
         this._girLastBuildSY=_girScale(n.staffPos);
         this._girLastBuildPose=_GIR_POSES[poseIdx%4];
@@ -3047,6 +3098,12 @@ const Cmp = {
       // Auto-scroll-to-measure removed so user can scroll freely during play
       beat8+=n.dur8;
       t+=dur;
+    });
+
+    // Phase 9C+D: schedule additional audible parts (excluding active, already handled above) for first pass
+    _aud.forEach(({i,audible})=>{
+      if(i===this._activePart||!audible)return;
+      this._schedulePartTones(ctx,this.parts[i],rStart,rEnd,capR,this._wStart,spe);
     });
 
     // Phase 8D-v2: schedule N passes when repeatOn (no AC close/reopen, no audio gap)
@@ -3081,8 +3138,10 @@ const Cmp = {
       playNotes.forEach(n=>{
         const dur=n.dur8*spe;
         if(!n.rest&&!n.tied){
-          const node=this._playTone(ctx,this._pitchToFreq(n,this._clef,this._keysig),t2,dur);
-          if(node)this._wNodes.push(node);
+          if(_activeAudible){
+            const node=this._playTone(ctx,this._pitchToFreq(n,this._clef,this._keysig),t2,dur);
+            if(node)this._wNodes.push(node);
+          }
           this._bvrSchedule.push({t:t2-this._wStart,pose:_BVR_POSES[poseIdx%4]});
           this._girLastBuildSY=_girScale(n.staffPos);
           this._girLastBuildPose=_GIR_POSES[poseIdx%4];
@@ -3093,6 +3152,11 @@ const Cmp = {
         this._girSchedule.push({t:t2-this._wStart,scaleY:this._girLastBuildSY,pose:this._girLastBuildPose});
         beat82+=n.dur8;
         t2+=dur;
+      });
+      // Phase 9C+D: schedule other audible parts for this repeat pass
+      _aud.forEach(({i,audible})=>{
+        if(i===this._activePart||!audible)return;
+        this._schedulePartTones(ctx,this.parts[i],rStart,rEnd,capR,t,spe);
       });
       t=t2;
     }
@@ -3215,15 +3279,23 @@ const Cmp = {
     this._wScrollTimers?.forEach(id=>clearTimeout(id));
     this._wScrollTimers=[];
     let beat8=0,lastMi=-1;
+    // Phase 9C+D: audibility for loop pass
+    const _aud=this._audibleParts();
+    const _activeAudible=!!_aud.find(a=>a.i===this._activePart)?.audible;
     playNotes.forEach(n=>{
       const dur=n.dur8*spe;
-      if(!n.rest&&!n.tied){
+      if(!n.rest&&!n.tied&&_activeAudible){
         const node=this._playTone(ctx,this._pitchToFreq(n,this._clef,this._keysig),t,dur);
         if(node)this._wNodes.push(node);
       }
       // Auto-scroll-to-measure removed so user can scroll freely during play
       beat8+=n.dur8;
       t+=dur;
+    });
+    // Phase 9C+D: schedule other audible parts for the loop pass
+    _aud.forEach(({i,audible})=>{
+      if(i===this._activePart||!audible)return;
+      this._schedulePartTones(ctx,this.parts[i],rStart,rEnd,cap,this._wStart,spe);
     });
     const totalMs=rangeDur*1000;
     const countInMs=countInDur*1000;
@@ -3312,7 +3384,7 @@ const Cmp = {
     let saves={};
     try{saves=JSON.parse(localStorage.getItem('melodia:saves')||'{}');}catch(e){saves={};}
     const sid=Date.now().toString(36);
-    saves[sid]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_tab:this._tab,_melodyFlow:this._melodyFlow,parts:this.parts.map(p=>({notes:p.notes.map(n=>({...n,current:false}))})),_activePart:this._activePart,savedAt:Date.now(),submitted:true};
+    saves[sid]={title,ts:this.ts,totalMeasures:this.totalMeasures,tempo:this.tempo,tone:this.tone,_clef:this._clef,_keysig:this._keysig,_tab:this._tab,_melodyFlow:this._melodyFlow,parts:this.parts.map(p=>({notes:p.notes.map(n=>({...n,current:false})),mute:!!p.mute,solo:!!p.solo})),_activePart:this._activePart,savedAt:Date.now(),submitted:true};
     try{localStorage.setItem('melodia:saves',JSON.stringify(saves));}catch(e){}
     Toast.show({ic:'📤',title:'Submitted!',sub:`"${title}" is now in the library!`,type:'s'});
     this.notes=[];
