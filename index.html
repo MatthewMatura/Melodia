@@ -119,20 +119,20 @@ transform:scale(.96);
 .cmp-ts-name{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(240,230,208,.5);margin-top:6px;}
 .cmp-ts-btn-text{font-size:13px;font-weight:900;color:rgba(240,230,208,.55);}/* Make Your Own */
 /* — compose step (step 3) — */
-.cmp-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#10101e;background:var(–surf);border-bottom:1px solid rgba(245,197,24,.22);border-bottom:1px solid var(–gold2);flex-shrink:0;margin-bottom:16px;position:relative;}
+.cmp-topbar{display:flex;align-items:center;justify-content:space-between;padding:5px 14px;background:#10101e;background:var(–surf);border-bottom:1px solid rgba(245,197,24,.22);border-bottom:1px solid var(–gold2);flex-shrink:0;margin-bottom:4px;position:relative;}
 #cmp-s3 .cmp-topbar{justify-content:flex-end;}
 .cmp-back-btn{padding:7px 10px;border-radius:8px;border:none;background:transparent;color:rgba(240,230,208,.55);color:var(–dim);font-family:inherit;font-weight:900;font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-submit-btn{padding:9px 16px;border-radius:9px;border:none;background:#f5c518;background:var(–gold);color:#111;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
-.cmp-input-area{flex-shrink:0;padding:8px 14px 4px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:14px;align-items:flex-start;box-sizing:border-box;}
+.cmp-input-area{flex-shrink:0;padding:4px 14px 2px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:10px;align-items:flex-start;box-sizing:border-box;}
 .cmp-input-left{flex:1;min-width:0;display:grid;}
 /* Phase 6B fix: stack rhythm-only and pitch-only in same grid cell so the container height
 is locked to the larger of the two contents. Visibility-hidden flip happens via global rule. */
 .cmp-input-left > .rhythm-only,
 .cmp-input-left > .pitch-only{grid-area:1/1;min-width:0;}
-.cmp-input-mid{flex:0 0 100px;display:flex;align-items:center;justify-content:center;padding-top:6px;}
-.cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));}
+.cmp-input-mid{flex:0 0 70px;display:flex;align-items:center;justify-content:center;padding-top:0;}
+.cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));width:70px !important;height:91px !important;}
 .cmp-beaver g{transition:transform 90ms ease-out;transform-box:fill-box;}
 .cmp-beaver .bvr-arm-l{transform-origin:50% 0%;}
 .cmp-beaver .bvr-arm-r{transform-origin:50% 0%;}
@@ -158,8 +158,8 @@ is locked to the larger of the two contents. Visibility-hidden flip happens via 
 @keyframes bvrConductL{0%,100%{transform:rotate(-10deg) translate(0,-3px);}25%{transform:rotate(15deg) translate(-3px,2px);}50%{transform:rotate(-30deg) translate(2px,-6px);}75%{transform:rotate(20deg) translate(-2px,3px);}}
 @keyframes bvrConductR{0%,100%{transform:rotate(10deg) translate(0,-3px);}25%{transform:rotate(-15deg) translate(3px,-6px);}50%{transform:rotate(30deg) translate(-2px,2px);}75%{transform:rotate(-20deg) translate(2px,-4px);}}
 @keyframes bvrConductBody{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
-.cmp-input-right{flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:6px;width:240px;padding-top:18px;align-content:center;}
-.cmp-stack-btn{width:100%;padding:11px 10px;font-size:11px;flex:none !important;}
+.cmp-input-right{flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:5px;width:240px;padding-top:4px;align-content:center;}
+.cmp-stack-btn{width:100%;padding:9px 10px;font-size:11px;flex:none !important;}
 .cmp-ts-info{margin:8px 16px 24px;padding:14px 16px;background:#10101e;background:var(–surf);border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);border-radius:12px;}
 .cmp-ts-info-hdr{font-size:10px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:#f5c518;color:var(–gold);margin-bottom:9px;}
 .cmp-ts-info-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-top:1px solid rgba(240,230,208,.08);font-size:12px;color:#f0e6d0;color:var(–ink);}
@@ -178,12 +178,12 @@ is locked to the larger of the two contents. Visibility-hidden flip happens via 
 .cmp-triplet-btn.on{border-color:#e8142a;border-color:var(–red);background:rgba(232,20,42,.28);background:var(–red2);}
 .cmp-edit-btn{flex:1;padding:10px 6px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
 .cmp-edit-btn:active{background:rgba(232,20,42,.28);background:var(–red2);border-color:#e8142a;border-color:var(–red);}
-.cmp-tempo-row{display:flex;align-items:center;gap:8px;padding:8px 14px;flex-shrink:0;}
-.cmp-tempo-btn{flex:1;padding:11px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.cmp-tempo-row{display:flex;align-items:center;gap:8px;padding:3px 14px;flex-shrink:0;}
+.cmp-tempo-btn{flex:1;padding:8px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-tempo-btn:active{background:#e8142a;background:var(–red);border-color:#e8142a;border-color:var(–red);}
-.cmp-tempo-disp{flex:1.6;text-align:center;font-size:17px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.06em;}
+.cmp-tempo-disp{flex:1.6;text-align:center;font-size:15px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.06em;}
 /* LAYOUT FIX 2: staff never overlaps adjacent elements */
-.cmp-staff-wrap{flex-shrink:0;margin:4px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;height:200px;display:flex;flex-direction:column;align-items:stretch;}
+.cmp-staff-wrap{flex-shrink:0;margin:2px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;height:340px;display:flex;flex-direction:column;align-items:stretch;}
 .cmp-staff-wrap.locked{overflow-x:hidden;touch-action:none;}
 .cmp-part-block{display:flex;flex-direction:column;gap:0;flex-shrink:0;}
 #cmp-staves-container{position:relative;display:flex;flex-direction:column;align-items:stretch;}
