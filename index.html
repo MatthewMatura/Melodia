@@ -1161,14 +1161,19 @@ const CmpSheet = {
     svgEl.setAttribute('height',H);
     svgEl.innerHTML=s;
     // Entry-follow: smooth-scroll the current note into view if past right edge
+    // Only for visible per-part SVGs — skip the hidden legacy mirror to avoid double-scroll
     const cur=svgEl.querySelector('ellipse[rx="15"][ry="10"]');
-    if(cur){
+    if(cur && svgEl.id!=='cmp-svg'){
       const curNx=parseFloat(cur.getAttribute('cx'));
       // Scroll the .cmp-staff-wrap container (per-part blocks aren't scrollable)
       const par=svgEl.closest('.cmp-staff-wrap')||svgEl.parentElement;
       if(par && curNx>par.scrollLeft+par.clientWidth-40){
-        par.scrollTo({left:Math.max(0,curNx-mLeft-20),behavior:'smooth'});
+        par.scrollTo({left:Math.max(0,curNx-mLeft-20),behavior:'instant'});
       }
+      const ph=svgEl.querySelector('#cmp-playhead');
+      if(ph) ph.setAttribute('transform',`translate(${curNx},0)`);
+    } else if(cur){
+      const curNx=parseFloat(cur.getAttribute('cx'));
       const ph=svgEl.querySelector('#cmp-playhead');
       if(ph) ph.setAttribute('transform',`translate(${curNx},0)`);
     }
@@ -1640,6 +1645,42 @@ const Cmp = {
     this.totalMeasures--;
     this.render();
   },
+  // Phase 9G: tap measure number to set insertion point at first note of that measure
+  _setInsertAtMeasure(mi){
+    if(!this.ts)return;
+    const cap=this.ts.cap;
+    // Find first note whose start is at or past measure mi
+    let cum=0;
+    let firstIdx=-1;
+    for(let i=0;i<this.notes.length;i++){
+      const startM=Math.floor((cum+0.001)/cap);
+      if(startM>=mi){firstIdx=i;break;}
+      cum+=this.notes[i].dur8;
+    }
+    // Highlight the measure (single-measure highlight, not range)
+    this.selectedMeasure=mi;
+    this.selectedMeasureEnd=null;
+    if(firstIdx>=0){
+      // Selecting puts subsequent addEntry into replace-and-advance mode → "rewrites" from this measure
+      this.selectNote(firstIdx);
+    } else {
+      // Empty measure or past end — deselect so addEntry appends
+      this.deselectNote();
+      this.render();
+    }
+    // Move playhead bar to the start of this measure
+    const svgEl=document.getElementById('cmp-svg');
+    if(svgEl&&svgEl.parentElement){
+      const vp=svgEl.parentElement.clientWidth;
+      const mLeft=68;
+      const mW=Math.max(80,(vp-mLeft)/4);
+      const px=mLeft+mi*mW+10;
+      const ph=document.getElementById('cmp-playhead');
+      if(ph)ph.setAttribute('transform',`translate(${px},0)`);
+      const phB=document.getElementById('cmp-playhead-bar');
+      if(phB)phB.style.transform=`translateX(${px}px)`;
+    }
+  },
   // If any part is soloed, only soloed parts are audible. Otherwise all non-muted parts.
   _audibleParts(){
     const anySolo=this.parts.some(p=>p.solo);
@@ -1796,12 +1837,8 @@ const Cmp = {
     if(this._tab!=='melody')return;
     const accVal=(acc===null||acc==='null')?null:acc;
     // Audio preview of tapped pitch
-    try{
-      const ctx=this._getWAC();
-      if(ctx.state==='suspended')ctx.resume();
-      const f=this._pitchToFreq({staffPos:sp,acc:accVal},this._clef,this._keysig);
-      this._playTone(ctx,f,ctx.currentTime+0.005,0.45);
-    }catch(e){}
+    const f=this._pitchToFreq({staffPos:sp,acc:accVal},this._clef,this._keysig);
+    this._playPreview(f);
     let idx=this._selectedIdx;
     // Path 1: valid non-rest selection → assign + advance
     if(idx!==null&&idx!==undefined&&idx>=0&&idx<this.notes.length&&!this.notes[idx].rest){
@@ -2055,12 +2092,8 @@ const Cmp = {
     // Audio preview of tapped note (pitched, non-rest, with clef set)
     const _n=this.notes[idx];
     if(_n&&!_n.rest&&typeof _n.staffPos==='number'&&this._clef){
-      try{
-        const ctx=this._getWAC();
-        if(ctx.state==='suspended')ctx.resume();
-        const f=this._pitchToFreq(_n,this._clef,this._keysig);
-        this._playTone(ctx,f,ctx.currentTime+0.005,0.45);
-      }catch(e){}
+      const f=this._pitchToFreq(_n,this._clef,this._keysig);
+      this._playPreview(f);
     }
     this.render();
     // Move playhead to selected symbol's logical x (only when not actively playing)
@@ -2340,9 +2373,24 @@ const Cmp = {
         this.render();
         return;
       }
-      // Case B: empty → generate 4 measures of rhythm AND pitches (fall through with melody flag)
-      // (handled in fall-through by tagging _surprisePitch)
-      var _surprisePitch=true;
+      // Case B (Phase 9G): empty → 4 measures of quarter notes only, with random diatonic pitches
+      const cap=this.ts.cap;
+      const qtrCount=Math.floor(cap/2)*4; // quarters per 4 measures
+      const notesQ=[];
+      let prev=null;
+      for(let i=0;i<qtrCount;i++){
+        const sp=genPitch(prev); prev=sp;
+        notesQ.push({p:'D4',d:4,dot:false,dur8:2,rest:false,triplet:false,tripletPos:null,tied:false,current:false,staffPos:sp,acc:null});
+      }
+      // End on tonic
+      if(notesQ.length) notesQ[notesQ.length-1].staffPos=tonicSP;
+      if(notesQ.length) notesQ[notesQ.length-1].current=true;
+      this.notes=notesQ;
+      this.totalMeasures=4;
+      Toast.show({ic:'🎲',title:'Surprise melody!',sub:'Quarter-note melody generated.'});
+      this.render();
+      document.getElementById('cmp-svg').parentElement.scrollLeft=0;
+      return;
     }
 
     const cap=this.ts.cap;
@@ -2368,31 +2416,10 @@ const Cmp = {
         notes.push({p:'REST',d:16,dot:false,dur8:remaining,rest:true,triplet:false,tripletPos:null,tied:false,current:false});
       }
     }
-    // Phase 9G: melody branch — assign pitches to the freshly generated rhythm
-    if(typeof _surprisePitch!=='undefined'&&_surprisePitch){
-      const tonicSP=CmpSheet._tonicStaffPos(this._clef,this._keysig.idx);
-      let prev=null;
-      notes.forEach(n=>{
-        if(n.rest)return;
-        const r=Math.random();
-        let step;
-        if(prev===null) {n.staffPos=tonicSP+Math.floor(Math.random()*5); n.acc=null; prev=n.staffPos; return;}
-        if(r<0.55) step=(Math.random()<0.5?-1:1);
-        else if(r<0.80) step=(Math.random()<0.5?-2:2);
-        else if(r<0.92) step=0;
-        else step=(Math.random()<0.5?-3:3);
-        let sp=prev+step;
-        if(sp<tonicSP) sp=tonicSP+1;
-        if(sp>tonicSP+7) sp=tonicSP+6;
-        n.staffPos=sp; n.acc=null; prev=sp;
-      });
-      // End on tonic
-      for(let i=notes.length-1;i>=0;i--){if(!notes[i].rest){notes[i].staffPos=tonicSP;break;}}
-    }
     if(notes.length) notes[notes.length-1].current=true;
     this.notes=notes;
     this.totalMeasures=4;
-    Toast.show({ic:'🎲',title:'Surprise!',sub:(typeof _surprisePitch!=='undefined'&&_surprisePitch)?'Random melody generated.':'Random rhythm generated.'});
+    Toast.show({ic:'🎲',title:'Surprise!',sub:'Random rhythm generated.'});
     this.render();
     document.getElementById('cmp-svg').parentElement.scrollLeft=0;
   },
@@ -2526,17 +2553,21 @@ const Cmp = {
           // Forward to legacy logic via same code path on active part svg
           const mg=e.target.closest('[data-measure-idx]');
           if(mg){
-            if(!this.loopOn)return;
             const mi=parseInt(mg.getAttribute('data-measure-idx'));
-            if(this.selectedMeasure===null){this.selectedMeasure=mi;this.selectedMeasureEnd=null;}
-            else if(this.selectedMeasureEnd===null){
-              if(this.selectedMeasure===mi){this.selectedMeasure=null;}else{this.selectedMeasureEnd=mi;}
-            } else {
-              const lo=Math.min(this.selectedMeasure,this.selectedMeasureEnd,mi);
-              const hi=Math.max(this.selectedMeasure,this.selectedMeasureEnd,mi);
-              this.selectedMeasure=lo;this.selectedMeasureEnd=hi;
+            if(this.loopOn){
+              if(this.selectedMeasure===null){this.selectedMeasure=mi;this.selectedMeasureEnd=null;}
+              else if(this.selectedMeasureEnd===null){
+                if(this.selectedMeasure===mi){this.selectedMeasure=null;}else{this.selectedMeasureEnd=mi;}
+              } else {
+                const lo=Math.min(this.selectedMeasure,this.selectedMeasureEnd,mi);
+                const hi=Math.max(this.selectedMeasure,this.selectedMeasureEnd,mi);
+                this.selectedMeasure=lo;this.selectedMeasureEnd=hi;
+              }
+              this.deselectNote();this.render();return;
             }
-            this.deselectNote();this.render();return;
+            // Phase 9G: not in loop mode — tap measure sets insertion point at first note of that measure
+            this._setInsertAtMeasure(mi);
+            return;
           }
           const g=e.target.closest('[data-note-idx]');
           if(g){this.selectedMeasure=null;this.selectedMeasureEnd=null;this.selectNote(parseInt(g.getAttribute('data-note-idx')));}
@@ -2546,9 +2577,12 @@ const Cmp = {
       svg.addEventListener('click',e=>{
         const mg=e.target.closest('[data-measure-idx]');
         if(mg){
-          // Measure selection only works when loop is on
-          if(!this.loopOn)return;
           const mi=parseInt(mg.getAttribute('data-measure-idx'));
+          if(!this.loopOn){
+            // Phase 9G: not in loop mode — tap measure sets insertion point
+            this._setInsertAtMeasure(mi);
+            return;
+          }
           // Range-select:
           //  - No selection → tapped measure becomes start
           //  - Single measure selected, tap same → clear
@@ -2621,6 +2655,35 @@ const Cmp = {
     const eff=(typeof n.acc==='number')?n.acc:keyAcc;
     const midi=(octave+1)*12+semOff+eff;
     return 440*Math.pow(2,(midi-69)/12);
+  },
+
+  // Phase 9G: clean preview tone with shared gain that can be silenced cleanly on next call.
+  // Routes both oscillators through a single GainNode we own, so a 20ms ramp to 0 stops everything.
+  _playPreview(freq){
+    try{
+      const ctx=this._getWAC();
+      if(ctx.state==='suspended')ctx.resume();
+      // Silence previous preview if it's still ringing
+      if(this._prevGain){
+        const tNow=ctx.currentTime;
+        try{
+          this._prevGain.gain.cancelScheduledValues(tNow);
+          this._prevGain.gain.setValueAtTime(this._prevGain.gain.value||0.001,tNow);
+          this._prevGain.gain.exponentialRampToValueAtTime(0.0001,tNow+0.02);
+        }catch(e){}
+      }
+      const t=ctx.currentTime+0.005;
+      const dur=0.4;
+      const osc=ctx.createOscillator();osc.type='triangle';osc.frequency.value=freq;
+      const osc2=ctx.createOscillator();osc2.type='sine';osc2.frequency.value=freq*2;
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.35,t+0.005);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      osc.connect(g);osc2.connect(g);g.connect(ctx.destination);
+      osc.start(t);osc2.start(t);osc.stop(t+dur);osc2.stop(t+dur);
+      this._prevGain=g;
+    }catch(e){}
   },
 
   _playTone(ctx,freq,startTime,durSec){
