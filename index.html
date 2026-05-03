@@ -120,14 +120,14 @@ transform:scale(.96);
 .cmp-ts-btn-text{font-size:13px;font-weight:900;color:rgba(240,230,208,.55);}/* Make Your Own */
 /* — compose step (step 3) — */
 .cmp-topbar{display:flex;align-items:center;justify-content:space-between;padding:5px 14px;background:#10101e;background:var(–surf);border-bottom:1px solid rgba(245,197,24,.22);border-bottom:1px solid var(–gold2);flex-shrink:0;margin-bottom:4px;position:relative;}
-#cmp-s3 .cmp-topbar{justify-content:flex-end;}
+#cmp-s3 .cmp-topbar{justify-content:space-between;gap:10px;margin-bottom:0;padding:6px 12px;}
 .cmp-back-btn{padding:7px 10px;border-radius:8px;border:none;background:transparent;color:rgba(240,230,208,.55);color:var(–dim);font-family:inherit;font-weight:900;font-size:20px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-submit-btn{padding:9px 16px;border-radius:9px;border:none;background:#f5c518;background:var(–gold);color:#111;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
-.cmp-input-area{flex-shrink:0;padding:4px 14px 2px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:10px;align-items:flex-start;box-sizing:border-box;}
-.cmp-input-mid{flex:0 0 130px;display:flex;align-items:center;justify-content:center;padding-top:0;order:1;}
-.cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));width:130px !important;height:170px !important;}
+.cmp-input-area{flex-shrink:0;padding:6px 12px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:8px;align-items:center;box-sizing:border-box;}
+.cmp-input-mid{flex:0 0 50px;display:flex;align-items:center;justify-content:center;padding-top:0;order:1;}
+.cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));width:46px !important;height:60px !important;}
 .cmp-input-left{flex:1;min-width:0;display:grid;order:0;}
 /* Phase 6B fix: stack rhythm-only and pitch-only in same grid cell so the container height
 is locked to the larger of the two contents. Visibility-hidden flip happens via global rule. */
@@ -178,7 +178,9 @@ is locked to the larger of the two contents. Visibility-hidden flip happens via 
 .cmp-triplet-btn.on{border-color:#e8142a;border-color:var(–red);background:rgba(232,20,42,.28);background:var(–red2);}
 .cmp-edit-btn{flex:1;padding:10px 6px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap;}
 .cmp-edit-btn:active{background:rgba(232,20,42,.28);background:var(–red2);border-color:#e8142a;border-color:var(–red);}
-.cmp-tempo-row{display:flex;align-items:center;gap:8px;padding:3px 14px;flex-shrink:0;}
+.cmp-tempo-row{display:flex;align-items:center;gap:6px;padding:5px 12px;flex-shrink:0;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);}
+.cmp-tempo-row .cmp-edit-btn{flex:1 1 0;min-width:0;}
+.cmp-tempo-row .cmp-tempo-disp{flex:0 0 auto;padding:0 6px;}
 .cmp-tempo-btn{flex:1;padding:8px;border-radius:10px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#10101e;background:var(–surf);color:#f0e6d0;color:var(–ink);font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .cmp-tempo-btn:active{background:#e8142a;background:var(–red);border-color:#e8142a;border-color:var(–red);}
 .cmp-tempo-disp{flex:1.6;text-align:center;font-size:15px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.06em;}
@@ -291,7 +293,7 @@ transform-origin:center bottom;font-family:inherit;
 .cmp-mel-placeholder{padding:60px 30px;text-align:center;color:#f0e6d0;font-size:18px;line-height:1.6;letter-spacing:.1em;}
 /* Phase 2 reserve: pitch UI styles (used in s6) */
 .cmp-pitch-row{display:flex;flex-wrap:wrap;gap:5px;}
-.cmp-compose-title{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;text-transform:uppercase;}
+.cmp-compose-title{font-size:14px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.12em;text-transform:uppercase;flex-shrink:0;}
 .cmp-pitch-btn{min-width:38px;padding:8px 4px;border-radius:8px;border:2px solid rgba(240,230,208,.22);border:2px solid var(–dimmer);background:#fff;color:#10101e;font-family:inherit;font-weight:900;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1;}
 .cmp-pitch-btn:active,.cmp-pitch-btn.on{background:#f5c518;color:#10101e;border-color:#f5c518;}
 .cmp-pitch-btn .pb-acc{font-size:11px;opacity:.7;}
@@ -311,7 +313,18 @@ and the staff position cannot shift when toggling tabs. */
 /* Override for mascots — beaver and giraffe both 100x130, so display:none swap is shift-safe */
 #cmp-s3.tab-melody .cmp-input-mid .rhythm-only,
 #cmp-s3.tab-rhythm .cmp-input-mid .pitch-only{display:none !important;}
-.cmp-tabs{display:flex;gap:6px;padding:6px 12px 0;border-top:1px solid rgba(245,197,24,.15);background:#0a0a14;}
+.cmp-tabs{display:flex;gap:6px;padding:0 12px;background:#0a0a14;}
+.cmp-songtitle-inline{flex:1 1 auto;min-width:0;width:auto;padding:8px 12px;font-size:13px;font-weight:600;text-align:center;}
+#cmp-s3 .cmp-input-left > .parts-only{grid-area:1/1;min-width:0;}
+#cmp-s3 .rhythm-only{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
+#cmp-s3 .rhythm-only::-webkit-scrollbar{display:none;}
+#cmp-s3 .rhythm-only .cmp-note-row{flex:0 0 auto;padding-bottom:0;}
+#cmp-s3 .rhythm-only .cmp-triplet-btn{flex:0 0 auto;margin:0;padding:8px 10px;font-size:11px;}
+#cmp-s3 .rhythm-only .cmp-row-divider{flex:0 0 auto;width:1px;align-self:stretch;background:rgba(245,197,24,.18);margin:4px 2px;}
+#cmp-s3 .pitch-only{display:flex;align-items:center;gap:8px;}
+#cmp-s3 .pitch-only .cmp-pitch-row{flex:1 1 auto;min-width:0;}
+#cmp-s3 .pitch-only .cmp-pitchmode-btn{flex:0 0 auto;}
+#cmp-s3 .parts-only{display:flex;align-items:center;gap:8px;}
 .cmp-tab{flex:1;padding:6px 10px;border-radius:7px 7px 0 0;border:2px solid #2a2a3a;border-bottom:none;background:#10101e;color:#888;font-family:inherit;font-weight:900;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s,border-color .15s;}
 #cmp-s3.tab-rhythm .cmp-tab-rhythm{background:linear-gradient(135deg,#003d8a,#0066dd);color:#fff;border-color:#0066dd;}
 #cmp-s3.tab-melody .cmp-tab-melody{background:linear-gradient(135deg,#005c3a,#00d97e);color:#fff;border-color:#00d97e;}
@@ -417,6 +430,7 @@ and the staff position cannot shift when toggling tabs. */
   <div id="cmp-s3" class="cmp-step cmp-active tab-rhythm">
 <div class="cmp-topbar">
 <span class="cmp-compose-title">Compose</span>
+<input class="cinput cmp-songtitle-inline" id="c-title" type="text" placeholder="Song title...">
 <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
 </div>
 
@@ -429,24 +443,18 @@ and the staff position cannot shift when toggling tabs. */
 <div class="cmp-input-area">
 <div class="cmp-input-left">
 <div class="rhythm-only">
-<div class="cmp-input-label">Notes</div>
 <div class="cmp-note-row" id="cmp-note-row"></div>
-<div class="cmp-input-label" style="margin-top:7px">Rests</div>
+<div class="cmp-row-divider"></div>
 <div class="cmp-note-row" id="cmp-rest-row"></div>
-<button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()" style="margin-top:12px">Triplet</button>
+<button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
 </div>
 <div class="pitch-only">
-<div class="cmp-input-label" style="padding-top:18px">Pitches</div>
 <div class="cmp-pitch-row" id="cmp-pitch-row"></div>
-<div style="display:flex;justify-content:flex-start;align-items:center;gap:8px;margin-top:12px">
 <button class="cmp-pitchmode-btn" id="cmp-pitchmode-btn" onclick="Cmp.togglePitchScope()">Diatonic</button>
 </div>
-</div>
 <div class="parts-only">
-<div style="display:flex;gap:8px;padding-top:18px">
 <button class="cmp-pitchmode-btn" onclick="Cmp.addPart()">+ Add Part</button>
 <button class="cmp-pitchmode-btn" onclick="Cmp.removePart()" style="border-color:#e8142a;color:#e8142a;">− Delete Part</button>
-</div>
 </div>
 </div>
 <div class="cmp-input-mid" aria-hidden="true">
@@ -532,25 +540,18 @@ and the staff position cannot shift when toggling tabs. */
 </g>
 </svg>
 </div>
-<div class="cmp-input-right">
-<button class="cmp-edit-btn cmp-stack-btn" id="cmp-slower-btn"
-ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.slower()">🐢 Slower</button>
-<button class="cmp-edit-btn cmp-stack-btn" id="cmp-faster-btn"
-ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.faster()">⚡ Faster</button>
-<button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.undo()">↩ Undo</button>
-<button class="cmp-edit-btn cmp-stack-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
-<button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.save()">💾 Save</button>
-<button class="cmp-edit-btn cmp-stack-btn" onclick="Cmp.openLoadModal()">📂 Load</button>
-</div>
 </div>
 
 <div class="cmp-tempo-row">
+<button class="cmp-edit-btn" id="cmp-slower-btn"
+ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.slower()">🐢 Slower</button>
 <div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 100</div>
-</div>
-
-<div class="cmp-staff-wrap" id="cmp-staff-wrap">
-<div id="cmp-staves-container"></div>
-<svg id="cmp-svg" preserveAspectRatio="none" style="display:none"></svg>
+<button class="cmp-edit-btn" id="cmp-faster-btn"
+ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.faster()">⚡ Faster</button>
+<button class="cmp-edit-btn" onclick="Cmp.undo()">↩ Undo</button>
+<button class="cmp-edit-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
+<button class="cmp-edit-btn" onclick="Cmp.save()">💾 Save</button>
+<button class="cmp-edit-btn" onclick="Cmp.openLoadModal()">📂 Load</button>
 </div>
 
 <div class="cmp-playbar">
@@ -598,9 +599,11 @@ ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.en
 </div>
 </div>
 
-<div class="cmp-title-row">
-<input class="cinput" id="c-title" type="text" placeholder="Song title...">
+<div class="cmp-staff-wrap" id="cmp-staff-wrap">
+<div id="cmp-staves-container"></div>
+<svg id="cmp-svg" preserveAspectRatio="none" style="display:none"></svg>
 </div>
+
 <div class="cmp-saves-modal" id="cmp-saves-modal" onclick="if(event.target===this)Cmp.closeLoadModal()">
 <div class="cmp-saves-content">
 <div class="cmp-saves-hdr">
