@@ -2534,14 +2534,15 @@ const Cmp = {
       phBar.id='cmp-playhead-bar';
       container.appendChild(phBar);
     }
-    // Phase 9G: dynamic staff-wrap height based on number of parts (avoids wasted vertical space at 1 part)
+    // Phase 9G: dynamic staff-wrap height — floor is generous so single-part view is roomy;
+    // grows for additional parts up to most of the viewport.
     const wrap=document.querySelector('.cmp-staff-wrap');
     if(wrap){
       const z=this._zoom||1;
       const partH=108*z+28; // svg + label-row
-      const desired=this.parts.length*partH+12;
-      const cap=Math.max(160,Math.floor(window.innerHeight*0.55));
-      wrap.style.height=Math.min(Math.max(150,desired),cap)+'px';
+      const desired=this.parts.length*partH+24;
+      const cap=Math.max(360,Math.floor(window.innerHeight*0.70));
+      wrap.style.height=Math.min(Math.max(340,desired),cap)+'px';
     }
     // Mirror active part into legacy #cmp-svg so existing playhead/scroll code keeps working
     const svg=svgLegacy;
