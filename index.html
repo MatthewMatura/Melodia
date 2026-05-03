@@ -126,13 +126,13 @@ transform:scale(.96);
 .cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
 .cmp-input-area{flex-shrink:0;padding:4px 14px 2px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:10px;align-items:flex-start;box-sizing:border-box;}
-.cmp-input-left{flex:1;min-width:0;display:grid;}
+.cmp-input-mid{flex:0 0 130px;display:flex;align-items:center;justify-content:center;padding-top:0;order:0;}
+.cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));width:130px !important;height:170px !important;}
+.cmp-input-left{flex:1;min-width:0;display:grid;order:1;}
 /* Phase 6B fix: stack rhythm-only and pitch-only in same grid cell so the container height
 is locked to the larger of the two contents. Visibility-hidden flip happens via global rule. */
 .cmp-input-left > .rhythm-only,
 .cmp-input-left > .pitch-only{grid-area:1/1;min-width:0;}
-.cmp-input-mid{flex:0 0 70px;display:flex;align-items:center;justify-content:center;padding-top:0;}
-.cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));width:70px !important;height:91px !important;}
 .cmp-beaver g{transition:transform 90ms ease-out;transform-box:fill-box;}
 .cmp-beaver .bvr-arm-l{transform-origin:50% 0%;}
 .cmp-beaver .bvr-arm-r{transform-origin:50% 0%;}
@@ -158,8 +158,8 @@ is locked to the larger of the two contents. Visibility-hidden flip happens via 
 @keyframes bvrConductL{0%,100%{transform:rotate(-10deg) translate(0,-3px);}25%{transform:rotate(15deg) translate(-3px,2px);}50%{transform:rotate(-30deg) translate(2px,-6px);}75%{transform:rotate(20deg) translate(-2px,3px);}}
 @keyframes bvrConductR{0%,100%{transform:rotate(10deg) translate(0,-3px);}25%{transform:rotate(-15deg) translate(3px,-6px);}50%{transform:rotate(30deg) translate(-2px,2px);}75%{transform:rotate(-20deg) translate(2px,-4px);}}
 @keyframes bvrConductBody{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
-.cmp-input-right{flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:5px;width:240px;padding-top:4px;align-content:center;}
-.cmp-stack-btn{width:100%;padding:9px 10px;font-size:11px;flex:none !important;}
+.cmp-input-right{flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:64px 64px 36px;gap:5px;width:240px;padding-top:0;align-content:start;order:2;}
+.cmp-stack-btn{width:100%;height:100%;padding:0 10px;font-size:11px;flex:none !important;display:flex;align-items:center;justify-content:center;}
 .cmp-ts-info{margin:8px 16px 24px;padding:14px 16px;background:#10101e;background:var(–surf);border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);border-radius:12px;}
 .cmp-ts-info-hdr{font-size:10px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:#f5c518;color:var(–gold);margin-bottom:9px;}
 .cmp-ts-info-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-top:1px solid rgba(240,230,208,.08);font-size:12px;color:#f0e6d0;color:var(–ink);}
@@ -1664,7 +1664,29 @@ const Cmp = {
       // Selecting puts subsequent addEntry into replace-and-advance mode → "rewrites" from this measure
       this.selectNote(firstIdx);
     } else {
-      // Empty measure or past end — deselect so addEntry appends
+      // Past all notes — pad with rests so next addEntry lands at start of measure mi
+      let totalCum=0; this.notes.forEach(n=>totalCum+=n.dur8);
+      let needed=mi*cap-totalCum;
+      // Make sure totalMeasures is at least mi+1 so the measure exists
+      if(this.totalMeasures<mi+1)this.totalMeasures=mi+1;
+      // Pad in chunks: prefer measure-sized rests, then half/quarter/8th/16th
+      const pickDur=(rem)=>{
+        if(rem>=cap)return{d:1,dot:false,dur8:cap};
+        if(rem>=4)return{d:2,dot:false,dur8:4};
+        if(rem>=3)return{d:4,dot:true,dur8:3};
+        if(rem>=2)return{d:4,dot:false,dur8:2};
+        if(rem>=1.5)return{d:8,dot:true,dur8:1.5};
+        if(rem>=1)return{d:8,dot:false,dur8:1};
+        return{d:16,dot:false,dur8:0.5};
+      };
+      let guard=0;
+      while(needed>0.001&&guard++<200){
+        const r=pickDur(needed);
+        const dur=Math.min(r.dur8,needed);
+        const rOut=(dur===r.dur8)?r:pickDur(dur);
+        this.notes.push({p:'REST',d:rOut.d,dot:rOut.dot,dur8:dur,rest:true,triplet:false,tripletPos:null,tied:false,current:false});
+        needed=parseFloat((needed-dur).toFixed(6));
+      }
       this.deselectNote();
       this.render();
     }
@@ -1729,7 +1751,7 @@ const Cmp = {
     this._buildPitchButtons();
     // Select first non-rest note for cursor
     const firstIdx=this.notes.findIndex(n=>!n.rest);
-    if(firstIdx>=0) this.selectNote(firstIdx);
+    if(firstIdx>=0) this.selectNote(firstIdx,true);
     else this.render();
   },
 
@@ -1848,7 +1870,7 @@ const Cmp = {
       // Advance to next non-rest
       const next=this.notes.findIndex((nn,i)=>i>idx&&!nn.rest);
       if(next>=0){
-        this.selectNote(next);
+        this.selectNote(next,true);
       } else {
         // End reached
         if(this._melodyFlow){
@@ -1857,9 +1879,12 @@ const Cmp = {
           this._selectedIdx=null;
           this.render();
         } else {
-          // Add Melody flow: rhythm is locked — stop here
+          // Phase 9G: Add Melody flow finished — flip to append mode so user can keep adding quarter notes
+          this._melodyFlow=true;
+          this.notes.forEach(nn=>nn.current=false);
+          this._selectedIdx=null;
           this.render();
-          Toast.show({ic:'✓',title:'All notes pitched',sub:'Tap any note on the staff to edit, or Submit.'});
+          Toast.show({ic:'✓',title:'All notes pitched',sub:'Add more if you dare 😈'});
         }
       }
       return;
@@ -2084,14 +2109,16 @@ const Cmp = {
 
   _selectedIdx:null,
 
-  selectNote(idx){
+  selectNote(idx,silent=false){
     if(idx==null||idx<0||idx>=this.notes.length)return;
     this.notes.forEach(n=>n.current=false);
     this.notes[idx].current=true;
     this._selectedIdx=idx;
     // Audio preview of tapped note (pitched, non-rest, with clef set)
+    // Skip when called programmatically (silent=true) — e.g. from setPitch's auto-advance,
+    // so the user only hears the pitch they just assigned, not the next pre-pitched note.
     const _n=this.notes[idx];
-    if(_n&&!_n.rest&&typeof _n.staffPos==='number'&&this._clef){
+    if(!silent&&_n&&!_n.rest&&typeof _n.staffPos==='number'&&this._clef){
       const f=this._pitchToFreq(_n,this._clef,this._keysig);
       this._playPreview(f);
     }
@@ -2129,34 +2156,10 @@ const Cmp = {
     const newDur8=this._dur8(d,dot);
     const diff=parseFloat((newDur8-orig.dur8).toFixed(6));
     if(diff>0.001){
-      // Upsize: walk forward absorbing rests until deficit met; blocked by any non-rest note
-      let need=diff;
-      for(let j=idx+1;j<this.notes.length&&need>0.001;j++){
-        const nj=this.notes[j];
-        if(!nj.rest){
-          Toast.show({ic:'⚠',title:'Too long',sub:'Following note blocks upsize. Pick a shorter value.',type:'e'});
-          return;
-        }
-        if(nj.dur8<=need+0.001){need=parseFloat((need-nj.dur8).toFixed(6));}
-        else{need=0;break;}
-      }
-      if(need>0.001){
-        // Insufficient rests — grow staff only if at tail
-        if(idx+1+this.notes.slice(idx+1).findIndex(n=>!n.rest)===idx+1&&this.notes.slice(idx+1).some(n=>!n.rest)){
-          Toast.show({ic:'⚠',title:'Too long',sub:'Replacement won\u2019t fit. Pick a shorter value or deselect.',type:'e'});
-          return;
-        }
-        while(this._filled()+diff>this._totalCap()+0.001){this.totalMeasures++;}
-      }
-      // Apply: mutate orig, then consume rests
+      // Phase 9G: upsize by simply growing the note in place; subsequent notes shift right in time.
+      // Grow staff (totalMeasures) until everything fits.
+      while(this._filled()+diff>this._totalCap()+0.001){this.totalMeasures++;}
       orig.p=isRest?'REST':pitch;orig.d=d;orig.dot=dot;orig.rest=isRest;orig.tied=false;orig.dur8=newDur8;
-      let remaining=diff;
-      while(remaining>0.001&&idx+1<this.notes.length){
-        const nj=this.notes[idx+1];
-        if(!nj.rest)break;
-        if(nj.dur8<=remaining+0.001){remaining=parseFloat((remaining-nj.dur8).toFixed(6));this.notes.splice(idx+1,1);}
-        else{nj.dur8=parseFloat((nj.dur8-remaining).toFixed(6));const r=this._closestDur(nj.dur8);nj.d=r.d;nj.dot=r.dot;remaining=0;break;}
-      }
       this._advanceSelection(idx);
       this.render();
       return;
@@ -2175,7 +2178,7 @@ const Cmp = {
   _advanceSelection(fromIdx){
     const nextIdx=fromIdx+1;
     if(nextIdx<this.notes.length){
-      this.selectNote(nextIdx);
+      this.selectNote(nextIdx,true);
     } else {
       // At tail — deselect so next addEntry appends rather than replaces
       this.notes.forEach(n=>n.current=false);
@@ -2530,6 +2533,15 @@ const Cmp = {
       phBar=document.createElement('div');
       phBar.id='cmp-playhead-bar';
       container.appendChild(phBar);
+    }
+    // Phase 9G: dynamic staff-wrap height based on number of parts (avoids wasted vertical space at 1 part)
+    const wrap=document.querySelector('.cmp-staff-wrap');
+    if(wrap){
+      const z=this._zoom||1;
+      const partH=108*z+28; // svg + label-row
+      const desired=this.parts.length*partH+12;
+      const cap=Math.max(160,Math.floor(window.innerHeight*0.55));
+      wrap.style.height=Math.min(Math.max(150,desired),cap)+'px';
     }
     // Mirror active part into legacy #cmp-svg so existing playhead/scroll code keeps working
     const svg=svgLegacy;
