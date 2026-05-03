@@ -186,7 +186,7 @@ is locked to the larger of the two contents. Visibility-hidden flip happens via 
 .cmp-staff-wrap{flex-shrink:0;margin:2px 14px;border-radius:10px;background:#0b0b18;border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;height:340px;display:flex;flex-direction:column;align-items:stretch;}
 .cmp-staff-wrap.locked{overflow-x:hidden;touch-action:none;}
 .cmp-part-block{display:flex;flex-direction:column;gap:0;flex-shrink:0;}
-#cmp-staves-container{position:relative;display:flex;flex-direction:column;align-items:stretch;}
+#cmp-staves-container{position:relative;display:flex;flex-direction:column;align-items:stretch;padding:14px 0;}
 .cmp-part-svg #cmp-playhead{display:none;}
 #cmp-playhead-bar{position:absolute;top:0;left:0;width:0;height:100%;pointer-events:none;z-index:5;border-left:2px solid #f5c518;opacity:.95;transform:translateX(68px);}
 #cmp-playhead-bar::before{content:’’;position:absolute;top:6px;left:-6px;width:0;height:0;border-style:solid;border-width:8px 6px 0 6px;border-color:#f5c518 transparent transparent transparent;}
@@ -2540,7 +2540,7 @@ const Cmp = {
     if(wrap){
       const z=this._zoom||1;
       const partH=108*z+28; // svg + label-row
-      const desired=this.parts.length*partH+24;
+      const desired=this.parts.length*partH+28;
       const cap=Math.floor(window.innerHeight*0.70);
       wrap.style.height=Math.min(desired,cap)+'px';
     }
