@@ -126,9 +126,9 @@ transform:scale(.96);
 .cmp-ts-label{font-size:16px;font-weight:900;color:#f5c518;color:var(–gold);letter-spacing:.1em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;}
 /* LAYOUT FIX 1+2: input area above staff, no overlap */
 .cmp-input-area{flex-shrink:0;padding:4px 14px 2px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:10px;align-items:flex-start;box-sizing:border-box;}
-.cmp-input-mid{flex:0 0 130px;display:flex;align-items:center;justify-content:center;padding-top:0;order:0;}
+.cmp-input-mid{flex:0 0 130px;display:flex;align-items:center;justify-content:center;padding-top:0;order:1;}
 .cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));width:130px !important;height:170px !important;}
-.cmp-input-left{flex:1;min-width:0;display:grid;order:1;}
+.cmp-input-left{flex:1;min-width:0;display:grid;order:0;}
 /* Phase 6B fix: stack rhythm-only and pitch-only in same grid cell so the container height
 is locked to the larger of the two contents. Visibility-hidden flip happens via global rule. */
 .cmp-input-left > .rhythm-only,
@@ -158,8 +158,8 @@ is locked to the larger of the two contents. Visibility-hidden flip happens via 
 @keyframes bvrConductL{0%,100%{transform:rotate(-10deg) translate(0,-3px);}25%{transform:rotate(15deg) translate(-3px,2px);}50%{transform:rotate(-30deg) translate(2px,-6px);}75%{transform:rotate(20deg) translate(-2px,3px);}}
 @keyframes bvrConductR{0%,100%{transform:rotate(10deg) translate(0,-3px);}25%{transform:rotate(-15deg) translate(3px,-6px);}50%{transform:rotate(30deg) translate(-2px,2px);}75%{transform:rotate(-20deg) translate(2px,-4px);}}
 @keyframes bvrConductBody{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
-.cmp-input-right{flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:64px 64px 36px;gap:5px;width:240px;padding-top:0;align-content:start;order:2;}
-.cmp-stack-btn{width:100%;height:100%;padding:0 10px;font-size:11px;flex:none !important;display:flex;align-items:center;justify-content:center;}
+.cmp-input-right{flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:5px;width:240px;padding-top:4px;align-content:center;order:2;}
+.cmp-stack-btn{width:100%;padding:9px 10px;font-size:11px;flex:none !important;}
 .cmp-ts-info{margin:8px 16px 24px;padding:14px 16px;background:#10101e;background:var(–surf);border:1px solid rgba(245,197,24,.22);border:1px solid var(–gold2);border-radius:12px;}
 .cmp-ts-info-hdr{font-size:10px;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:#f5c518;color:var(–gold);margin-bottom:9px;}
 .cmp-ts-info-row{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-top:1px solid rgba(240,230,208,.08);font-size:12px;color:#f0e6d0;color:var(–ink);}
