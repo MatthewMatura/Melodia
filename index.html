@@ -128,11 +128,21 @@ transform:scale(.96);
 .cmp-input-area{flex-shrink:0;padding:6px 12px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:8px;align-items:center;box-sizing:border-box;}
 .cmp-input-mid{flex:0 0 50px;display:flex;align-items:center;justify-content:center;padding-top:0;order:1;}
 .cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));width:46px !important;height:60px !important;}
-.cmp-input-left{flex:1;min-width:0;display:grid;order:0;}
-/* Phase 6B fix: stack rhythm-only and pitch-only in same grid cell so the container height
-is locked to the larger of the two contents. Visibility-hidden flip happens via global rule. */
-.cmp-input-left > .rhythm-only,
-.cmp-input-left > .pitch-only{grid-area:1/1;min-width:0;}
+.cmp-input-left{flex:1;min-width:0;display:block;order:0;}
+/* Phase X: replaced grid-stack + visibility:hidden with plain display:none per active tab.
+The cmp-input-left is now a normal block with rhythm/pitch/parts-only as siblings;
+inactive ones use display:none so they truly take no space. */
+#cmp-s3 .cmp-input-left > .rhythm-only,
+#cmp-s3 .cmp-input-left > .pitch-only,
+#cmp-s3 .cmp-input-left > .parts-only{min-width:0;}
+#cmp-s3:not(.tab-rhythm) .cmp-input-left > .rhythm-only{display:none !important;}
+#cmp-s3:not(.tab-melody) .cmp-input-left > .pitch-only{display:none !important;}
+#cmp-s3:not(.tab-parts) .cmp-input-left > .parts-only{display:none !important;}
+#cmp-s3 .rhythm-only.cmp-rhythm-stack{display:flex;flex-direction:column;align-items:stretch;gap:4px;overflow:visible;flex-wrap:nowrap;}
+#cmp-s3 .rhythm-only.cmp-rhythm-stack .cmp-note-row{justify-content:center;flex:0 0 auto;padding-bottom:0;overflow-x:auto;}
+#cmp-s3 .rhythm-only.cmp-rhythm-stack .cmp-mascot-slot{display:flex;align-items:center;justify-content:center;gap:10px;padding:2px 0;flex:0 0 auto;}
+#cmp-s3 .rhythm-only.cmp-rhythm-stack .cmp-mascot-slot svg{width:46px;height:60px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));flex-shrink:0;}
+#cmp-s3 .rhythm-only.cmp-rhythm-stack .cmp-mascot-slot .cmp-triplet-btn{flex:0 0 auto;padding:7px 14px;font-size:11px;}
 .cmp-beaver g{transition:transform 90ms ease-out;transform-box:fill-box;}
 .cmp-beaver .bvr-arm-l{transform-origin:50% 0%;}
 .cmp-beaver .bvr-arm-r{transform-origin:50% 0%;}
@@ -305,8 +315,7 @@ transform-origin:center bottom;font-family:inherit;
 /* Phase 6A: tab system — parallel to pitch-mode, will become the sole driver next phase */
 /* Phase 6B fix: visibility instead of display so hidden elements keep their layout slot
 and the staff position cannot shift when toggling tabs. */
-#cmp-s3.tab-melody .rhythm-only{visibility:hidden !important;pointer-events:none !important;}
-#cmp-s3.tab-rhythm .pitch-only{visibility:hidden !important;pointer-events:none !important;}
+/* tab visibility now driven by display:none on inactive sections (above). */
 /* Override for topbar swaps (labels, Add Melody/Add Rhythm buttons) — clean swap, equal sizes */
 #cmp-s3.tab-melody .cmp-topbar .rhythm-only,
 #cmp-s3.tab-rhythm .cmp-topbar .pitch-only{display:none !important;}
@@ -323,17 +332,13 @@ and the staff position cannot shift when toggling tabs. */
 #cmp-s3 .rhythm-only .cmp-nbtn{padding:5px 4px 4px;min-width:34px;border-radius:8px;}
 #cmp-s3 .rhythm-only .cmp-nbtn svg{width:24px;height:24px;}
 #cmp-s3 .rhythm-only .cmp-nbtn-lbl{font-size:7px;}
-.cmp-rhythm-stack{display:flex !important;flex-direction:column !important;gap:4px !important;align-items:stretch !important;overflow-x:visible !important;flex-wrap:nowrap !important;}
-.cmp-rhythm-stack .cmp-mascot-slot{display:flex;align-items:center;justify-content:center;gap:10px;padding:2px 0;}
-.cmp-rhythm-stack .cmp-mascot-slot svg{width:46px !important;height:60px !important;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));flex-shrink:0;}
-.cmp-rhythm-stack .cmp-mascot-slot .cmp-triplet-btn{flex:0 0 auto;padding:7px 14px;font-size:11px;}
-.cmp-rhythm-stack .cmp-note-row{justify-content:center;}
+/* superseded by #cmp-s3 .rhythm-only.cmp-rhythm-stack rules above */
 .cmp-staff-spacer{height:14px;flex-shrink:0;}
 .cmp-zoom-btn .cmp-meas-ic{display:inline-block;width:14px;height:9px;border:1.5px solid currentColor;border-radius:1px;vertical-align:-1px;position:relative;}
 .cmp-zoom-btn .cmp-meas-ic.add::after{content:’+’;position:absolute;top:-9px;right:-7px;font-size:11px;line-height:1;font-weight:900;color:currentColor;}
 .cmp-zoom-btn .cmp-meas-ic.rem::after{content:‘−’;position:absolute;top:-9px;right:-7px;font-size:11px;line-height:1;font-weight:900;color:currentColor;}
 .cmp-songtitle-inline{flex:1 1 auto;min-width:0;width:auto;padding:8px 12px;font-size:13px;font-weight:600;text-align:center;}
-#cmp-s3 .cmp-input-left > .parts-only{grid-area:1/1;min-width:0;}
+#cmp-s3 .cmp-input-left > .parts-only{min-width:0;}
 #cmp-s3 .rhythm-only{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
 #cmp-s3 .rhythm-only::-webkit-scrollbar{display:none;}
 #cmp-s3 .rhythm-only .cmp-note-row{flex:0 0 auto;padding-bottom:0;}
@@ -347,11 +352,10 @@ and the staff position cannot shift when toggling tabs. */
 #cmp-s3.tab-rhythm .cmp-tab-rhythm{background:linear-gradient(135deg,#003d8a,#0066dd);color:#fff;border-color:#0066dd;}
 #cmp-s3.tab-melody .cmp-tab-melody{background:linear-gradient(135deg,#005c3a,#00d97e);color:#fff;border-color:#00d97e;}
 #cmp-s3.tab-parts .cmp-tab-parts{background:linear-gradient(135deg,#4a148c,#9c27b0);color:#fff;border-color:#9c27b0;}
-#cmp-s3.tab-parts .rhythm-only,#cmp-s3.tab-parts .pitch-only{visibility:hidden !important;pointer-events:none !important;}
-#cmp-s3:not(.tab-parts) .parts-only{visibility:hidden !important;pointer-events:none !important;}
+/* obsolete grid-area / visibility rules removed */
 #cmp-s3.tab-parts .cmp-topbar .rhythm-only,#cmp-s3.tab-parts .cmp-topbar .pitch-only{display:none !important;}
 #cmp-s3.tab-parts .cmp-input-mid .rhythm-only,#cmp-s3.tab-parts .cmp-input-mid .pitch-only{display:none !important;}
-.cmp-input-left > .parts-only{grid-area:1/1;min-width:0;}
+.cmp-input-left > .parts-only{min-width:0;}
 .cmp-parts-list{display:flex;flex-direction:column;gap:5px;max-height:140px;overflow-y:auto;}
 .cmp-part-row{padding:8px 12px;border-radius:7px;border:2px solid rgba(240,230,208,.22);background:#10101e;color:#f0e6d0;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:left;}
 .cmp-part-row.active{border-color:#9c27b0;background:rgba(156,39,176,.18);color:#fff;}
