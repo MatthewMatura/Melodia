@@ -313,7 +313,25 @@ and the staff position cannot shift when toggling tabs. */
 /* Override for mascots — beaver and giraffe both 100x130, so display:none swap is shift-safe */
 #cmp-s3.tab-melody .cmp-input-mid .rhythm-only,
 #cmp-s3.tab-rhythm .cmp-input-mid .pitch-only{display:none !important;}
-.cmp-tabs{display:flex;gap:6px;padding:0 12px;background:#0a0a14;}
+.cmp-tabs{display:flex;gap:6px;padding:0 12px;background:#10101e;}
+.cmp-hdr-actions{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.cmp-hdr-btn{flex:0 0 auto !important;padding:7px 9px !important;font-size:11px !important;}
+.cmp-topbar .cmp-input-mid{flex:0 0 auto;padding:0;width:auto;order:0;}
+.cmp-topbar .cmp-input-mid svg{width:26px !important;height:34px !important;}
+.cmp-tempo-row .cmp-triplet-btn{flex:0 0 auto;}
+#cmp-s3 .cmp-songtitle-inline{flex:1 1 auto;min-width:0;width:auto;max-width:240px;padding:6px 10px;font-size:12px;}
+#cmp-s3 .rhythm-only .cmp-nbtn{padding:5px 4px 4px;min-width:34px;border-radius:8px;}
+#cmp-s3 .rhythm-only .cmp-nbtn svg{width:24px;height:24px;}
+#cmp-s3 .rhythm-only .cmp-nbtn-lbl{font-size:7px;}
+.cmp-rhythm-stack{display:flex !important;flex-direction:column !important;gap:4px !important;align-items:stretch !important;overflow-x:visible !important;flex-wrap:nowrap !important;}
+.cmp-rhythm-stack .cmp-mascot-slot{display:flex;align-items:center;justify-content:center;gap:10px;padding:2px 0;}
+.cmp-rhythm-stack .cmp-mascot-slot svg{width:46px !important;height:60px !important;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));flex-shrink:0;}
+.cmp-rhythm-stack .cmp-mascot-slot .cmp-triplet-btn{flex:0 0 auto;padding:7px 14px;font-size:11px;}
+.cmp-rhythm-stack .cmp-note-row{justify-content:center;}
+.cmp-staff-spacer{height:14px;flex-shrink:0;}
+.cmp-zoom-btn .cmp-meas-ic{display:inline-block;width:14px;height:9px;border:1.5px solid currentColor;border-radius:1px;vertical-align:-1px;position:relative;}
+.cmp-zoom-btn .cmp-meas-ic.add::after{content:’+’;position:absolute;top:-9px;right:-7px;font-size:11px;line-height:1;font-weight:900;color:currentColor;}
+.cmp-zoom-btn .cmp-meas-ic.rem::after{content:‘−’;position:absolute;top:-9px;right:-7px;font-size:11px;line-height:1;font-weight:900;color:currentColor;}
 .cmp-songtitle-inline{flex:1 1 auto;min-width:0;width:auto;padding:8px 12px;font-size:13px;font-weight:600;text-align:center;}
 #cmp-s3 .cmp-input-left > .parts-only{grid-area:1/1;min-width:0;}
 #cmp-s3 .rhythm-only{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
@@ -431,7 +449,13 @@ and the staff position cannot shift when toggling tabs. */
 <div class="cmp-topbar">
 <span class="cmp-compose-title">Compose</span>
 <input class="cinput cmp-songtitle-inline" id="c-title" type="text" placeholder="Song title...">
+<div class="cmp-hdr-actions">
+<button class="cmp-edit-btn cmp-hdr-btn" onclick="Cmp.undo()">↩ Undo</button>
+<button class="cmp-edit-btn cmp-hdr-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
+<button class="cmp-edit-btn cmp-hdr-btn" onclick="Cmp.save()">💾 Save</button>
+<button class="cmp-edit-btn cmp-hdr-btn" onclick="Cmp.openLoadModal()">📂 Load</button>
 <button class="cmp-submit-btn" onclick="Cmp.submit()">Submit 📤</button>
+</div>
 </div>
 
 <div class="cmp-tabs" role="tablist">
@@ -442,23 +466,10 @@ and the staff position cannot shift when toggling tabs. */
 
 <div class="cmp-input-area">
 <div class="cmp-input-left">
-<div class="rhythm-only">
+<div class="rhythm-only cmp-rhythm-stack">
 <div class="cmp-note-row" id="cmp-note-row"></div>
-<div class="cmp-row-divider"></div>
-<div class="cmp-note-row" id="cmp-rest-row"></div>
-<button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
-</div>
-<div class="pitch-only">
-<div class="cmp-pitch-row" id="cmp-pitch-row"></div>
-<button class="cmp-pitchmode-btn" id="cmp-pitchmode-btn" onclick="Cmp.togglePitchScope()">Diatonic</button>
-</div>
-<div class="parts-only">
-<button class="cmp-pitchmode-btn" onclick="Cmp.addPart()">+ Add Part</button>
-<button class="cmp-pitchmode-btn" onclick="Cmp.removePart()" style="border-color:#e8142a;color:#e8142a;">− Delete Part</button>
-</div>
-</div>
-<div class="cmp-input-mid" aria-hidden="true">
-<svg class="cmp-beaver rhythm-only" viewBox="0 0 100 130" width="100" height="130" xmlns="http://www.w3.org/2000/svg">
+<div class="cmp-mascot-slot">
+<svg class="cmp-beaver" viewBox="0 0 100 130" width="54" height="70" xmlns="http://www.w3.org/2000/svg">
 <circle cx="50" cy="65" r="55" fill="#f5c518" opacity="0.06"/>
 <ellipse cx="22" cy="100" rx="9" ry="17" fill="#5a3a1f" transform="rotate(-25 22 100)"/>
 <ellipse cx="22" cy="100" rx="6" ry="13" fill="#3d2410" opacity="0.4" transform="rotate(-25 22 100)"/>
@@ -502,77 +513,17 @@ and the staff position cannot shift when toggling tabs. */
 <path d="M 44 57 Q 50 60 56 57" stroke="#3d2410" stroke-width="1" fill="none" stroke-linecap="round"/>
 </g>
 </svg>
-<svg class="cmp-giraffe pitch-only" viewBox="0 0 100 130" width="100" height="130" xmlns="http://www.w3.org/2000/svg">
-<circle cx="50" cy="65" r="55" fill="#f5c518" opacity="0.06"/>
-<ellipse cx="50" cy="120" rx="22" ry="4" fill="#000" opacity="0.25"/>
-<g class="gir-leg-bf"><rect x="51" y="92" width="7" height="28" fill="#b88842" rx="2"/></g>
-<g class="gir-leg-ff"><rect x="40" y="86" width="7" height="22" fill="#b88842" rx="2" transform="rotate(-22 43.5 97)"/></g>
-<g class="gir-leg-b"><rect x="56" y="92" width="7" height="28" fill="#d4a256" rx="2"/></g>
-<g class="gir-leg-f"><rect x="36" y="86" width="7" height="22" fill="#d4a256" rx="2" transform="rotate(-25 39.5 97)"/></g>
-<g class="gir-body">
-<ellipse cx="50" cy="92" rx="22" ry="14" fill="#d4a256"/>
-<ellipse cx="50" cy="94" rx="14" ry="9" fill="#e8b870"/>
-<circle cx="42" cy="88" r="2.4" fill="#8b6332"/>
-<circle cx="55" cy="86" r="2" fill="#8b6332"/>
-<circle cx="60" cy="94" r="2.6" fill="#8b6332"/>
-<circle cx="44" cy="98" r="2" fill="#8b6332"/>
-</g>
-<g class="gir-neck" style="transform-box:fill-box;transform-origin:50% 100%;">
-<rect x="46" y="42" width="9" height="42" fill="#d4a256" rx="3"/>
-<circle cx="50.5" cy="50" r="2" fill="#8b6332"/>
-<circle cx="50.5" cy="62" r="2" fill="#8b6332"/>
-<circle cx="50.5" cy="74" r="2" fill="#8b6332"/>
-</g>
-<g class="gir-head">
-<ellipse cx="51" cy="36" rx="11" ry="8" fill="#d4a256"/>
-<rect x="46" y="24" width="2.2" height="6" fill="#8b6332" rx="1"/><circle cx="47.1" cy="23" r="2" fill="#5a3a1f"/>
-<rect x="54" y="24" width="2.2" height="6" fill="#8b6332" rx="1"/><circle cx="55.1" cy="23" r="2" fill="#5a3a1f"/>
-<rect x="40" y="30" width="22" height="3.5" fill="#e8142a"/>
-<path d="M 40 32 Q 32 30 28 36" stroke="#e8142a" stroke-width="2" fill="none" stroke-linecap="round"/>
-<ellipse cx="46" cy="36" rx="2" ry="2.4" fill="#fffbf0"/>
-<ellipse cx="56" cy="36" rx="2" ry="2.4" fill="#fffbf0"/>
-<circle cx="46" cy="36.5" r="1.3" fill="#1a1a2e"/>
-<circle cx="56" cy="36.5" r="1.3" fill="#1a1a2e"/>
-<ellipse cx="51" cy="40" rx="5" ry="2.5" fill="#e8b870"/>
-<path d="M 48 41.5 Q 51 43 54 41.5" stroke="#3d2410" stroke-width="0.9" fill="none" stroke-linecap="round"/>
-<ellipse cx="40" cy="32" rx="3" ry="2" fill="#d4a256" transform="rotate(-30 40 32)"/>
-<ellipse cx="62" cy="32" rx="3" ry="2" fill="#d4a256" transform="rotate(30 62 32)"/>
-</g>
-</svg>
+<button class="cmp-triplet-btn" id="cmp-triplet-btn" onclick="Cmp.toggleTriplet()">Triplet</button>
 </div>
+<div class="cmp-note-row" id="cmp-rest-row"></div>
 </div>
-
-<div class="cmp-tempo-row">
-<button class="cmp-edit-btn" id="cmp-slower-btn"
-ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.slower()">🐢 Slower</button>
-<div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 100</div>
-<button class="cmp-edit-btn" id="cmp-faster-btn"
-ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.faster()">⚡ Faster</button>
-<button class="cmp-edit-btn" onclick="Cmp.undo()">↩ Undo</button>
-<button class="cmp-edit-btn" style="color:#e8142a;border-color:rgba(232,20,42,.4)" onclick="Cmp.nuke()">💣 Nuke</button>
-<button class="cmp-edit-btn" onclick="Cmp.save()">💾 Save</button>
-<button class="cmp-edit-btn" onclick="Cmp.openLoadModal()">📂 Load</button>
+<div class="pitch-only">
+<div class="cmp-pitch-row" id="cmp-pitch-row"></div>
+<button class="cmp-pitchmode-btn" id="cmp-pitchmode-btn" onclick="Cmp.togglePitchScope()">Diatonic</button>
 </div>
-
-<div class="cmp-playbar">
-<div class="cmp-playbar-left">
-<button class="cmp-surprise-btn" onclick="Cmp.surprise()">🎲 Surprise</button>
-<button class="cmp-surprise-btn" id="cmp-loop-btn" onclick="Cmp.toggleLoop()">🔁 Loop</button>
-<button class="cmp-surprise-btn" id="cmp-repeat-btn" onclick="Cmp.toggleRepeat()">𝄇 Repeat</button>
-<button class="cmp-zoom-btn" onclick="Cmp.zoomOut()" title="Zoom out">🔍−</button>
-<button class="cmp-zoom-btn" onclick="Cmp.zoomIn()" title="Zoom in">🔍+</button>
-<button class="cmp-zoom-btn" onclick="Cmp.removeMeasure()" title="Remove last measure">−M</button>
-<button class="cmp-zoom-btn" onclick="Cmp.addMeasure()" title="Add measure">+M</button>
-</div>
-<div class="cmp-playbar-center">
-<button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
-<button class="cmp-play-btn" onclick="Cmp.pause()" title="Pause">⏸</button>
-<button class="cmp-play-btn" onclick="Cmp.stop()" title="Stop">⏹</button>
-</div>
-<div class="cmp-playbar-right">
-<button class="cmp-play-btn" id="cmp-counting-btn" onclick="Cmp.toggleCounting()" title="Counting" aria-label="Counting">🔢</button>
-<button class="cmp-play-btn" id="cmp-metro-btn" onclick="Cmp.toggleMetronome()" title="Metronome during playback" aria-label="Metronome">⏱</button>
-<button class="cmp-play-btn" id="cmp-drum-btn" onclick="Cmp.toggleDrum()" title="Drum beat during playback" aria-label="Drum beat">🥁</button>
+<div class="parts-only">
+<button class="cmp-pitchmode-btn" onclick="Cmp.addPart()">+ Add Part</button>
+<button class="cmp-pitchmode-btn" onclick="Cmp.removePart()" style="border-color:#e8142a;color:#e8142a;">− Delete Part</button>
 <select class="cmp-tone-sel" id="cmp-tone" onchange="Cmp.setTone(this.value)" title="Tone" aria-label="Tone">
 <optgroup label="Instruments">
 <option value="piano" selected>Piano</option>
@@ -598,6 +549,38 @@ ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.en
 </select>
 </div>
 </div>
+
+<div class="cmp-tempo-row">
+<button class="cmp-edit-btn" id="cmp-slower-btn"
+ontouchstart="Cmp.startHold(-1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.slower()">🐢 Slower</button>
+<div class="cmp-tempo-disp" id="cmp-tempo-disp">♩ = 100</div>
+<button class="cmp-edit-btn" id="cmp-faster-btn"
+ontouchstart="Cmp.startHold(1)" ontouchend="Cmp.endHold()" ontouchcancel="Cmp.endHold()" onclick="Cmp.faster()">⚡ Faster</button>
+</div>
+
+<div class="cmp-playbar">
+<div class="cmp-playbar-left">
+<button class="cmp-surprise-btn" onclick="Cmp.surprise()">🎲 Surprise</button>
+<button class="cmp-surprise-btn" id="cmp-loop-btn" onclick="Cmp.toggleLoop()">🔁 Loop</button>
+<button class="cmp-surprise-btn" id="cmp-repeat-btn" onclick="Cmp.toggleRepeat()">𝄇 Repeat</button>
+<button class="cmp-zoom-btn" onclick="Cmp.zoomOut()" title="Zoom out">🔍−</button>
+<button class="cmp-zoom-btn" onclick="Cmp.zoomIn()" title="Zoom in">🔍+</button>
+<button class="cmp-zoom-btn" onclick="Cmp.removeMeasure()" title="Remove last measure" aria-label="Remove last measure"><span class="cmp-meas-ic rem"></span></button>
+<button class="cmp-zoom-btn" onclick="Cmp.addMeasure()" title="Add measure" aria-label="Add measure"><span class="cmp-meas-ic add"></span></button>
+</div>
+<div class="cmp-playbar-center">
+<button class="cmp-play-btn" id="cmp-play-btn" onclick="Cmp.play()" title="Play">▶</button>
+<button class="cmp-play-btn" onclick="Cmp.pause()" title="Pause">⏸</button>
+<button class="cmp-play-btn" onclick="Cmp.stop()" title="Stop">⏹</button>
+</div>
+<div class="cmp-playbar-right">
+<button class="cmp-play-btn" id="cmp-counting-btn" onclick="Cmp.toggleCounting()" title="Counting" aria-label="Counting">🔢</button>
+<button class="cmp-play-btn" id="cmp-metro-btn" onclick="Cmp.toggleMetronome()" title="Metronome during playback" aria-label="Metronome">⏱</button>
+<button class="cmp-play-btn" id="cmp-drum-btn" onclick="Cmp.toggleDrum()" title="Drum beat during playback" aria-label="Drum beat">🥁</button>
+</div>
+</div>
+
+<div class="cmp-staff-spacer"></div>
 
 <div class="cmp-staff-wrap" id="cmp-staff-wrap">
 <div id="cmp-staves-container"></div>
@@ -741,8 +724,8 @@ const Toast = {
   _active: [],
   show({ic='🎵',title='',sub='',type='',cat=''}){
     // Phase 5: Mascot speech-bubble mode. Toasts only show when a mascot is on-screen.
-    let mascot=document.querySelector('.cmp-input-mid .cmp-beaver');
-    if(!mascot||mascot.offsetParent===null) mascot=document.querySelector('.cmp-input-mid .cmp-giraffe');
+    let mascot=document.querySelector('.cmp-mascot-slot .cmp-beaver');
+    if(!mascot||mascot.offsetParent===null) mascot=document.querySelector('.cmp-mascot-slot .cmp-giraffe');
     if(!mascot||mascot.offsetParent===null) mascot=document.querySelector('.cmp-conductor .cmp-beaver');
     if(!mascot||mascot.offsetParent===null){return;}
     // Replacement rule: a new toast removes ALL existing toasts EXCEPT in the
@@ -3081,7 +3064,7 @@ const Cmp = {
         // Beaver pose: pick most recent scheduled pose for current elapsed
         const bs=this._bvrSchedule;
         if(bs&&bs.length){
-          const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
+          const bvr=document.querySelector('.cmp-mascot-slot .cmp-beaver');
           if(bvr){
             let bi=-1;
             for(let k=0;k<bs.length;k++){if(bs[k].t<=elapsed)bi=k;else break;}
@@ -3097,7 +3080,7 @@ const Cmp = {
         // Neck rect is 42px tall with transform-origin at bottom, so head delta = 42*(1 - scaleY).
         const gs=this._girSchedule;
         if(gs&&gs.length){
-          const giraffe=document.querySelector('.cmp-input-mid .cmp-giraffe');
+          const giraffe=document.querySelector('.cmp-mascot-slot .cmp-giraffe');
           const neck=giraffe?.querySelector('.gir-neck');
           const head=giraffe?.querySelector('.gir-head');
           if(neck){
@@ -3526,9 +3509,9 @@ const Cmp = {
   _onPlayEnd(){
     this.playing=false;this._wPaused=false;this._repeatPass=0;
     if(this._wRAF){cancelAnimationFrame(this._wRAF);this._wRAF=null;}
-    const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
+    const bvr=document.querySelector('.cmp-mascot-slot .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
-    const giraffe=document.querySelector('.cmp-input-mid .cmp-giraffe');
+    const giraffe=document.querySelector('.cmp-mascot-slot .cmp-giraffe');
     if(giraffe){giraffe.classList.remove('gp-bounce','gp-twist','gp-kick','gp-hop');this._girLastPose=null;}
     const neck=giraffe?.querySelector('.gir-neck');
     if(neck){neck.style.transform='';this._girLastSY=null;}
@@ -3562,9 +3545,9 @@ const Cmp = {
     this._wScrollTimers?.forEach(id=>clearTimeout(id));this._wScrollTimers=[];
     this._wMetPulseTimers?.forEach(id=>clearTimeout(id));this._wMetPulseTimers=[];
     this._repeatPass=0;
-    const bvr=document.querySelector('.cmp-input-mid .cmp-beaver');
+    const bvr=document.querySelector('.cmp-mascot-slot .cmp-beaver');
     if(bvr){bvr.classList.remove('p-punch','p-kick','p-block','p-chamber');this._bvrLastPose='';}
-    const giraffe=document.querySelector('.cmp-input-mid .cmp-giraffe');
+    const giraffe=document.querySelector('.cmp-mascot-slot .cmp-giraffe');
     if(giraffe){giraffe.classList.remove('gp-bounce','gp-twist','gp-kick','gp-hop');this._girLastPose=null;}
     const neck=giraffe?.querySelector('.gir-neck');
     if(neck){neck.style.transform='';this._girLastSY=null;}
