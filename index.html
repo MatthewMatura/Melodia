@@ -1341,9 +1341,13 @@ const Cmp = {
         configurable:true
       });
     }
-    this._buildTimeSigs();
-    this._buildNoteButtons();
-    this._buildCircle();
+    try{this._buildTimeSigs();}catch(e){document.title='ERR ts:'+e.message;}
+    try{this._buildNoteButtons();}catch(e){
+      document.title='ERR nb:'+e.message;
+      const nr=document.getElementById('cmp-note-row');
+      if(nr)nr.innerHTML='<div style="color:#fff;padding:10px;font-size:11px;">_buildNoteButtons error: '+e.message+'</div>';
+    }
+    try{this._buildCircle();}catch(e){document.title='ERR bc:'+e.message;}
     // iOS Safari doesn't re-layout SVG text on font-swap — rebuild buttons once Bravura loads
     if(document.fonts?.ready) document.fonts.ready.then(()=>this._buildNoteButtons());
 
