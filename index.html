@@ -128,13 +128,10 @@ transform:scale(.96);
 .cmp-input-area{flex-shrink:0;padding:6px 12px;background:#0d0d1a;border-bottom:1px solid rgba(245,197,24,.1);display:flex;gap:8px;align-items:stretch;box-sizing:border-box;min-height:60px;}
 .cmp-input-mid{flex:0 0 50px;display:flex;align-items:center;justify-content:center;padding-top:0;order:1;}
 .cmp-input-mid svg{display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));width:46px !important;height:60px !important;}
-.cmp-input-left{flex:1;min-width:0;display:block;order:0;}
-/* Phase X: replaced grid-stack + visibility:hidden with plain display:none per active tab.
-The cmp-input-left is now a normal block with rhythm/pitch/parts-only as siblings;
-inactive ones use display:none so they truly take no space. */
+.cmp-input-left{flex:1;min-width:0;display:flex;flex-direction:column;order:0;width:100%;}
 #cmp-s3 .cmp-input-left > .rhythm-only,
 #cmp-s3 .cmp-input-left > .pitch-only,
-#cmp-s3 .cmp-input-left > .parts-only{min-width:0;}
+#cmp-s3 .cmp-input-left > .parts-only{min-width:0;width:100%;flex:1 1 auto;}
 #cmp-s3:not(.tab-rhythm) .cmp-input-left > .rhythm-only{display:none !important;}
 #cmp-s3:not(.tab-melody) .cmp-input-left > .pitch-only{display:none !important;}
 #cmp-s3:not(.tab-parts) .cmp-input-left > .parts-only{display:none !important;}
