@@ -1348,6 +1348,50 @@ const Cmp = {
       if(nr)nr.innerHTML='<div style="color:#fff;padding:10px;font-size:11px;">_buildNoteButtons error: '+e.message+'</div>';
     }
     try{this._buildCircle();}catch(e){document.title='ERR bc:'+e.message;}
+    // DEBUG PANEL
+    setTimeout(()=>{
+      const s3=document.getElementById('cmp-s3');
+      const nr=document.getElementById('cmp-note-row');
+      const ro=document.querySelector('.rhythm-only');
+      const ia=document.querySelector('.cmp-input-area');
+      const cs=window.getComputedStyle;
+      const dbg=document.createElement('div');
+      dbg.id='cmp-debug';
+      dbg.style.cssText='position:fixed;top:60px;left:8px;right:8px;z-index:99999;background:#fff;color:#000;font:11px monospace;padding:8px;border:2px solid red;max-height:50vh;overflow:auto;white-space:pre-wrap;';
+      const lines=[];
+      lines.push('s3.class: '+(s3?.className||'NULL'));
+      lines.push('nr.children: '+(nr?nr.children.length:'NULL'));
+      lines.push('nr.innerHTML.len: '+(nr?nr.innerHTML.length:'NULL'));
+      if(nr&&nr.firstElementChild){
+        const fc=nr.firstElementChild;
+        const fcs=cs(fc);
+        const fr=fc.getBoundingClientRect();
+        lines.push('first-btn.tag: '+fc.tagName);
+        lines.push('first-btn.display: '+fcs.display);
+        lines.push('first-btn.W x H: '+fr.width.toFixed(1)+' x '+fr.height.toFixed(1));
+        lines.push('first-btn.bg: '+fcs.backgroundColor);
+        lines.push('first-btn.color: '+fcs.color);
+      }
+      if(nr){
+        const rs=cs(nr);
+        const rr=nr.getBoundingClientRect();
+        lines.push('nr.display: '+rs.display);
+        lines.push('nr.W x H: '+rr.width.toFixed(1)+' x '+rr.height.toFixed(1));
+      }
+      if(ro){
+        const ros=cs(ro);
+        const rr=ro.getBoundingClientRect();
+        lines.push('rhythm-only.display: '+ros.display+' visibility:'+ros.visibility);
+        lines.push('rhythm-only.W x H: '+rr.width.toFixed(1)+' x '+rr.height.toFixed(1));
+      }
+      if(ia){
+        const ir=ia.getBoundingClientRect();
+        lines.push('input-area.W x H: '+ir.width.toFixed(1)+' x '+ir.height.toFixed(1));
+      }
+      dbg.textContent=lines.join('\n')+'\n[tap to dismiss]';
+      dbg.onclick=()=>dbg.remove();
+      document.body.appendChild(dbg);
+    },300);
     // iOS Safari doesn't re-layout SVG text on font-swap — rebuild buttons once Bravura loads
     if(document.fonts?.ready) document.fonts.ready.then(()=>this._buildNoteButtons());
 
