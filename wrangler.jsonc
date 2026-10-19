@@ -1,0 +1,6 @@
+{
+  // melodia: static site only — everything in public/ is served as-is (no worker code).
+  "name": "melodia",
+  "compatibility_date": "2026-09-01",
+  "assets": { "directory": "./public" }
+}
