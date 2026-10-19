@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#06060f">
-<title>Practice Buddies 🥋</title>
+<title>Mojo Studios</title>
 <style>
 /* ===== RESET ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -15044,7 +15044,7 @@ window.MOJO_EYEWEAR_ART={
 
   const navO=Cmp.navTo.bind(Cmp); Cmp.navTo=function(d){if(d!=='shop')this._clearPreview&&this._clearPreview();navO(d);this._dressMascots();if(d==='me')this._renderMojoCloset();if(d==='learn')this._renderLearnReviewCard&&this._renderLearnReviewCard();};
   window.APP_VERSION='2026.07.09 · 0900';
-  try{ const _vs=document.getElementById('app-version-stamp'); if(_vs)_vs.textContent='Mojo Studio · v'+window.APP_VERSION; }catch(e){}
+  try{ const _vs=document.getElementById('app-version-stamp'); if(_vs)_vs.textContent='Mojo Studios · v'+window.APP_VERSION; }catch(e){}
   const meO=Cmp.renderMe.bind(Cmp); Cmp.renderMe=function(){meO();this._renderBank();this._renderMojoCloset();};
   try{Cmp._renderLearnReviewCard&&Cmp._renderLearnReviewCard();}catch(e){}
   if(Cmp.setTab){const tabO=Cmp.setTab.bind(Cmp); Cmp.setTab=function(t){tabO(t);this._dressMascots();};}
@@ -15225,7 +15225,7 @@ window.MOJO_EYEWEAR_ART={
       const flags=this._flags(); const reasons=this._flagReasons(); const m=this._byId();
       const lbl={note:'Wrong note',rhythm:'Wrong rhythm',key:'Wrong key',tempo:'Wrong tempo',length:'Wrong length',other:'Other'};
       const sorted=flags.slice().sort((a,b)=>((reasons[b]&&reasons[b].ts)||0)-((reasons[a]&&reasons[a].ts)||0));
-      let out=`MOJO STUDIO — FLAGGED SONGS (${flags.length})\nExported ${new Date().toLocaleString()}\n`;
+      let out=`MOJO STUDIOS — FLAGGED SONGS (${flags.length})\nExported ${new Date().toLocaleString()}\n`;
       sorted.forEach((id,i)=>{
         const s=m[id]; const r=reasons[id]||{};
         const issues=(r.reasons||[]).map(x=>lbl[x]||x).join(', ')||'(none specified)';

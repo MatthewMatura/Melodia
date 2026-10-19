@@ -1,4 +1,4 @@
-/* Mojo Studio — Play song library. Loaded by index.html as <script src="songs.js">. Add/edit songs in THIS file. */
+/* Mojo Studios — Play song library. Loaded by index.html as <script src="songs.js">. Add/edit songs in THIS file. */
 /* ===== Play library: pre-built melodies that load into the compose engine in play mode ===== */
 window.SONG_LIBRARY=(function(){
   const C={name:'C',acc:0,type:'#'};
