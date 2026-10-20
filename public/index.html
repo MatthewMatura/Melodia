@@ -12570,7 +12570,70 @@ window.MOJO_EYEWEAR_ART={
    get sleeves so the arms are covered too. */
 (function(){
   const wrap=(m,t)=>{ if(!m)return; Object.keys(m).forEach(k=>{ if(typeof m[k]==='string'&&m[k].indexOf('data-fit')<0) m[k]=`<g data-fit="1" transform="${t}">${m[k]}</g>`; }); };
-  wrap(window.MOJO_SHOE_ART,'translate(50 0) scale(1.24 1) translate(-50 0)');
+  /* Shoes: redrawn as proper side-view shoes. Each is drawn facing right around x=0 and
+     placed on both feet (left foot mirrored), sized to cover Mojo's feet (cx 35/65, y 110-123). */
+  (function(){
+    const OA=window.MOJO_SHOE_ART; if(!OA)return;
+    const sw=(d,w)=>`stroke="${d}" stroke-width="${w||0.9}" stroke-linejoin="round"`;
+    const ST={
+      sneaker:(c,d)=>`<path d="M-11.5 119.6 Q-12.5 111 -7 108.6 Q-2.5 107.2 0.5 109.5 Q4 113.5 9.5 114.6 Q15 115.8 15 119.6 Z" fill="${c}" ${sw(d)}/>`
+        +`<path d="M8 114.4 Q14.6 115.6 15 119.6 L9.4 119.6 Q9 116.6 8 114.4 Z" fill="#fff" opacity=".3"/>`
+        +`<path d="M-11.8 114 Q-12.6 110 -9.6 108.6 L-8.2 114.4 Z" fill="${d}"/>`
+        +`<path d="M-9 117.4 Q-1 118.6 7 114.8" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".9"/>`
+        +`<path d="M0 110.3 l3.4 -1.3 M1.9 111.9 l3.4 -1.3 M3.8 113.4 l3.4 -1.3" stroke="#fff" stroke-width=".9" stroke-linecap="round"/>`
+        +`<path d="M-12.5 119.4 Q-13 123 -9 123 L12 123 Q15.6 123 15.2 119.4 Z" fill="#f4f4f6" stroke="#9aa0ab" stroke-width=".8"/>`
+        +`<path d="M-12.2 121.3 L14.8 121.3" stroke="#c9ccd4" stroke-width=".7"/>`,
+      boot:(c,d,o)=>{o=o||{};return `<path d="M-11 120 L-11 101 Q-11 99.2 -9 99.2 L2 99.2 Q3.8 99.2 3.8 101 L4 110.5 Q11 111.5 14 115 Q15.4 117 15.2 120 Z" fill="${c}" ${sw(d)}/>`
+        +`<rect x="-11.4" y="98.8" width="15.6" height="3.4" rx="1.2" fill="${o.cuff||d}"/>`
+        +`<path d="M-2 104 h4.6 M-2 106.8 h4.6 M-2 109.6 h4.6" stroke="${o.lace||'#f2e6c9'}" stroke-width=".9" stroke-linecap="round"/>`
+        +`<path d="M6 112.6 Q11 113.6 13.2 117" stroke="${d}" stroke-width=".6" fill="none" stroke-dasharray="1.2 1"/>`
+        +`<path d="M-11.6 120 L-11.6 123 L14.4 123 Q15.6 123 15.3 120 Z" fill="${o.sole||'#2a1d14'}"/>`
+        +(o.lug?`<path d="M-11 123 l1.5 1 1.5 -1 1.5 1 1.5 -1 1.5 1 1.5 -1 1.5 1 1.5 -1 1.5 1 1.5 -1 1.5 1 1.5 -1 1.5 1 1.5 -1 1.5 1 1.5 -1 1.5 1 1.5 -1" stroke="${o.sole||'#2a1d14'}" stroke-width="1.1" fill="none"/>`:'');},
+      heel:(c,d)=>`<path d="M-11 113.6 L-8.4 113.9 L-9.3 123 L-10.7 123 Z" fill="${d}"/>`
+        +`<path d="M-11.2 113.6 Q-10.2 110.4 -7.4 111.4 Q-2 115.4 4 116.4 Q8 113.4 11.2 114.4 Q15.8 116 15.3 121 Q9 121.8 4 120.6 Q-3 114.8 -11.2 113.6 Z" fill="${c}" ${sw(d)}/>`
+        +`<path d="M4 120.6 Q9 121.8 15.3 121 L15.2 122.4 Q9 123.2 3.6 121.8 Z" fill="${d}"/>`
+        +`<path d="M9 115.6 Q12.5 115.4 14 117.6" stroke="#fff" stroke-width=".9" fill="none" opacity=".45" stroke-linecap="round"/>`,
+      flat:(c,d,o)=>{o=o||{};return `<path d="M-12 121.4 Q-12.8 115.2 -8 114.4 Q-1 117.4 6 115.6 Q14.6 114.2 15.2 121.2 Z" fill="${c}" ${sw(d)}/>`
+        +`<path d="M-12.2 121.2 Q-12.4 123 -9 123 L12.4 123 Q15.4 123 15.3 121.1 Z" fill="${d}"/>`
+        +(o.ribbon?`<path d="M-3 116.6 L-9 103 M1 116.2 L-3 103" stroke="${c}" stroke-width="1.3" stroke-linecap="round"/><path d="M-9 103 L-3 103" stroke="${d}" stroke-width=".7"/>`
+                  :`<path d="M5.6 115.2 l-3 -2 0 4 z M5.6 115.2 l3 -2 0 4 z" fill="${d}"/><circle cx="5.6" cy="115.2" r=".9" fill="#fff" opacity=".7"/>`);},
+      sandal:(c,d)=>`<path d="M-12.6 120.6 Q-13 123 -9.6 123 L12.6 123 Q15.6 123 15.2 120.6 Z" fill="#c99a5e" stroke="#8a6236" stroke-width=".8"/>`
+        +`<path d="M-10.6 120.4 Q-10 113.8 -4.6 112.8" stroke="${c}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+        +`<path d="M-1.6 120.4 Q0.6 113.8 5.4 115 Q9.6 116.2 10 120.4" stroke="${c}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+        +`<rect x="-6.4" y="111.6" width="2.6" height="2.4" rx=".5" fill="#e3b94e" stroke="${d}" stroke-width=".5"/>`,
+      flip:(c,d)=>`<path d="M-12.6 121 Q-13 123 -9.6 123 L12.6 123 Q15.6 123 15.2 121 Z" fill="${c}" ${sw(d,.8)}/>`
+        +`<path d="M-7 121 Q0 113.6 8.4 120.8" stroke="${d}" stroke-width="2" fill="none" stroke-linecap="round"/>`
+        +`<path d="M-7 121 Q0 113.6 8.4 120.8" stroke="#fff" stroke-width=".7" fill="none" opacity=".5"/>`,
+      sock:(c)=>`<path d="M-10.6 120.4 L-10.6 99 L3.8 99 L4 110 Q11 111 14 114.6 Q16.2 118.2 13.2 122.2 Q8 123.6 -6 123 Q-10.6 123 -10.6 120.4 Z" fill="#f4f4f6" stroke="#c3c7d0" stroke-width=".9"/>`
+        +`<rect x="-10.6" y="100.6" width="14.4" height="1.9" fill="${c}"/><rect x="-10.6" y="104.2" width="14.4" height="1.9" fill="${c}"/>`
+        +`<path d="M9.6 112.6 Q15.4 115 13.4 122 Q11 122.8 9 122.8 Q11.6 117 9.6 112.6 Z" fill="${c}" opacity=".85"/>`
+        +`<path d="M-10.6 118 Q-6.6 117.6 -6 123 L-8 123 Q-10.6 123 -10.6 120.4 Z" fill="${c}" opacity=".85"/>`,
+      loafer:(c,d)=>`<path d="M-11.6 120.5 Q-12.6 113.4 -7.6 112.6 Q-1 114 4 112.6 Q12 112.2 15 117.2 Q15.6 119.6 15.2 120.5 Z" fill="${c}" ${sw(d)}/>`
+        +`<path d="M0.4 114.4 Q5 112.8 9.6 114.4" stroke="${d}" stroke-width="1.6" fill="none"/>`
+        +`<path d="M4 114.2 L6 114.2" stroke="#e3b94e" stroke-width="1" stroke-linecap="round"/>`
+        +`<path d="M5 113.6 Q11.6 113.4 14 117" stroke="#fff" stroke-width=".8" fill="none" opacity=".35"/>`
+        +`<path d="M-12 120.4 L-12 123 L14.6 123 Q15.6 123 15.2 120.4 Z" fill="#2a1d14"/>`,
+      skate:(c,d)=>ST.boot(c,d,{cuff:'#c8ccd6',lace:'#9599a4',sole:'#c8ccd6'})
+        +`<rect x="-8.6" y="122.6" width="1.6" height="2.4" fill="#9599a4"/><rect x="9" y="122.6" width="1.6" height="2.4" fill="#9599a4"/>`
+        +`<path d="M-12.6 125.2 L15.4 125.2 Q18.4 125.2 18 122.6" stroke="#b9c0cc" stroke-width="1.5" fill="none" stroke-linecap="round"/>`,
+      ski:(c,d)=>`<path d="M-10 121 L-10 102.6 Q-10 101 -8 101 L3 101 L5 111 Q12 112 13.6 116 L13.6 121 Z" fill="#3a3a44" stroke="#1f1f27" stroke-width=".9"/>`
+        +`<rect x="-10.4" y="104.4" width="14.6" height="2.2" rx=".8" fill="${c}"/><rect x="-10.4" y="109.6" width="15.6" height="2.2" rx=".8" fill="${c}"/>`
+        +`<path d="M-15 124.6 L18 124.6 Q21.6 124.6 22.6 120.8 L21.2 121 Q20.4 123 18 123 L-15 123 Z" fill="${c}" ${sw(d,.8)}/>`
+        +`<rect x="-10.6" y="121" width="24.6" height="2" fill="#1f1f27"/>`
+    };
+    ST.hiker=(c,d)=>ST.boot(c,d,{cuff:'#e8933a',lace:'#e8933a',sole:'#3a3a44',lug:true});
+    const pair=one=>`<g class="mojo-shoes" style="pointer-events:none"><g transform="translate(35 0) scale(-1 1)">${one}</g><g transform="translate(65 0)">${one}</g></g>`;
+    const ORIG={o_sneak:['sneaker','#e0524a','#a83229'],o_heels:['heel','#e0524a','#a83229'],o_boots:['boot','#9c6b3f','#6e4a29'],o_hike:['hiker','#b8823c','#6e4a29'],
+      o_flip:['flip','#4aa3e0','#2f6f9e'],o_sock:['sock','#e0524a','#a83229'],o_loaf:['loafer','#7a4a25','#3d2410'],o_sandal:['sandal','#9c6b3f','#6e4a29'],
+      o_skate:['skate','#f4f4f6','#9599a4'],o_flat:['flat','#e0524a','#a83229'],o_ballet:['ballet','#f3b6cc','#c25f88'],o_ski:['ski','#4aa3e0','#2f6f9e']};
+    ST.ballet=(c,d)=>ST.flat(c,d,{ribbon:true});
+    const PAL=[['#e0524a','#a83229'],['#4aa3e0','#2f6f9e'],['#4caf6a','#2f7d49'],['#8e6fc0','#5f479a'],['#e88bb0','#c25f88'],['#e8933a','#b0621f'],['#e3b94e','#a8842a'],['#3ec0a8','#2a8c7a'],['#3a3a44','#1f1f27'],['#eef0f5','#9599a4']];
+    Object.keys(OA).forEach(id=>{
+      let st,c,d; const o=ORIG[id], m=/^go_([a-z]+)_(\d+)$/.exec(id);
+      if(o){[st,c,d]=o;} else if(m){ st=m[1]; [c,d]=PAL[+m[2]%PAL.length]; } else return;
+      if(!ST[st])return; OA[id]=pair(ST[st](c,d));
+    });
+  })();
   wrap(window.MOJO_HELD_ART,'translate(1.3 -4)');
   const CA=window.MOJO_COSTUME_ART; if(!CA)return;
   const SUIT='M28 61 Q28 56 50 56 Q72 56 72 61 L75 102';
@@ -12757,8 +12820,8 @@ window.MOJO_EYEWEAR_ART={
       if(it.slot==='onesie') art=this._onesieSVG?this._onesieSVG(id,it.e):null;
       else { const m={hat:window.MOJO_HAT_ART,neck:window.MOJO_NECK_ART,shoes:window.MOJO_SHOE_ART,shirt:window.MOJO_SHIRT_ART,pants:window.MOJO_PANTS_ART,glasses:window.MOJO_EYEWEAR_ART,held:window.MOJO_HELD_ART,face:window.MOJO_FACE_ART}[it.slot]; art=m&&m[id]; if(!art&&it.slot==='hat')art=this._emojiHat(it.e,id,W.SLOTS.hat); }
       if(!art) return `<span class="mojo-thumb-e" style="font-size:${Math.round(size*0.6)}px;line-height:1">${it.e}</span>`;
-      const vb={hat:'19 -5 62 42',neck:'30 48 40 40',shirt:'12 50 76 64',pants:'22 88 56 32',shoes:'14 104 72 22',glasses:'27 32 46 24',held:'69 18 32 38',face:'30 36 40 26'}[it.slot]||'8 4 84 122';
-      const behind = it.slot==='onesie' ? (this._beaverInner||'') : `<g opacity="0.2" fill="#8b7565"><ellipse cx="35" cy="116" rx="11.5" ry="6.5"/><ellipse cx="65" cy="116" rx="11.5" ry="6.5"/><rect x="30" y="95" width="15" height="19" rx="6.5"/><rect x="55" y="95" width="15" height="19" rx="6.5"/><path d="M26 64 Q50 53 74 64 Q77 73 71 85 Q66 97 62 105 L38 105 Q34 97 29 85 Q23 73 26 64 Z"/><path d="M65 61.5 Q75 54 85 63 Q89 71.5 81 75.5 Q72 75 65.5 70 Z"/><path d="M35 61.5 Q25 54 15 63 Q11 71.5 19 75.5 Q28 75 34.5 70 Z"/><rect x="76.5" y="53" width="9.5" height="20" rx="4.7"/><rect x="14" y="53" width="9.5" height="20" rx="4.7"/><circle cx="81.3" cy="50" r="7"/><circle cx="18.7" cy="50" r="7"/><path d="M28 40 Q28 18 50 18 Q72 18 72 40 Q72 58 50 61 Q28 58 28 40 Z"/></g>`;
+      const vb={hat:'19 -5 62 42',neck:'30 48 40 40',shirt:'12 50 76 64',pants:'22 88 56 32',shoes:'49.6 96 37 30',glasses:'27 32 46 24',held:'69 18 32 38',face:'30 36 40 26'}[it.slot]||'8 4 84 122';
+      const behind = it.slot==='shoes' ? '' : it.slot==='onesie' ? (this._beaverInner||'') : `<g opacity="0.2" fill="#8b7565"><ellipse cx="35" cy="116" rx="11.5" ry="6.5"/><ellipse cx="65" cy="116" rx="11.5" ry="6.5"/><rect x="30" y="95" width="15" height="19" rx="6.5"/><rect x="55" y="95" width="15" height="19" rx="6.5"/><path d="M26 64 Q50 53 74 64 Q77 73 71 85 Q66 97 62 105 L38 105 Q34 97 29 85 Q23 73 26 64 Z"/><path d="M65 61.5 Q75 54 85 63 Q89 71.5 81 75.5 Q72 75 65.5 70 Z"/><path d="M35 61.5 Q25 54 15 63 Q11 71.5 19 75.5 Q28 75 34.5 70 Z"/><rect x="76.5" y="53" width="9.5" height="20" rx="4.7"/><rect x="14" y="53" width="9.5" height="20" rx="4.7"/><circle cx="81.3" cy="50" r="7"/><circle cx="18.7" cy="50" r="7"/><path d="M28 40 Q28 18 50 18 Q72 18 72 40 Q72 58 50 61 Q28 58 28 40 Z"/></g>`;
       return `<svg class="mojo-thumb-svg" viewBox="${vb}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${behind}${art}</svg>`;
     },
     buyMojo(id){
